@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "bsp_driver_sd.h": "c",
+        "fatfs_platform.h": "c"
+    }
+}
