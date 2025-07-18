@@ -1,10 +1,8 @@
 #include "STM32F4_SPIComms.h"
 
-/*
-
 volatile DMA_RxBuffer_t rxDMABuffer;
 
-STM32H7_SPIComms::STM32H7_SPIComms(volatile rxData_t* _ptrRxData, volatile txData_t* _ptrTxData, std::string _mosiPortAndPin, std::string _misoPortAndPin, std::string _clkPortAndPin, std::string _csPortAndPin) :
+STM32F4_SPIComms::STM32F4_SPIComms(volatile rxData_t* _ptrRxData, volatile txData_t* _ptrTxData, std::string _mosiPortAndPin, std::string _misoPortAndPin, std::string _clkPortAndPin, std::string _csPortAndPin) :
 	ptrRxData(_ptrRxData),
 	ptrTxData(_ptrTxData),
     mosiPortAndPin(_mosiPortAndPin),
@@ -12,25 +10,25 @@ STM32H7_SPIComms::STM32H7_SPIComms(volatile rxData_t* _ptrRxData, volatile txDat
 	clkPortAndPin(_clkPortAndPin),
     csPortAndPin(_csPortAndPin)
 {
-    ptrRxDMABuffer = &rxDMABuffer;
+    // ptrRxDMABuffer = &rxDMABuffer;
 
-    irqNss = SPI_CS_IRQ;
-    irqDMAtx = DMA1_Stream0_IRQn;
-    irqDMArx = DMA1_Stream1_IRQn;
+    // irqNss = SPI_CS_IRQ;
+    // irqDMAtx = DMA1_Stream0_IRQn;
+    // irqDMArx = DMA1_Stream1_IRQn;
 
-    mosiPinName = portAndPinToPinName(mosiPortAndPin.c_str());
-    misoPinName = portAndPinToPinName(misoPortAndPin.c_str());
-    clkPinName = portAndPinToPinName(clkPortAndPin.c_str());
-    csPinName = portAndPinToPinName(csPortAndPin.c_str());
+    // mosiPinName = portAndPinToPinName(mosiPortAndPin.c_str());
+    // misoPinName = portAndPinToPinName(misoPortAndPin.c_str());
+    // clkPinName = portAndPinToPinName(clkPortAndPin.c_str());
+    // csPinName = portAndPinToPinName(csPortAndPin.c_str());
 
-    spiHandle.Instance = (SPI_TypeDef* )getSPIPeripheralName(mosiPinName, misoPinName, clkPinName);
+    // spiHandle.Instance = (SPI_TypeDef* )getSPIPeripheralName(mosiPinName, misoPinName, clkPinName);
 }
 
 
-STM32H7_SPIComms::~STM32H7_SPIComms() {
+STM32F4_SPIComms::~STM32F4_SPIComms() {
 }
 
-SPIName STM32H7_SPIComms::getSPIPeripheralName(PinName mosi, PinName miso, PinName sclk)
+SPIName STM32F4_SPIComms::getSPIPeripheralName(PinName mosi, PinName miso, PinName sclk)
 {
     SPIName spi_mosi = (SPIName)pinmap_peripheral(mosi, PinMap_SPI_MOSI);
     SPIName spi_miso = (SPIName)pinmap_peripheral(miso, PinMap_SPI_MISO);
@@ -51,444 +49,467 @@ SPIName STM32H7_SPIComms::getSPIPeripheralName(PinName mosi, PinName miso, PinNa
     return spi_per;
 }
 
-void STM32H7_SPIComms::init() {
+void STM32F4_SPIComms::init() {
 
-    // Configure the NSS (chip select) piin as interrupt
-    csPin = new Pin(csPortAndPin, GPIO_MODE_IT_RISING, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW, 0);
-    delete csPin;
 
-    // Create alternate function SPI pins
-    mosiPin = createPin(mosiPortAndPin, mosiPinName, PinMap_SPI_MOSI);
-    misoPin = createPin(misoPortAndPin, misoPinName, PinMap_SPI_MISO);
-    clkPin  = createPin(clkPortAndPin,  clkPinName,  PinMap_SPI_SCLK);
-    csPin   = createPin(csPortAndPin,   csPinName,   PinMap_SPI_SSEL);
+    // our init from F4 CubeMX to check against commented out code
+    /*
+    spi_handle.Instance = SPI1;
+    spi_handle.Init.Mode = SPI_MODE_MASTER;
+    spi_handle.Init.Direction = SPI_DIRECTION_2LINES;
+    spi_handle.Init.DataSize = SPI_DATASIZE_8BIT;
+    spi_handle.Init.CLKPolarity = SPI_POLARITY_LOW;
+    spi_handle.Init.CLKPhase = SPI_PHASE_1EDGE;
+    spi_handle.Init.NSS = SPI_NSS_SOFT;
+    spi_handle.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+    spi_handle.Init.FirstBit = SPI_FIRSTBIT_MSB;
+    spi_handle.Init.TIMode = SPI_TIMODE_DISABLE;
+    spi_handle.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+    spi_handle.Init.CRCPolynomial = 10;
 
-    spiHandle.Init.Mode           			= SPI_MODE_SLAVE;
-    spiHandle.Init.Direction      			= SPI_DIRECTION_2LINES;
-    spiHandle.Init.DataSize       			= SPI_DATASIZE_8BIT;
-    spiHandle.Init.CLKPolarity    			= SPI_POLARITY_LOW;
-    spiHandle.Init.CLKPhase       			= SPI_PHASE_1EDGE;
-    spiHandle.Init.NSS            			= SPI_NSS_HARD_INPUT;
-    spiHandle.Init.FirstBit       			= SPI_FIRSTBIT_MSB;
-    spiHandle.Init.TIMode         			= SPI_TIMODE_DISABLE;
-    spiHandle.Init.CRCCalculation 			= SPI_CRCCALCULATION_DISABLE;
-    spiHandle.Init.CRCPolynomial  			= 0x0;
-    spiHandle.Init.NSSPMode 				= SPI_NSS_PULSE_DISABLE;
-    spiHandle.Init.NSSPolarity 				= SPI_NSS_POLARITY_LOW;
-    spiHandle.Init.FifoThreshold 			= SPI_FIFO_THRESHOLD_01DATA;
-    spiHandle.Init.TxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
-    spiHandle.Init.RxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
-    spiHandle.Init.MasterSSIdleness 		= SPI_MASTER_SS_IDLENESS_00CYCLE;
-    spiHandle.Init.MasterInterDataIdleness 	= SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
-    spiHandle.Init.MasterReceiverAutoSusp 	= SPI_MASTER_RX_AUTOSUSP_DISABLE;
-    spiHandle.Init.MasterKeepIOState 		= SPI_MASTER_KEEP_IO_STATE_DISABLE;
-    spiHandle.Init.IOSwap 					= SPI_IO_SWAP_DISABLE;
-
-    printf("Initialising SPI slave\n");
-    HAL_SPI_Init(&this->spiHandle);
-    enableSPIClock(spiHandle.Instance);
-
-    if (spiHandle.Instance == SPI1)
+    if (HAL_SPI_Init(&spi_handle) != HAL_OK)
     {
-        printf("Initialising SPI1 DMA\n");
-        initDMA(DMA_REQUEST_SPI1_TX, DMA_REQUEST_SPI1_RX);
+      Error_Handler();
     }
-    else if (spiHandle.Instance == SPI2)
-    {
-        printf("Initialising SPI2 DMA\n");
-        initDMA(DMA_REQUEST_SPI2_TX, DMA_REQUEST_SPI2_RX);
-    }
-    else if (spiHandle.Instance == SPI3)
-    {
-        printf("Initialising SPI3 DMA\n");
-        initDMA(DMA_REQUEST_SPI3_TX, DMA_REQUEST_SPI3_RX);
-    }
-    else if (spiHandle.Instance == SPI4)
-    {
-        printf("Initialising SPI4 DMA\n");
-        initDMA(DMA_REQUEST_SPI4_TX, DMA_REQUEST_SPI4_RX);
-    }
-    else
-    {
-        printf("Unknown SPI instance\n");
-        return;
-    }
+    */
 
-    printf("Initialising DMA for Memory to Memory transfer\n");
 
-    hdma_memtomem.Instance 					= DMA1_Stream2;
-    hdma_memtomem.Init.Request 				= DMA_REQUEST_MEM2MEM;
-    hdma_memtomem.Init.Direction 			= DMA_MEMORY_TO_MEMORY;
-    hdma_memtomem.Init.PeriphInc 			= DMA_PINC_ENABLE;
-    hdma_memtomem.Init.MemInc 				= DMA_MINC_ENABLE;
-    hdma_memtomem.Init.PeriphDataAlignment 	= DMA_PDATAALIGN_BYTE;
-    hdma_memtomem.Init.MemDataAlignment 	= DMA_MDATAALIGN_BYTE;
-    hdma_memtomem.Init.Mode 				= DMA_NORMAL;
-    hdma_memtomem.Init.Priority 			= DMA_PRIORITY_LOW;
-    hdma_memtomem.Init.FIFOMode 			= DMA_FIFOMODE_ENABLE;
-    hdma_memtomem.Init.FIFOThreshold 		= DMA_FIFO_THRESHOLD_FULL;
-    hdma_memtomem.Init.MemBurst 			= DMA_MBURST_SINGLE;
-    hdma_memtomem.Init.PeriphBurst 			= DMA_PBURST_SINGLE;
+    // // Configure the NSS (chip select) piin as interrupt
+    // csPin = new Pin(csPortAndPin, GPIO_MODE_IT_RISING, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW, 0);
+    // delete csPin;
 
-    HAL_DMA_Init(&hdma_memtomem);
+    // // Create alternate function SPI pins
+    // mosiPin = createPin(mosiPortAndPin, mosiPinName, PinMap_SPI_MOSI);
+    // misoPin = createPin(misoPortAndPin, misoPinName, PinMap_SPI_MISO);
+    // clkPin  = createPin(clkPortAndPin,  clkPinName,  PinMap_SPI_SCLK);
+    // csPin   = createPin(csPortAndPin,   csPinName,   PinMap_SPI_SSEL);
+
+    // spiHandle.Init.Mode           			= SPI_MODE_SLAVE;
+    // spiHandle.Init.Direction      			= SPI_DIRECTION_2LINES;
+    // spiHandle.Init.DataSize       			= SPI_DATASIZE_8BIT;
+    // spiHandle.Init.CLKPolarity    			= SPI_POLARITY_LOW;
+    // spiHandle.Init.CLKPhase       			= SPI_PHASE_1EDGE;
+    // spiHandle.Init.NSS            			= SPI_NSS_HARD_INPUT;
+    // spiHandle.Init.FirstBit       			= SPI_FIRSTBIT_MSB;
+    // spiHandle.Init.TIMode         			= SPI_TIMODE_DISABLE;
+    // spiHandle.Init.CRCCalculation 			= SPI_CRCCALCULATION_DISABLE;
+    // spiHandle.Init.CRCPolynomial  			= 0x0;
+    // spiHandle.Init.NSSPMode 				= SPI_NSS_PULSE_DISABLE;
+    // spiHandle.Init.NSSPolarity 				= SPI_NSS_POLARITY_LOW;
+    // spiHandle.Init.FifoThreshold 			= SPI_FIFO_THRESHOLD_01DATA;
+    // spiHandle.Init.TxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+    // spiHandle.Init.RxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+    // spiHandle.Init.MasterSSIdleness 		= SPI_MASTER_SS_IDLENESS_00CYCLE;
+    // spiHandle.Init.MasterInterDataIdleness 	= SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
+    // spiHandle.Init.MasterReceiverAutoSusp 	= SPI_MASTER_RX_AUTOSUSP_DISABLE;
+    // spiHandle.Init.MasterKeepIOState 		= SPI_MASTER_KEEP_IO_STATE_DISABLE;
+    // spiHandle.Init.IOSwap 					= SPI_IO_SWAP_DISABLE;
+
+    // printf("Initialising SPI slave\n");
+    // HAL_SPI_Init(&this->spiHandle);
+    // enableSPIClock(spiHandle.Instance);
+
+    // if (spiHandle.Instance == SPI1)
+    // {
+    //     printf("Initialising SPI1 DMA\n");
+    //     initDMA(DMA_REQUEST_SPI1_TX, DMA_REQUEST_SPI1_RX);
+    // }
+    // else if (spiHandle.Instance == SPI2)
+    // {
+    //     printf("Initialising SPI2 DMA\n");
+    //     initDMA(DMA_REQUEST_SPI2_TX, DMA_REQUEST_SPI2_RX);
+    // }
+    // else if (spiHandle.Instance == SPI3)
+    // {
+    //     printf("Initialising SPI3 DMA\n");
+    //     initDMA(DMA_REQUEST_SPI3_TX, DMA_REQUEST_SPI3_RX);
+    // }
+    // else if (spiHandle.Instance == SPI4)
+    // {
+    //     printf("Initialising SPI4 DMA\n");
+    //     initDMA(DMA_REQUEST_SPI4_TX, DMA_REQUEST_SPI4_RX);
+    // }
+    // else
+    // {
+    //     printf("Unknown SPI instance\n");
+    //     return;
+    // }
+
+    // printf("Initialising DMA for Memory to Memory transfer\n");
+
+    // hdma_memtomem.Instance 					= DMA1_Stream2;
+    // hdma_memtomem.Init.Request 				= DMA_REQUEST_MEM2MEM;
+    // hdma_memtomem.Init.Direction 			= DMA_MEMORY_TO_MEMORY;
+    // hdma_memtomem.Init.PeriphInc 			= DMA_PINC_ENABLE;
+    // hdma_memtomem.Init.MemInc 				= DMA_MINC_ENABLE;
+    // hdma_memtomem.Init.PeriphDataAlignment 	= DMA_PDATAALIGN_BYTE;
+    // hdma_memtomem.Init.MemDataAlignment 	= DMA_MDATAALIGN_BYTE;
+    // hdma_memtomem.Init.Mode 				= DMA_NORMAL;
+    // hdma_memtomem.Init.Priority 			= DMA_PRIORITY_LOW;
+    // hdma_memtomem.Init.FIFOMode 			= DMA_FIFOMODE_ENABLE;
+    // hdma_memtomem.Init.FIFOThreshold 		= DMA_FIFO_THRESHOLD_FULL;
+    // hdma_memtomem.Init.MemBurst 			= DMA_MBURST_SINGLE;
+    // hdma_memtomem.Init.PeriphBurst 			= DMA_PBURST_SINGLE;
+
+    // HAL_DMA_Init(&hdma_memtomem);
 }
 
-Pin* STM32H7_SPIComms::createPin(const std::string& portAndPin, PinName pinName, const PinMap* map) {
+Pin* STM32F4_SPIComms::createPin(const std::string& portAndPin, PinName pinName, const PinMap* map) {
     uint32_t function = STM_PIN_AFNUM(pinmap_function(pinName, map));
     return new Pin(portAndPin, GPIO_MODE_AF_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW, function);
 }
 
-void STM32H7_SPIComms::enableSPIClock(SPI_TypeDef* instance) {
+void STM32F4_SPIComms::enableSPIClock(SPI_TypeDef* instance) {
     if (instance == SPI1) __HAL_RCC_SPI1_CLK_ENABLE();
     else if (instance == SPI2) __HAL_RCC_SPI2_CLK_ENABLE();
     else if (instance == SPI3) __HAL_RCC_SPI3_CLK_ENABLE();
     else if (instance == SPI4) __HAL_RCC_SPI4_CLK_ENABLE();
 }
 
-void STM32H7_SPIComms::initDMA(uint32_t txRequest, uint32_t rxRequest) {
-    // TX
-    hdma_spi_tx.Instance = DMA1_Stream0;
-    hdma_spi_tx.Init.Request = txRequest;
-    hdma_spi_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
-    hdma_spi_tx.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_spi_tx.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_spi_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    hdma_spi_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_spi_tx.Init.Mode = DMA_CIRCULAR;
-    hdma_spi_tx.Init.Priority = DMA_PRIORITY_LOW;
-    hdma_spi_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+void STM32F4_SPIComms::initDMA(uint32_t txRequest, uint32_t rxRequest) {
+    // // TX
+    // hdma_spi_tx.Instance = DMA1_Stream0;
+    // hdma_spi_tx.Init.Request = txRequest;
+    // hdma_spi_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    // hdma_spi_tx.Init.PeriphInc = DMA_PINC_DISABLE;
+    // hdma_spi_tx.Init.MemInc = DMA_MINC_ENABLE;
+    // hdma_spi_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    // hdma_spi_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    // hdma_spi_tx.Init.Mode = DMA_CIRCULAR;
+    // hdma_spi_tx.Init.Priority = DMA_PRIORITY_LOW;
+    // hdma_spi_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 
-    HAL_DMA_Init(&hdma_spi_tx);
-    __HAL_LINKDMA(&spiHandle, hdmatx, hdma_spi_tx);
+    // HAL_DMA_Init(&hdma_spi_tx);
+    // __HAL_LINKDMA(&spiHandle, hdmatx, hdma_spi_tx);
 
-    // RX
-    hdma_spi_rx.Instance = DMA1_Stream1;
-    hdma_spi_rx.Init.Request = rxRequest;
-    hdma_spi_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
-    hdma_spi_rx.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_spi_rx.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_spi_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    hdma_spi_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_spi_rx.Init.Mode = DMA_CIRCULAR;
-    hdma_spi_rx.Init.Priority = DMA_PRIORITY_LOW;
-    hdma_spi_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    // // RX
+    // hdma_spi_rx.Instance = DMA1_Stream1;
+    // hdma_spi_rx.Init.Request = rxRequest;
+    // hdma_spi_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    // hdma_spi_rx.Init.PeriphInc = DMA_PINC_DISABLE;
+    // hdma_spi_rx.Init.MemInc = DMA_MINC_ENABLE;
+    // hdma_spi_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    // hdma_spi_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    // hdma_spi_rx.Init.Mode = DMA_CIRCULAR;
+    // hdma_spi_rx.Init.Priority = DMA_PRIORITY_LOW;
+    // hdma_spi_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 
-    HAL_DMA_Init(&hdma_spi_rx);
-    __HAL_LINKDMA(&spiHandle, hdmarx, hdma_spi_rx);
+    // HAL_DMA_Init(&hdma_spi_rx);
+    // __HAL_LINKDMA(&spiHandle, hdmarx, hdma_spi_rx);
 }
 
-void STM32H7_SPIComms::start() {
-    // Register the NSS (slave select) interrupt
-    NssInterrupt = new ModuleInterrupt<STM32H7_SPIComms>(
-        irqNss,
-        this,
-        &STM32H7_SPIComms::handleNssInterrupt
-    );
-    HAL_NVIC_SetPriority(irqNss, Config::spiNssIrqPriority, 0);
-    HAL_NVIC_EnableIRQ(irqNss);
+void STM32F4_SPIComms::start() {
+    // // Register the NSS (slave select) interrupt
+    // NssInterrupt = new ModuleInterrupt<STM32H7_SPIComms>(
+    //     irqNss,
+    //     this,
+    //     &STM32H7_SPIComms::handleNssInterrupt
+    // );
+    // HAL_NVIC_SetPriority(irqNss, Config::spiNssIrqPriority, 0);
+    // HAL_NVIC_EnableIRQ(irqNss);
 
-    // Register the DMA Rx interrupt
-    dmaRxInterrupt = new ModuleInterrupt<STM32H7_SPIComms>(
-        irqDMArx,
-        this,
-        &STM32H7_SPIComms::handleRxInterrupt
-    );
-    HAL_NVIC_SetPriority(irqDMArx, Config::spiDmaRxIrqPriority, 0);
-    HAL_NVIC_EnableIRQ(irqDMArx);
+    // // Register the DMA Rx interrupt
+    // dmaRxInterrupt = new ModuleInterrupt<STM32H7_SPIComms>(
+    //     irqDMArx,
+    //     this,
+    //     &STM32H7_SPIComms::handleRxInterrupt
+    // );
+    // HAL_NVIC_SetPriority(irqDMArx, Config::spiDmaRxIrqPriority, 0);
+    // HAL_NVIC_EnableIRQ(irqDMArx);
 
-    // Register the DMA Tx interrupt
-    dmaTxInterrupt = new ModuleInterrupt<STM32H7_SPIComms>(
-        irqDMAtx,
-        this,
-        &STM32H7_SPIComms::handleTxInterrupt
-    );
-    HAL_NVIC_SetPriority(irqDMAtx, Config::spiDmaTxIrqPriority, 0); // TX needs higher priority than RX
-    HAL_NVIC_EnableIRQ(irqDMAtx);
+    // // Register the DMA Tx interrupt
+    // dmaTxInterrupt = new ModuleInterrupt<STM32H7_SPIComms>(
+    //     irqDMAtx,
+    //     this,
+    //     &STM32H7_SPIComms::handleTxInterrupt
+    // );
+    // HAL_NVIC_SetPriority(irqDMAtx, Config::spiDmaTxIrqPriority, 0); // TX needs higher priority than RX
+    // HAL_NVIC_EnableIRQ(irqDMAtx);
 
-    // Initialize the data buffers
-    std::fill(std::begin(ptrTxData->txBuffer), std::end(ptrTxData->txBuffer), 0);
-    std::fill(std::begin(ptrRxData->rxBuffer), std::end(ptrRxData->rxBuffer), 0);
-    std::fill(std::begin(ptrRxDMABuffer->buffer[0].rxBuffer), std::end(ptrRxDMABuffer->buffer[0].rxBuffer), 0);
-    std::fill(std::begin(ptrRxDMABuffer->buffer[1].rxBuffer), std::end(ptrRxDMABuffer->buffer[1].rxBuffer), 0);
+    // // Initialize the data buffers
+    // std::fill(std::begin(ptrTxData->txBuffer), std::end(ptrTxData->txBuffer), 0);
+    // std::fill(std::begin(ptrRxData->rxBuffer), std::end(ptrRxData->rxBuffer), 0);
+    // std::fill(std::begin(ptrRxDMABuffer->buffer[0].rxBuffer), std::end(ptrRxDMABuffer->buffer[0].rxBuffer), 0);
+    // std::fill(std::begin(ptrRxDMABuffer->buffer[1].rxBuffer), std::end(ptrRxDMABuffer->buffer[1].rxBuffer), 0);
 
-    // Start the multi-buffer DMA SPI communication
-    dmaStatus = startMultiBufferDMASPI(
-        (uint8_t*)ptrTxData->txBuffer,
-        (uint8_t*)ptrTxData->txBuffer,
-        (uint8_t*)ptrRxDMABuffer->buffer[0].rxBuffer,
-        (uint8_t*)ptrRxDMABuffer->buffer[1].rxBuffer,
-        Config::dataBuffSize
-    );
+    // // Start the multi-buffer DMA SPI communication
+    // dmaStatus = startMultiBufferDMASPI(
+    //     (uint8_t*)ptrTxData->txBuffer,
+    //     (uint8_t*)ptrTxData->txBuffer,
+    //     (uint8_t*)ptrRxDMABuffer->buffer[0].rxBuffer,
+    //     (uint8_t*)ptrRxDMABuffer->buffer[1].rxBuffer,
+    //     Config::dataBuffSize
+    // );
 
-    // Check for DMA initialization errors
-    if (dmaStatus != HAL_OK) {
-        printf("DMA SPI error\n");
-    }
+    // // Check for DMA initialization errors
+    // if (dmaStatus != HAL_OK) {
+    //     printf("DMA SPI error\n");
+    // }
 }
 
-HAL_StatusTypeDef STM32H7_SPIComms::startMultiBufferDMASPI(uint8_t *pTxBuffer0, uint8_t *pTxBuffer1,
+HAL_StatusTypeDef STM32F4_SPIComms::startMultiBufferDMASPI(uint8_t *pTxBuffer0, uint8_t *pTxBuffer1,
                                                    uint8_t *pRxBuffer0, uint8_t *pRxBuffer1,
                                                    uint16_t Size)
 {
-    // Check Direction parameter 
-    assert_param(IS_SPI_DIRECTION_2LINES(spiHandle.Init.Direction));
+    // // Check Direction parameter 
+    // assert_param(IS_SPI_DIRECTION_2LINES(spiHandle.Init.Direction));
 
-    if (spiHandle.State != HAL_SPI_STATE_READY)
-    {
-        return HAL_BUSY;
-    }
+    // if (spiHandle.State != HAL_SPI_STATE_READY)
+    // {
+    //     return HAL_BUSY;
+    // }
 
-    if ((pTxBuffer0 == NULL) || (pRxBuffer0 == NULL) || (Size == 0UL))
-    {
-        return HAL_ERROR;
-    }
+    // if ((pTxBuffer0 == NULL) || (pRxBuffer0 == NULL) || (Size == 0UL))
+    // {
+    //     return HAL_ERROR;
+    // }
 
-    // If secondary Tx or Rx buffer is not provided, use the primary buffer 
-    if (pTxBuffer1 == NULL)
-    {
-        pTxBuffer1 = pTxBuffer0;
-    }
+    // // If secondary Tx or Rx buffer is not provided, use the primary buffer 
+    // if (pTxBuffer1 == NULL)
+    // {
+    //     pTxBuffer1 = pTxBuffer0;
+    // }
 
-    if (pRxBuffer1 == NULL)
-    {
-        pRxBuffer1 = pRxBuffer0;
-    }
+    // if (pRxBuffer1 == NULL)
+    // {
+    //     pRxBuffer1 = pRxBuffer0;
+    // }
 
-    // Lock the process 
-    __HAL_LOCK(&spiHandle);
+    // // Lock the process 
+    // __HAL_LOCK(&spiHandle);
 
-    // Set the transaction information 
-    spiHandle.State       = HAL_SPI_STATE_BUSY_TX_RX;
-    spiHandle.ErrorCode   = HAL_SPI_ERROR_NONE;
-    spiHandle.TxXferSize  = Size;
-    spiHandle.TxXferCount = Size;
-    spiHandle.RxXferSize  = Size;
-    spiHandle.RxXferCount = Size;
+    // // Set the transaction information 
+    // spiHandle.State       = HAL_SPI_STATE_BUSY_TX_RX;
+    // spiHandle.ErrorCode   = HAL_SPI_ERROR_NONE;
+    // spiHandle.TxXferSize  = Size;
+    // spiHandle.TxXferCount = Size;
+    // spiHandle.RxXferSize  = Size;
+    // spiHandle.RxXferCount = Size;
 
-    // Init unused fields in handle to zero 
-    spiHandle.RxISR       = NULL;
-    spiHandle.TxISR       = NULL;
+    // // Init unused fields in handle to zero 
+    // spiHandle.RxISR       = NULL;
+    // spiHandle.TxISR       = NULL;
 
-    // Set Full-Duplex mode 
-    SPI_2LINES(&spiHandle);
+    // // Set Full-Duplex mode 
+    // SPI_2LINES(&spiHandle);
 
-    // Reset the Tx/Rx DMA bits 
-    CLEAR_BIT(spiHandle.Instance->CFG1, SPI_CFG1_TXDMAEN | SPI_CFG1_RXDMAEN);
+    // // Reset the Tx/Rx DMA bits 
+    // CLEAR_BIT(spiHandle.Instance->CFG1, SPI_CFG1_TXDMAEN | SPI_CFG1_RXDMAEN);
 
-    // Adjust XferCount according to DMA alignment / Data size 
-    if (spiHandle.Init.DataSize <= SPI_DATASIZE_8BIT)
-    {
-        if (hdma_spi_tx.Init.MemDataAlignment == DMA_MDATAALIGN_HALFWORD)
-        {
-            spiHandle.TxXferCount = (spiHandle.TxXferCount + 1UL) >> 1UL;
-        }
-        if (hdma_spi_rx.Init.MemDataAlignment == DMA_MDATAALIGN_HALFWORD)
-        {
-            spiHandle.RxXferCount = (spiHandle.RxXferCount + 1UL) >> 1UL;
-        }
-    }
-    else if (spiHandle.Init.DataSize <= SPI_DATASIZE_16BIT)
-    {
-        if (hdma_spi_tx.Init.MemDataAlignment == DMA_MDATAALIGN_WORD)
-        {
-            spiHandle.TxXferCount = (spiHandle.TxXferCount + 1UL) >> 1UL;
-        }
-        if (hdma_spi_rx.Init.MemDataAlignment == DMA_MDATAALIGN_WORD)
-        {
-            spiHandle.RxXferCount = (spiHandle.RxXferCount + 1UL) >> 1UL;
-        }
-    }
+    // // Adjust XferCount according to DMA alignment / Data size 
+    // if (spiHandle.Init.DataSize <= SPI_DATASIZE_8BIT)
+    // {
+    //     if (hdma_spi_tx.Init.MemDataAlignment == DMA_MDATAALIGN_HALFWORD)
+    //     {
+    //         spiHandle.TxXferCount = (spiHandle.TxXferCount + 1UL) >> 1UL;
+    //     }
+    //     if (hdma_spi_rx.Init.MemDataAlignment == DMA_MDATAALIGN_HALFWORD)
+    //     {
+    //         spiHandle.RxXferCount = (spiHandle.RxXferCount + 1UL) >> 1UL;
+    //     }
+    // }
+    // else if (spiHandle.Init.DataSize <= SPI_DATASIZE_16BIT)
+    // {
+    //     if (hdma_spi_tx.Init.MemDataAlignment == DMA_MDATAALIGN_WORD)
+    //     {
+    //         spiHandle.TxXferCount = (spiHandle.TxXferCount + 1UL) >> 1UL;
+    //     }
+    //     if (hdma_spi_rx.Init.MemDataAlignment == DMA_MDATAALIGN_WORD)
+    //     {
+    //         spiHandle.RxXferCount = (spiHandle.RxXferCount + 1UL) >> 1UL;
+    //     }
+    // }
 
-    // Configure Tx DMA with Multi-Buffer 
-    hdma_spi_tx.XferHalfCpltCallback = NULL;
-    hdma_spi_tx.XferCpltCallback     = NULL;
-    hdma_spi_tx.XferErrorCallback    = NULL;
+    // // Configure Tx DMA with Multi-Buffer 
+    // hdma_spi_tx.XferHalfCpltCallback = NULL;
+    // hdma_spi_tx.XferCpltCallback     = NULL;
+    // hdma_spi_tx.XferErrorCallback    = NULL;
 
-    if (HAL_OK != HAL_DMAEx_MultiBufferStart_IT(&hdma_spi_tx,
-                                                (uint32_t)pTxBuffer0,
-                                                (uint32_t)&spiHandle.Instance->TXDR,
-                                                (uint32_t)pTxBuffer1,
-                                                spiHandle.TxXferCount))
-    {
-        __HAL_UNLOCK(&spiHandle);
-        return HAL_ERROR;
-    }
+    // if (HAL_OK != HAL_DMAEx_MultiBufferStart_IT(&hdma_spi_tx,
+    //                                             (uint32_t)pTxBuffer0,
+    //                                             (uint32_t)&spiHandle.Instance->TXDR,
+    //                                             (uint32_t)pTxBuffer1,
+    //                                             spiHandle.TxXferCount))
+    // {
+    //     __HAL_UNLOCK(&spiHandle);
+    //     return HAL_ERROR;
+    // }
 
-    // Configure Rx DMA with Multi-Buffer 
-    hdma_spi_rx.XferHalfCpltCallback = NULL;
-    hdma_spi_rx.XferCpltCallback     = NULL;
-    hdma_spi_rx.XferErrorCallback    = NULL;
+    // // Configure Rx DMA with Multi-Buffer 
+    // hdma_spi_rx.XferHalfCpltCallback = NULL;
+    // hdma_spi_rx.XferCpltCallback     = NULL;
+    // hdma_spi_rx.XferErrorCallback    = NULL;
 
-    if (HAL_OK != HAL_DMAEx_MultiBufferStart_IT(&hdma_spi_rx,
-                                                (uint32_t)&spiHandle.Instance->RXDR,
-                                                (uint32_t)pRxBuffer0,
-                                                (uint32_t)pRxBuffer1,
-                                                spiHandle.RxXferCount))
-    {
-        (void)HAL_DMA_Abort(&hdma_spi_tx);
-        __HAL_UNLOCK(&spiHandle);
-        return HAL_ERROR;
-    }
+    // if (HAL_OK != HAL_DMAEx_MultiBufferStart_IT(&hdma_spi_rx,
+    //                                             (uint32_t)&spiHandle.Instance->RXDR,
+    //                                             (uint32_t)pRxBuffer0,
+    //                                             (uint32_t)pRxBuffer1,
+    //                                             spiHandle.RxXferCount))
+    // {
+    //     (void)HAL_DMA_Abort(&hdma_spi_tx);
+    //     __HAL_UNLOCK(&spiHandle);
+    //     return HAL_ERROR;
+    // }
 
-    // Configure SPI TSIZE for full transfer or circular mode 
-    if (hdma_spi_rx.Init.Mode == DMA_CIRCULAR || hdma_spi_tx.Init.Mode == DMA_CIRCULAR)
-    {
-        MODIFY_REG(spiHandle.Instance->CR2, SPI_CR2_TSIZE, 0UL);
-    }
-    else
-    {
-        MODIFY_REG(spiHandle.Instance->CR2, SPI_CR2_TSIZE, Size);
-    }
+    // // Configure SPI TSIZE for full transfer or circular mode 
+    // if (hdma_spi_rx.Init.Mode == DMA_CIRCULAR || hdma_spi_tx.Init.Mode == DMA_CIRCULAR)
+    // {
+    //     MODIFY_REG(spiHandle.Instance->CR2, SPI_CR2_TSIZE, 0UL);
+    // }
+    // else
+    // {
+    //     MODIFY_REG(spiHandle.Instance->CR2, SPI_CR2_TSIZE, Size);
+    // }
 
-    // Enable Tx and Rx DMA Requests 
-    SET_BIT(spiHandle.Instance->CFG1, SPI_CFG1_TXDMAEN | SPI_CFG1_RXDMAEN);
+    // // Enable Tx and Rx DMA Requests 
+    // SET_BIT(spiHandle.Instance->CFG1, SPI_CFG1_TXDMAEN | SPI_CFG1_RXDMAEN);
 
-    // Enable SPI error interrupt 
-    __HAL_SPI_ENABLE_IT(&spiHandle, (SPI_IT_OVR | SPI_IT_UDR | SPI_IT_FRE | SPI_IT_MODF));
+    // // Enable SPI error interrupt 
+    // __HAL_SPI_ENABLE_IT(&spiHandle, (SPI_IT_OVR | SPI_IT_UDR | SPI_IT_FRE | SPI_IT_MODF));
 
-    // Enable SPI peripheral 
-    __HAL_SPI_ENABLE(&spiHandle);
+    // // Enable SPI peripheral 
+    // __HAL_SPI_ENABLE(&spiHandle);
 
-    if (spiHandle.Init.Mode == SPI_MODE_MASTER)
-    {
-        SET_BIT(spiHandle.Instance->CR1, SPI_CR1_CSTART);
-    }
+    // if (spiHandle.Init.Mode == SPI_MODE_MASTER)
+    // {
+    //     SET_BIT(spiHandle.Instance->CR1, SPI_CR1_CSTART);
+    // }
 
-    __HAL_UNLOCK(&spiHandle);
+    // __HAL_UNLOCK(&spiHandle);
 
-    return HAL_OK;
+    // return HAL_OK;
 }
 
-int STM32H7_SPIComms::handleDMAInterrupt(DMA_HandleTypeDef *hdma)
+int STM32F4_SPIComms::handleDMAInterrupt(DMA_HandleTypeDef *hdma)
 {
-  uint32_t tmpisr_dma;
-  int interrupt;
+//   uint32_t tmpisr_dma;
+//   int interrupt;
 
-  // calculate DMA base and stream number 
-  DMA_Base_Registers  *regs_dma  = (DMA_Base_Registers *)hdma->StreamBaseAddress;
+//   // calculate DMA base and stream number 
+//   DMA_Base_Registers  *regs_dma  = (DMA_Base_Registers *)hdma->StreamBaseAddress;
 
-  tmpisr_dma  = regs_dma->ISR;
+//   tmpisr_dma  = regs_dma->ISR;
 
-  if(IS_DMA_STREAM_INSTANCE(hdma->Instance) != 0U)  // DMA1 or DMA2 instance 
-  {
-    // Transfer Error Interrupt management **************************************
-    if ((tmpisr_dma & (DMA_FLAG_TEIF0_4 << (hdma->StreamIndex & 0x1FU))) != 0U)
-    {
-      if(__HAL_DMA_GET_IT_SOURCE(hdma, DMA_IT_TE) != 0U)
-      {
-        // Disable the transfer error interrupt 
-        ((DMA_Stream_TypeDef   *)hdma->Instance)->CR  &= ~(DMA_IT_TE);
+//   if(IS_DMA_STREAM_INSTANCE(hdma->Instance) != 0U)  // DMA1 or DMA2 instance 
+//   {
+//     // Transfer Error Interrupt management **************************************
+//     if ((tmpisr_dma & (DMA_FLAG_TEIF0_4 << (hdma->StreamIndex & 0x1FU))) != 0U)
+//     {
+//       if(__HAL_DMA_GET_IT_SOURCE(hdma, DMA_IT_TE) != 0U)
+//       {
+//         // Disable the transfer error interrupt 
+//         ((DMA_Stream_TypeDef   *)hdma->Instance)->CR  &= ~(DMA_IT_TE);
 
-        // Clear the transfer error flag 
-        regs_dma->IFCR = DMA_FLAG_TEIF0_4 << (hdma->StreamIndex & 0x1FU);
+//         // Clear the transfer error flag 
+//         regs_dma->IFCR = DMA_FLAG_TEIF0_4 << (hdma->StreamIndex & 0x1FU);
 
-        // Update error code 
-        hdma->ErrorCode |= HAL_DMA_ERROR_TE;
-        interrupt =  DMA_OTHER;
-      }
-    }
-    // FIFO Error Interrupt management *****************************************
-    if ((tmpisr_dma & (DMA_FLAG_FEIF0_4 << (hdma->StreamIndex & 0x1FU))) != 0U)
-    {
-      if(__HAL_DMA_GET_IT_SOURCE(hdma, DMA_IT_FE) != 0U)
-      {
-        // Clear the FIFO error flag 
-        regs_dma->IFCR = DMA_FLAG_FEIF0_4 << (hdma->StreamIndex & 0x1FU);
+//         // Update error code 
+//         hdma->ErrorCode |= HAL_DMA_ERROR_TE;
+//         interrupt =  DMA_OTHER;
+//       }
+//     }
+//     // FIFO Error Interrupt management *****************************************
+//     if ((tmpisr_dma & (DMA_FLAG_FEIF0_4 << (hdma->StreamIndex & 0x1FU))) != 0U)
+//     {
+//       if(__HAL_DMA_GET_IT_SOURCE(hdma, DMA_IT_FE) != 0U)
+//       {
+//         // Clear the FIFO error flag 
+//         regs_dma->IFCR = DMA_FLAG_FEIF0_4 << (hdma->StreamIndex & 0x1FU);
 
-        // Update error code 
-        hdma->ErrorCode |= HAL_DMA_ERROR_FE;
-        interrupt =  DMA_OTHER;
-      }
-    }
-    // Direct Mode Error Interrupt management **********************************
-    if ((tmpisr_dma & (DMA_FLAG_DMEIF0_4 << (hdma->StreamIndex & 0x1FU))) != 0U)
-    {
-      if(__HAL_DMA_GET_IT_SOURCE(hdma, DMA_IT_DME) != 0U)
-      {
-        // Clear the direct mode error flag 
-        regs_dma->IFCR = DMA_FLAG_DMEIF0_4 << (hdma->StreamIndex & 0x1FU);
+//         // Update error code 
+//         hdma->ErrorCode |= HAL_DMA_ERROR_FE;
+//         interrupt =  DMA_OTHER;
+//       }
+//     }
+//     // Direct Mode Error Interrupt management **********************************
+//     if ((tmpisr_dma & (DMA_FLAG_DMEIF0_4 << (hdma->StreamIndex & 0x1FU))) != 0U)
+//     {
+//       if(__HAL_DMA_GET_IT_SOURCE(hdma, DMA_IT_DME) != 0U)
+//       {
+//         // Clear the direct mode error flag 
+//         regs_dma->IFCR = DMA_FLAG_DMEIF0_4 << (hdma->StreamIndex & 0x1FU);
 
-        // Update error code 
-        hdma->ErrorCode |= HAL_DMA_ERROR_DME;
-        interrupt =  DMA_OTHER;
-      }
-    }
-    // Half Transfer Complete Interrupt management *****************************
-    if ((tmpisr_dma & (DMA_FLAG_HTIF0_4 << (hdma->StreamIndex & 0x1FU))) != 0U)
-    {
-      if(__HAL_DMA_GET_IT_SOURCE(hdma, DMA_IT_HT) != 0U)
-      {
-        // Clear the half transfer complete flag 
-        regs_dma->IFCR = DMA_FLAG_HTIF0_4 << (hdma->StreamIndex & 0x1FU);
+//         // Update error code 
+//         hdma->ErrorCode |= HAL_DMA_ERROR_DME;
+//         interrupt =  DMA_OTHER;
+//       }
+//     }
+//     // Half Transfer Complete Interrupt management *****************************
+//     if ((tmpisr_dma & (DMA_FLAG_HTIF0_4 << (hdma->StreamIndex & 0x1FU))) != 0U)
+//     {
+//       if(__HAL_DMA_GET_IT_SOURCE(hdma, DMA_IT_HT) != 0U)
+//       {
+//         // Clear the half transfer complete flag 
+//         regs_dma->IFCR = DMA_FLAG_HTIF0_4 << (hdma->StreamIndex & 0x1FU);
 
-        // Disable the half transfer interrupt if the DMA mode is not CIRCULAR 
-        if((((DMA_Stream_TypeDef   *)hdma->Instance)->CR & DMA_SxCR_CIRC) == 0U)
-        {
-          // Disable the half transfer interrupt 
-          ((DMA_Stream_TypeDef   *)hdma->Instance)->CR  &= ~(DMA_IT_HT);
-        }
+//         // Disable the half transfer interrupt if the DMA mode is not CIRCULAR 
+//         if((((DMA_Stream_TypeDef   *)hdma->Instance)->CR & DMA_SxCR_CIRC) == 0U)
+//         {
+//           // Disable the half transfer interrupt 
+//           ((DMA_Stream_TypeDef   *)hdma->Instance)->CR  &= ~(DMA_IT_HT);
+//         }
 
-      }
-      interrupt = DMA_HALF_TRANSFER;
-    }
-    // Transfer Complete Interrupt management **********************************
-    if ((tmpisr_dma & (DMA_FLAG_TCIF0_4 << (hdma->StreamIndex & 0x1FU))) != 0U)
-    {
-      if(__HAL_DMA_GET_IT_SOURCE(hdma, DMA_IT_TC) != 0U)
-      {
-        // Clear the transfer complete flag 
-        regs_dma->IFCR = DMA_FLAG_TCIF0_4 << (hdma->StreamIndex & 0x1FU);
+//       }
+//       interrupt = DMA_HALF_TRANSFER;
+//     }
+//     // Transfer Complete Interrupt management **********************************
+//     if ((tmpisr_dma & (DMA_FLAG_TCIF0_4 << (hdma->StreamIndex & 0x1FU))) != 0U)
+//     {
+//       if(__HAL_DMA_GET_IT_SOURCE(hdma, DMA_IT_TC) != 0U)
+//       {
+//         // Clear the transfer complete flag 
+//         regs_dma->IFCR = DMA_FLAG_TCIF0_4 << (hdma->StreamIndex & 0x1FU);
 
-        if(HAL_DMA_STATE_ABORT == hdma->State)
-        {
-          // Disable all the transfer interrupts 
-          ((DMA_Stream_TypeDef   *)hdma->Instance)->CR  &= ~(DMA_IT_TC | DMA_IT_TE | DMA_IT_DME);
-          ((DMA_Stream_TypeDef   *)hdma->Instance)->FCR &= ~(DMA_IT_FE);
+//         if(HAL_DMA_STATE_ABORT == hdma->State)
+//         {
+//           // Disable all the transfer interrupts 
+//           ((DMA_Stream_TypeDef   *)hdma->Instance)->CR  &= ~(DMA_IT_TC | DMA_IT_TE | DMA_IT_DME);
+//           ((DMA_Stream_TypeDef   *)hdma->Instance)->FCR &= ~(DMA_IT_FE);
 
-          if((hdma->XferHalfCpltCallback != NULL) || (hdma->XferM1HalfCpltCallback != NULL))
-          {
-            ((DMA_Stream_TypeDef   *)hdma->Instance)->CR  &= ~(DMA_IT_HT);
-          }
+//           if((hdma->XferHalfCpltCallback != NULL) || (hdma->XferM1HalfCpltCallback != NULL))
+//           {
+//             ((DMA_Stream_TypeDef   *)hdma->Instance)->CR  &= ~(DMA_IT_HT);
+//           }
 
-          // Clear all interrupt flags at correct offset within the register 
-          regs_dma->IFCR = 0x3FUL << (hdma->StreamIndex & 0x1FU);
+//           // Clear all interrupt flags at correct offset within the register 
+//           regs_dma->IFCR = 0x3FUL << (hdma->StreamIndex & 0x1FU);
 
-          // Change the DMA state 
-          hdma->State = HAL_DMA_STATE_READY;
+//           // Change the DMA state 
+//           hdma->State = HAL_DMA_STATE_READY;
 
-          // Process Unlocked 
-          __HAL_UNLOCK(hdma);
+//           // Process Unlocked 
+//           __HAL_UNLOCK(hdma);
 
-          interrupt = DMA_TRANSFER_COMPLETE;
-        }
+//           interrupt = DMA_TRANSFER_COMPLETE;
+//         }
 
-        if((((DMA_Stream_TypeDef   *)hdma->Instance)->CR & DMA_SxCR_CIRC) == 0U)
-        {
-          // Disable the transfer complete interrupt 
-          ((DMA_Stream_TypeDef   *)hdma->Instance)->CR  &= ~(DMA_IT_TC);
+//         if((((DMA_Stream_TypeDef   *)hdma->Instance)->CR & DMA_SxCR_CIRC) == 0U)
+//         {
+//           // Disable the transfer complete interrupt 
+//           ((DMA_Stream_TypeDef   *)hdma->Instance)->CR  &= ~(DMA_IT_TC);
 
-          // Change the DMA state 
-          hdma->State = HAL_DMA_STATE_READY;
+//           // Change the DMA state 
+//           hdma->State = HAL_DMA_STATE_READY;
 
-          // Process Unlocked 
-          __HAL_UNLOCK(hdma);
-        }
-        interrupt =  2;
-      }
-    }
-  }
+//           // Process Unlocked 
+//           __HAL_UNLOCK(hdma);
+//         }
+//         interrupt =  2;
+//       }
+//     }
+//   }
 
-  return interrupt;
+//   return interrupt;
 }
 
-int STM32H7_SPIComms::getActiveDMAmemory(DMA_HandleTypeDef *hdma)
+int STM32F4_SPIComms::getActiveDMAmemory(DMA_HandleTypeDef *hdma)
 {
     DMA_Stream_TypeDef *dmaStream = (DMA_Stream_TypeDef *)hdma->Instance;
 
     return (dmaStream->CR & DMA_SxCR_CT) ? 1 : 0;
 }
 
-void STM32H7_SPIComms::handleNssInterrupt()
+void STM32F4_SPIComms::handleNssInterrupt()
 {
 	// SPI packet has been fully received
 	// Flag the copy the RX buffer if new WRITE data has been received
@@ -500,13 +521,13 @@ void STM32H7_SPIComms::handleNssInterrupt()
 	}
 }
 
-void STM32H7_SPIComms::handleTxInterrupt()
+void STM32F4_SPIComms::handleTxInterrupt()
 {
 	handleDMAInterrupt(&hdma_spi_tx);
 	HAL_NVIC_EnableIRQ(irqDMAtx);
 }
 
-void STM32H7_SPIComms::handleRxInterrupt()
+void STM32F4_SPIComms::handleRxInterrupt()
 {
     // Handle the interrupt and determine the type of interrupt
     interruptType = handleDMAInterrupt(&hdma_spi_rx);
@@ -546,7 +567,7 @@ void STM32H7_SPIComms::handleRxInterrupt()
     HAL_NVIC_EnableIRQ(irqDMArx);
 }
 
-void STM32H7_SPIComms::tasks() {
+void STM32F4_SPIComms::tasks() {
 
 	if (copyRXbuffer == true)
     {
@@ -571,5 +592,3 @@ void STM32H7_SPIComms::tasks() {
 		copyRXbuffer = false;
     }
 }
-
-*/

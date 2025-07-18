@@ -2,9 +2,7 @@
 #define STM32H7_SPIComms_H
 
 #include "stm32f4xx_hal.h"
-/*
-
-#include "stm32h7xx_hal_dma.h"
+#include "stm32f4xx_hal_dma.h"
 
 #include <memory>
 #include <algorithm>
@@ -27,7 +25,7 @@ typedef enum {
     DMA_OTHER = 3        // Other or error status
 } DMA_TransferStatus_t;
 
-class STM32H7_SPIComms : public CommsInterface {
+class STM32F4_SPIComms : public CommsInterface {
 private:
     volatile rxData_t*  		ptrRxData;
     volatile txData_t*  		ptrTxData;
@@ -59,9 +57,9 @@ private:
     uint8_t						RXbufferIdx;
     bool						copyRXbuffer;
 
-	ModuleInterrupt<STM32H7_SPIComms>*	NssInterrupt;
-    ModuleInterrupt<STM32H7_SPIComms>*	dmaTxInterrupt;
-	ModuleInterrupt<STM32H7_SPIComms>*	dmaRxInterrupt;
+	ModuleInterrupt<STM32F4_SPIComms>*	NssInterrupt;
+    ModuleInterrupt<STM32F4_SPIComms>*	dmaTxInterrupt;
+	ModuleInterrupt<STM32F4_SPIComms>*	dmaRxInterrupt;
 
 	IRQn_Type					irqNss;
 	IRQn_Type					irqDMArx;
@@ -84,13 +82,13 @@ private:
 	void handleNssInterrupt(void);
 
 public:
-    STM32H7_SPIComms(volatile rxData_t*, volatile txData_t*, std::string, std::string, std::string, std::string);
-	virtual ~STM32H7_SPIComms();
+    STM32F4_SPIComms(volatile rxData_t*, volatile txData_t*, std::string, std::string, std::string, std::string);
+	virtual ~STM32F4_SPIComms();
 
     void init(void);
     void start(void);
     void tasks(void);
 };
-*/
+
 #endif
 

@@ -26,21 +26,28 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "remora-hal/STM32F4_SPIComms.h"
 #include "remora-hal/STM32F4_timer.h"
 
-SPI_HandleTypeDef hspi1;
-UART_HandleTypeDef huart3;
+SPI_HandleTypeDef spi_handle;
+UART_HandleTypeDef uart_handle;
 
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_USART3_UART_Init(void);
-static void MX_SPI1_Init(void);
+static void MX_UART_Init(void);
 
-// re-target printf to UART1 by redeclaring week function in syscalls.c
+// re-target printf to defined UART by redeclaring weak function in syscalls.c
+/*extern "C" {
+    int __io_putchar(int ch)
+    {
+        HAL_UART_Transmit(&uart_handle, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
+        return ch;
+    }
+}*/
+
+// re-target printf to defined UART by redeclaring weak function in syscalls.c
 extern "C" {
-	int __io_putchar(int ch)
-	{
-	  HAL_UART_Transmit(&uart_handle, (uint8_t *)&ch, 1, 0xFFFF);
-	  return ch;
-	}
+    int _write(int file, char *ptr, int len) {
+        HAL_UART_Transmit(&uart_handle, (uint8_t*)ptr, len, HAL_MAX_DELAY);
+        return len;
+    }
 }
 
 int main(void)
@@ -49,8 +56,10 @@ int main(void)
     SystemClock_Config();
 
     MX_GPIO_Init();
-    MX_USART3_UART_Init();
-    MX_SPI1_Init();
+    MX_UART_Init();
+
+    HAL_Delay(1000); 
+    printf("Initialising Remora...\n");
 
     auto comms = std::make_unique<STM32F4_SPIComms>(&rxData, &txData, SPI_MOSI, SPI_MISO, SPI_CLK, SPI_CS);
     auto commsHandler = std::make_shared<CommsHandler>();
@@ -76,91 +85,64 @@ int main(void)
   */
 void SystemClock_Config(void)
 {
-    RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-    RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-    /** Configure the main internal regulator output voltage
-    */
-    __HAL_RCC_PWR_CLK_ENABLE();
-    __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+  /** Configure the main internal regulator output voltage
+  */
+  __HAL_RCC_PWR_CLK_ENABLE();
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
-    /** Initializes the RCC Oscillators according to the specified parameters
-    * in the RCC_OscInitTypeDef structure.
-    */
-    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-    RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
-    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-    RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-    RCC_OscInitStruct.PLL.PLLM = 4;
-    RCC_OscInitStruct.PLL.PLLN = 168;
-    RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-    RCC_OscInitStruct.PLL.PLLQ = 7;
-    RCC_OscInitStruct.PLL.PLLR = 2;
-    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-    {
-        Error_Handler();
-    }
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
+  */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLM = 4;
+  RCC_OscInitStruct.PLL.PLLN = 168;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = 7;
+  RCC_OscInitStruct.PLL.PLLR = 2;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
 
-    /** Initializes the CPU, AHB and APB buses clocks
-    */
-    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                                |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-    RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-    RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
-    RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+  /** Initializes the CPU, AHB and APB buses clocks
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
-    {
-        Error_Handler();
-    }
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
+  {
+    Error_Handler();
+  }
 }
 
-/**
-  * @brief SPI1 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_SPI1_Init(void)
+static void MX_UART_Init(void)
 {
-    hspi1.Instance = SPI1;
-    hspi1.Init.Mode = SPI_MODE_MASTER;
-    hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-    hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-    hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-    hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-    hspi1.Init.NSS = SPI_NSS_SOFT;
-    hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
-    hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
-    hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
-    hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-    hspi1.Init.CRCPolynomial = 10;
+    #ifdef UART_PORT
+        uart_handle.Instance = UART_PORT;
+    #else
+        uart_handle.Instance = USART1;
+    #endif
+    uart_handle.Init.BaudRate = Config::pcBaud;
+    uart_handle.Init.WordLength = UART_WORDLENGTH_8B;
+    uart_handle.Init.StopBits = UART_STOPBITS_1;
+    uart_handle.Init.Parity = UART_PARITY_NONE;
+    uart_handle.Init.Mode = UART_MODE_TX_RX;
+    uart_handle.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+    uart_handle.Init.OverSampling = UART_OVERSAMPLING_16;
 
-    if (HAL_SPI_Init(&hspi1) != HAL_OK)
+    if (HAL_UART_Init(&uart_handle) != HAL_OK)
     {
-      Error_Handler();
-    }
-}
-
-/**
-  * @brief USART3 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_USART3_UART_Init(void)
-{
-    huart3.Instance = USART3;
-    huart3.Init.BaudRate = 115200;
-    huart3.Init.WordLength = UART_WORDLENGTH_8B;
-    huart3.Init.StopBits = UART_STOPBITS_1;
-    huart3.Init.Parity = UART_PARITY_NONE;
-    huart3.Init.Mode = UART_MODE_TX_RX;
-    huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    huart3.Init.OverSampling = UART_OVERSAMPLING_16;
-
-    if (HAL_UART_Init(&huart3) != HAL_OK)
-    {
-      Error_Handler();
+        Error_Handler();
     }
 }
 

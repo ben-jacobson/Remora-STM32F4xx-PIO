@@ -372,6 +372,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 
 }
 
+
 /**
   * @brief UART MSP De-Initialization
   * This function freeze the hardware resources used in this example
