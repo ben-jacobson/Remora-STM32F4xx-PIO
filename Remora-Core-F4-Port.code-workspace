@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"bsp_driver_sd.h": "c",
+			"fatfs_platform.h": "c",
+			"stm32f4xx.h": "c",
+			"ff.h": "c",
+			"ffconf.h": "c"
+		}
+	}
+}

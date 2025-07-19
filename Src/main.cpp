@@ -34,15 +34,6 @@ static void MX_GPIO_Init(void);
 static void MX_UART_Init(void);
 
 // re-target printf to defined UART by redeclaring weak function in syscalls.c
-/*extern "C" {
-    int __io_putchar(int ch)
-    {
-        HAL_UART_Transmit(&uart_handle, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
-        return ch;
-    }
-}*/
-
-// re-target printf to defined UART by redeclaring weak function in syscalls.c
 extern "C" {
     int _write(int file, char *ptr, int len) {
         HAL_UART_Transmit(&uart_handle, (uint8_t*)ptr, len, HAL_MAX_DELAY);
