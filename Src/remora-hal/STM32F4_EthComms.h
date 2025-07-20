@@ -10,7 +10,7 @@
 #include "../remora-core/remora.h"
 #include "../remora-core/comms/commsInterface.h"
 #include "../remora-core/modules/moduleInterrupt.h"
-#include "pin/pin.h"
+#include "hal_utils.h"
 
 extern "C"
 {
@@ -42,45 +42,37 @@ extern "C"
 //     DMA_OTHER = 3        // Other or error status
 // } DMA_TransferStatus_t;
 
-/* 
-Todos:
-- Gut feel is there is a lot of similarity between this and SPIComms, after getting this working, may refactor so that this class inherits from it - DRY.
-- 
-
-*/
-
-
 class STM32F4_EthComms : public CommsInterface {
 private:
-    // volatile rxData_t*  		ptrRxData;
-    // volatile txData_t*  		ptrTxData;
+    volatile rxData_t*  		ptrRxData;
+    volatile txData_t*  		ptrTxData;
     // volatile DMA_RxBuffer_t* 	ptrRxDMABuffer;
 
     // SPI_TypeDef*        		spiType;
-    // SPI_HandleTypeDef   		spiHandle;
+    SPI_HandleTypeDef   		spiHandle;
     // DMA_HandleTypeDef   		hdma_spi_tx;
     // DMA_HandleTypeDef   		hdma_spi_rx;
     // DMA_HandleTypeDef   		hdma_memtomem;
     // HAL_StatusTypeDef   		dmaStatus;
 
-    // std::string                 mosiPortAndPin; 
-    // std::string                 misoPortAndPin; 
-    // std::string                 clkPortAndPin; 
-    // std::string                 csPortAndPin; 
+    std::string                 mosiPortAndPin; 
+    std::string                 misoPortAndPin; 
+    std::string                 clkPortAndPin; 
+    std::string                 csPortAndPin; 
 
-    // PinName                     mosiPinName;
-    // PinName                     misoPinName;
-    // PinName                     clkPinName;
-    // PinName                     csPinName;
+    PinName                     mosiPinName;
+    PinName                     misoPinName;
+    PinName                     clkPinName;
+    PinName                     csPinName;
 
-    // Pin*                        mosiPin;
-    // Pin*                        misoPin;
-    // Pin*                        clkPin;
-    // Pin*                        csPin;
+    Pin*                        mosiPin;
+    Pin*                        misoPin;
+    Pin*                        clkPin;
+    Pin*                        csPin;
 
     // uint8_t						RxDMAmemoryIdx;
     // uint8_t						RXbufferIdx;
-    // bool						copyRXbuffer;
+    bool						newDataReceived;
 
 	// ModuleInterrupt<STM32F4_EthComms>*	NssInterrupt;
     // ModuleInterrupt<STM32F4_EthComms>*	dmaTxInterrupt;
@@ -93,9 +85,7 @@ private:
 //    uint8_t						interruptType;
     // bool						newWriteData;
 
-    // SPIName getSPIPeripheralName(PinName mosi, PinName miso, PinName sclk);
     // Pin* createPin(const std::string& portAndPin, PinName pinName, const PinMap* map);
-    // void enableSPIClock(SPI_TypeDef* instance);
     // void initDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_TypeDef* DMA_TX_Stream, uint32_t DMA_channel);
 
 	// HAL_StatusTypeDef startMultiBufferDMASPI(uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint16_t);

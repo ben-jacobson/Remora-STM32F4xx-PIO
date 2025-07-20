@@ -10,7 +10,7 @@
 #include "../remora-core/remora.h"
 #include "../remora-core/comms/commsInterface.h"
 #include "../remora-core/modules/moduleInterrupt.h"
-#include "pin/pin.h"
+#include "hal_utils.h"
 
 typedef struct
 {
@@ -68,9 +68,7 @@ private:
     uint8_t						interruptType;
     bool						newWriteData;
 
-    SPIName getSPIPeripheralName(PinName mosi, PinName miso, PinName sclk);
     Pin* createPin(const std::string& portAndPin, PinName pinName, const PinMap* map);
-    void enableSPIClock(SPI_TypeDef* instance);
     void initDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_TypeDef* DMA_TX_Stream, uint32_t DMA_channel);
 
 	HAL_StatusTypeDef startMultiBufferDMASPI(uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint16_t);
