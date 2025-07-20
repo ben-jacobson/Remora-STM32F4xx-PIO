@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <sys/errno.h>
 
 #include "remora-core/remora.h"
-#include "remora-hal/STM32F4_SPIComms.h"
+#include "remora-hal/STM32F4_ETHComms.h"
 #include "remora-hal/STM32F4_timer.h"
 
 SPI_HandleTypeDef spi_handle;
@@ -52,7 +52,7 @@ int main(void)
     HAL_Delay(1000); 
     printf("Initialising Remora...\n");
 
-    auto comms = std::make_unique<STM32F4_SPIComms>(&rxData, &txData, SPI_MOSI, SPI_MISO, SPI_CLK, SPI_CS);
+    auto comms = std::make_unique<STM32F4_ETHComms>(&rxData, &txData, SPI_MOSI, SPI_MISO, SPI_CLK, SPI_CS);
     auto commsHandler = std::make_shared<CommsHandler>();
     commsHandler->setInterface(std::move(comms));
 

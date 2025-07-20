@@ -1,5 +1,5 @@
-#ifndef STM32H7_SPIComms_H
-#define STM32H7_SPIComms_H
+#ifndef STM32H7_ETHComms_H
+#define STM32H7_ETHComms_H
 
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_hal_dma.h"
@@ -25,7 +25,7 @@ typedef enum {
     DMA_OTHER = 3        // Other or error status
 } DMA_TransferStatus_t;
 
-class STM32F4_SPIComms : public CommsInterface {
+class STM32F4_ETHComms : public CommsInterface {
 private:
     volatile rxData_t*  		ptrRxData;
     volatile txData_t*  		ptrTxData;
@@ -57,9 +57,9 @@ private:
     uint8_t						RXbufferIdx;
     bool						copyRXbuffer;
 
-	ModuleInterrupt<STM32F4_SPIComms>*	NssInterrupt;
-    ModuleInterrupt<STM32F4_SPIComms>*	dmaTxInterrupt;
-	ModuleInterrupt<STM32F4_SPIComms>*	dmaRxInterrupt;
+	ModuleInterrupt<STM32F4_ETHComms>*	NssInterrupt;
+    ModuleInterrupt<STM32F4_ETHComms>*	dmaTxInterrupt;
+	ModuleInterrupt<STM32F4_ETHComms>*	dmaRxInterrupt;
 
 	IRQn_Type					irqNss;
 	IRQn_Type					irqDMArx;
@@ -71,7 +71,7 @@ private:
     SPIName getSPIPeripheralName(PinName mosi, PinName miso, PinName sclk);
     Pin* createPin(const std::string& portAndPin, PinName pinName, const PinMap* map);
     void enableSPIClock(SPI_TypeDef* instance);
-    void initDMA(uint32_t txRequest, uint32_t rxRequest);
+    void initDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_TypeDef* DMA_TX_Stream, uint32_t DMA_channel);
 
 	HAL_StatusTypeDef startMultiBufferDMASPI(uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint16_t);
 	int getActiveDMAmemory(DMA_HandleTypeDef*);
@@ -82,8 +82,8 @@ private:
 	void handleNssInterrupt(void);
 
 public:
-    STM32F4_SPIComms(volatile rxData_t*, volatile txData_t*, std::string, std::string, std::string, std::string);
-	virtual ~STM32F4_SPIComms();
+    STM32F4_ETHComms(volatile rxData_t*, volatile txData_t*, std::string, std::string, std::string, std::string);
+	virtual ~STM32F4_ETHComms();
 
     void init(void);
     void start(void);
