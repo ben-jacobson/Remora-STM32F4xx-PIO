@@ -1,8 +1,8 @@
-#include "STM32F4_ETHComms.h"
+#include "STM32F4_SPIComms.h"
 
 volatile DMA_RxBuffer_t rxDMABuffer;
 
-STM32F4_ETHComms::STM32F4_ETHComms(volatile rxData_t* _ptrRxData, volatile txData_t* _ptrTxData, std::string _mosiPortAndPin, std::string _misoPortAndPin, std::string _clkPortAndPin, std::string _csPortAndPin) :
+STM32F4_SPIComms::STM32F4_SPIComms(volatile rxData_t* _ptrRxData, volatile txData_t* _ptrTxData, std::string _mosiPortAndPin, std::string _misoPortAndPin, std::string _clkPortAndPin, std::string _csPortAndPin) :
 	ptrRxData(_ptrRxData),
 	ptrTxData(_ptrTxData),
     mosiPortAndPin(_mosiPortAndPin),
@@ -25,10 +25,10 @@ STM32F4_ETHComms::STM32F4_ETHComms(volatile rxData_t* _ptrRxData, volatile txDat
 }
 
 
-STM32F4_ETHComms::~STM32F4_ETHComms() {
+STM32F4_SPIComms::~STM32F4_SPIComms() {
 }
 
-SPIName STM32F4_ETHComms::getSPIPeripheralName(PinName mosi, PinName miso, PinName sclk)
+SPIName STM32F4_SPIComms::getSPIPeripheralName(PinName mosi, PinName miso, PinName sclk)
 {
     SPIName spi_mosi = (SPIName)pinmap_peripheral(mosi, PinMap_SPI_MOSI);
     SPIName spi_miso = (SPIName)pinmap_peripheral(miso, PinMap_SPI_MISO);
@@ -49,7 +49,7 @@ SPIName STM32F4_ETHComms::getSPIPeripheralName(PinName mosi, PinName miso, PinNa
     return spi_per;
 }
 
-void STM32F4_ETHComms::init() {
+void STM32F4_SPIComms::init() {
     // Configure the NSS (chip select) pin as interrupt
     csPin = new Pin(csPortAndPin, GPIO_MODE_IT_RISING, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW, 0);
     delete csPin;
@@ -117,19 +117,19 @@ void STM32F4_ETHComms::init() {
     HAL_DMA_Init(&hdma_memtomem);
 }
 
-Pin* STM32F4_ETHComms::createPin(const std::string& portAndPin, PinName pinName, const PinMap* map) {
+Pin* STM32F4_SPIComms::createPin(const std::string& portAndPin, PinName pinName, const PinMap* map) {
     uint32_t function = STM_PIN_AFNUM(pinmap_function(pinName, map));
     return new Pin(portAndPin, GPIO_MODE_AF_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW, function);
 }
 
-void STM32F4_ETHComms::enableSPIClock(SPI_TypeDef* instance) {
+void STM32F4_SPIComms::enableSPIClock(SPI_TypeDef* instance) {
     if (instance == SPI1) __HAL_RCC_SPI1_CLK_ENABLE();
     else if (instance == SPI2) __HAL_RCC_SPI2_CLK_ENABLE();
     else if (instance == SPI3) __HAL_RCC_SPI3_CLK_ENABLE();
     else if (instance == SPI4) __HAL_RCC_SPI4_CLK_ENABLE();
 }
 
-void STM32F4_ETHComms::initDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_TypeDef* DMA_TX_Stream, uint32_t DMA_channel) {
+void STM32F4_SPIComms::initDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_TypeDef* DMA_TX_Stream, uint32_t DMA_channel) {
     // RX
     hdma_spi_rx.Instance = DMA_RX_Stream;
     hdma_spi_rx.Init.Channel = DMA_channel; 
@@ -169,30 +169,30 @@ void STM32F4_ETHComms::initDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_Typ
     __HAL_LINKDMA(&spiHandle, hdmatx, hdma_spi_tx);
 }
 
-void STM32F4_ETHComms::start() {
+void STM32F4_SPIComms::start() {
     // Register the NSS (slave select) interrupt
-    NssInterrupt = new ModuleInterrupt<STM32F4_ETHComms>(
+    NssInterrupt = new ModuleInterrupt<STM32F4_SPIComms>(
         irqNss,
         this,
-        &STM32F4_ETHComms::handleNssInterrupt
+        &STM32F4_SPIComms::handleNssInterrupt
     );
     HAL_NVIC_SetPriority(irqNss, Config::spiNssIrqPriority, 0);
     HAL_NVIC_EnableIRQ(irqNss);
 
     // Register the DMA Rx interrupt
-    dmaRxInterrupt = new ModuleInterrupt<STM32F4_ETHComms>(
+    dmaRxInterrupt = new ModuleInterrupt<STM32F4_SPIComms>(
         irqDMArx,
         this,
-        &STM32F4_ETHComms::handleRxInterrupt
+        &STM32F4_SPIComms::handleRxInterrupt
     );
     HAL_NVIC_SetPriority(irqDMArx, Config::spiDmaRxIrqPriority, 0);
     HAL_NVIC_EnableIRQ(irqDMArx);
 
     // Register the DMA Tx interrupt
-    dmaTxInterrupt = new ModuleInterrupt<STM32F4_ETHComms>(
+    dmaTxInterrupt = new ModuleInterrupt<STM32F4_SPIComms>(
         irqDMAtx,
         this,
-        &STM32F4_ETHComms::handleTxInterrupt
+        &STM32F4_SPIComms::handleTxInterrupt
     );
     HAL_NVIC_SetPriority(irqDMAtx, Config::spiDmaTxIrqPriority, 0); // TX needs higher priority than RX
     HAL_NVIC_EnableIRQ(irqDMAtx);
@@ -218,7 +218,7 @@ void STM32F4_ETHComms::start() {
     }
 }
 
-HAL_StatusTypeDef STM32F4_ETHComms::startMultiBufferDMASPI(uint8_t *pTxBuffer0, uint8_t *pTxBuffer1,
+HAL_StatusTypeDef STM32F4_SPIComms::startMultiBufferDMASPI(uint8_t *pTxBuffer0, uint8_t *pTxBuffer1,
                                                    uint8_t *pRxBuffer0, uint8_t *pRxBuffer1,
                                                    uint16_t Size)
 {
@@ -364,7 +364,7 @@ HAL_StatusTypeDef STM32F4_ETHComms::startMultiBufferDMASPI(uint8_t *pTxBuffer0, 
     return HAL_OK;
 }
 
-int STM32F4_ETHComms::handleDMAInterrupt(DMA_HandleTypeDef *hdma)
+int STM32F4_SPIComms::handleDMAInterrupt(DMA_HandleTypeDef *hdma)
 {
   uint32_t tmpisr_dma;
   int interrupt;
@@ -492,14 +492,14 @@ int STM32F4_ETHComms::handleDMAInterrupt(DMA_HandleTypeDef *hdma)
   return interrupt;
 }
 
-int STM32F4_ETHComms::getActiveDMAmemory(DMA_HandleTypeDef *hdma)
+int STM32F4_SPIComms::getActiveDMAmemory(DMA_HandleTypeDef *hdma)
 {
     DMA_Stream_TypeDef *dmaStream = (DMA_Stream_TypeDef *)hdma->Instance;
 
     return (dmaStream->CR & DMA_SxCR_CT) ? 1 : 0;
 }
 
-void STM32F4_ETHComms::handleNssInterrupt()
+void STM32F4_SPIComms::handleNssInterrupt()
 {
 	// SPI packet has been fully received
 	// Flag the copy the RX buffer if new WRITE data has been received
@@ -511,13 +511,13 @@ void STM32F4_ETHComms::handleNssInterrupt()
 	}
 }
 
-void STM32F4_ETHComms::handleTxInterrupt()
+void STM32F4_SPIComms::handleTxInterrupt()
 {
 	handleDMAInterrupt(&hdma_spi_tx);
 	HAL_NVIC_EnableIRQ(irqDMAtx);
 }
 
-void STM32F4_ETHComms::handleRxInterrupt()
+void STM32F4_SPIComms::handleRxInterrupt()
 {
     // Handle the interrupt and determine the type of interrupt
     interruptType = handleDMAInterrupt(&hdma_spi_rx);
@@ -557,7 +557,7 @@ void STM32F4_ETHComms::handleRxInterrupt()
     HAL_NVIC_EnableIRQ(irqDMArx);
 }
 
-void STM32F4_ETHComms::tasks() {
+void STM32F4_SPIComms::tasks() {
 
 	if (copyRXbuffer == true)
     {

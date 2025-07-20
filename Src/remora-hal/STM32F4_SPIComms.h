@@ -25,7 +25,7 @@ typedef enum {
     DMA_OTHER = 3        // Other or error status
 } DMA_TransferStatus_t;
 
-class STM32F4_ETHComms : public CommsInterface {
+class STM32F4_SPIComms : public CommsInterface {
 private:
     volatile rxData_t*  		ptrRxData;
     volatile txData_t*  		ptrTxData;
@@ -57,9 +57,9 @@ private:
     uint8_t						RXbufferIdx;
     bool						copyRXbuffer;
 
-	ModuleInterrupt<STM32F4_ETHComms>*	NssInterrupt;
-    ModuleInterrupt<STM32F4_ETHComms>*	dmaTxInterrupt;
-	ModuleInterrupt<STM32F4_ETHComms>*	dmaRxInterrupt;
+	ModuleInterrupt<STM32F4_SPIComms>*	NssInterrupt;
+    ModuleInterrupt<STM32F4_SPIComms>*	dmaTxInterrupt;
+	ModuleInterrupt<STM32F4_SPIComms>*	dmaRxInterrupt;
 
 	IRQn_Type					irqNss;
 	IRQn_Type					irqDMArx;
@@ -82,8 +82,8 @@ private:
 	void handleNssInterrupt(void);
 
 public:
-    STM32F4_ETHComms(volatile rxData_t*, volatile txData_t*, std::string, std::string, std::string, std::string);
-	virtual ~STM32F4_ETHComms();
+    STM32F4_SPIComms(volatile rxData_t*, volatile txData_t*, std::string, std::string, std::string, std::string);
+	virtual ~STM32F4_SPIComms();
 
     void init(void);
     void start(void);
