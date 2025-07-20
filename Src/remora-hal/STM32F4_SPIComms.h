@@ -1,5 +1,5 @@
-#ifndef STM32H7_ETHComms_H
-#define STM32H7_ETHComms_H
+#ifndef STM32F4_SPIComms_H
+#define STM32F4_SPIComms_H
 
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_hal_dma.h"

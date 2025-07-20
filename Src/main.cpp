@@ -2,6 +2,9 @@
 Remora firmware for LinuxCNC
 Copyright (C) 2025  Scott Alford (aka scotta)
 
+STM32F4 Port by Ben Jacobson. 
+Credits to Cakeslob and Expatria Technologies for their Ethernet communications work ported into this project.
+
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License version 2
 of the License.
@@ -24,6 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "remora-core/remora.h"
 #include "remora-hal/STM32F4_SPIComms.h"
+#include "remora-hal/STM32F4_EthComms.h"
 #include "remora-hal/STM32F4_timer.h"
 
 SPI_HandleTypeDef spi_handle;
@@ -52,8 +56,21 @@ int main(void)
     HAL_Delay(1000); 
     printf("Initialising Remora...\n");
 
-    auto comms = std::make_unique<STM32F4_SPIComms>(&rxData, &txData, SPI_MOSI, SPI_MISO, SPI_CLK, SPI_CS);
-    auto commsHandler = std::make_shared<CommsHandler>();
+    std::unique_ptr<CommsInterface> comms;
+    std::shared_ptr<CommsHandler> commsHandler;
+
+    if (Config::pruControlMethod == SPI_CTRL) {
+        comms = std::make_unique<STM32F4_SPIComms>(&rxData, &txData, SPI_MOSI, SPI_MISO, SPI_CLK, SPI_CS);
+        commsHandler = std::make_shared<CommsHandler>();
+    }
+    else if (Config::pruControlMethod == ETH_CTRL) {
+        comms = std::make_unique<STM32F4_EthComms>(&rxData, &txData, SPI_MOSI, SPI_MISO, SPI_CLK, SPI_CS);
+        commsHandler = std::make_shared<CommsHandler>();
+    }
+    else {
+        printf("Error in configuration, please set PlatformIO.ini build flag or set pruControlMethod in Configuration.h, to either SPI_CTRL or ETH_CTRL\n");
+    }
+
     commsHandler->setInterface(std::move(comms));
 
     auto baseTimer = std::make_unique<STM32F4_timer>(TIM3, TIM3_IRQn, Config::pruBaseFreq, nullptr, Config::baseThreadIrqPriority);
