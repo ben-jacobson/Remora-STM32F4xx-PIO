@@ -68,7 +68,6 @@ private:
     uint8_t						interruptType;
     bool						newWriteData;
 
-    Pin* createPin(const std::string& portAndPin, PinName pinName, const PinMap* map);
     void initDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_TypeDef* DMA_TX_Stream, uint32_t DMA_channel);
 
 	HAL_StatusTypeDef startMultiBufferDMASPI(uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint16_t);

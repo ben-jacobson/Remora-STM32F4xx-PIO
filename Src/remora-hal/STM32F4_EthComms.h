@@ -46,14 +46,14 @@ class STM32F4_EthComms : public CommsInterface {
 private:
     volatile rxData_t*  		ptrRxData;
     volatile txData_t*  		ptrTxData;
-    // volatile DMA_RxBuffer_t* 	ptrRxDMABuffer;
+    volatile DMA_RxBuffer_t* 	ptrRxDMABuffer;
 
     // SPI_TypeDef*        		spiType;
     SPI_HandleTypeDef   		spiHandle;
-    // DMA_HandleTypeDef   		hdma_spi_tx;
-    // DMA_HandleTypeDef   		hdma_spi_rx;
-    // DMA_HandleTypeDef   		hdma_memtomem;
-    // HAL_StatusTypeDef   		dmaStatus;
+    DMA_HandleTypeDef   		hdma_spi_tx;
+    DMA_HandleTypeDef   		hdma_spi_rx;
+    DMA_HandleTypeDef   		hdma_memtomem;
+    HAL_StatusTypeDef   		dmaStatus;
 
     std::string                 mosiPortAndPin; 
     std::string                 misoPortAndPin; 
@@ -70,8 +70,8 @@ private:
     Pin*                        clkPin;
     Pin*                        csPin;
 
-    // uint8_t						RxDMAmemoryIdx;
-    // uint8_t						RXbufferIdx;
+    uint8_t						RxDMAmemoryIdx;
+    uint8_t						RXbufferIdx;
     bool						newDataReceived;
 
 	// ModuleInterrupt<STM32F4_EthComms>*	NssInterrupt;
@@ -86,7 +86,7 @@ private:
     // bool						newWriteData;
 
     // Pin* createPin(const std::string& portAndPin, PinName pinName, const PinMap* map);
-    // void initDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_TypeDef* DMA_TX_Stream, uint32_t DMA_channel);
+    void initDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_TypeDef* DMA_TX_Stream, uint32_t DMA_channel);
 
 	// HAL_StatusTypeDef startMultiBufferDMASPI(uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint16_t);
 	// int getActiveDMAmemory(DMA_HandleTypeDef*);

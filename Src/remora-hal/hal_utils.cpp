@@ -20,3 +20,19 @@ SPIName getSPIPeripheralName(PinName mosi, PinName miso, PinName sclk)
 
     return spi_per;
 }
+
+void enableSPIClock(SPI_TypeDef* instance) {
+    if (instance == SPI1) __HAL_RCC_SPI1_CLK_ENABLE();
+    else if (instance == SPI2) __HAL_RCC_SPI2_CLK_ENABLE();
+    else if (instance == SPI3) __HAL_RCC_SPI3_CLK_ENABLE();
+    else if (instance == SPI4) __HAL_RCC_SPI4_CLK_ENABLE();
+}
+
+Pin* createPin(const std::string& portAndPin, PinName pinName, const PinMap* map, uint32_t gpio_mode, uint32_t gpio_pull, uint32_t gpio_speed) { 
+    uint32_t function = STM_PIN_AFNUM(pinmap_function(pinName, map));
+    return new Pin(portAndPin, gpio_mode, gpio_pull, gpio_speed, function);
+}
+
+void delay_ms(uint32_t ms) {
+    HAL_Delay(ms);
+}

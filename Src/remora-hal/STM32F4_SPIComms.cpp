@@ -28,27 +28,6 @@ STM32F4_SPIComms::STM32F4_SPIComms(volatile rxData_t* _ptrRxData, volatile txDat
 STM32F4_SPIComms::~STM32F4_SPIComms() {
 }
 
-SPIName STM32F4_SPIComms::getSPIPeripheralName(PinName mosi, PinName miso, PinName sclk)
-{
-    SPIName spi_mosi = (SPIName)pinmap_peripheral(mosi, PinMap_SPI_MOSI);
-    SPIName spi_miso = (SPIName)pinmap_peripheral(miso, PinMap_SPI_MISO);
-    SPIName spi_sclk = (SPIName)pinmap_peripheral(sclk, PinMap_SPI_SCLK);
-
-    SPIName spi_per;
-
-    // MISO or MOSI may be not connected
-    if (miso == NC) {
-        spi_per = (SPIName)pinmap_merge(spi_mosi, spi_sclk);
-    } else if (mosi == NC) {
-        spi_per = (SPIName)pinmap_merge(spi_miso, spi_sclk);
-    } else {
-        SPIName spi_data = (SPIName)pinmap_merge(spi_mosi, spi_miso);
-        spi_per = (SPIName)pinmap_merge(spi_data, spi_sclk);
-    }
-
-    return spi_per;
-}
-
 void STM32F4_SPIComms::init() {
     // Configure the NSS (chip select) pin as interrupt
     csPin = new Pin(csPortAndPin, GPIO_MODE_IT_RISING, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW, 0);
@@ -115,18 +94,6 @@ void STM32F4_SPIComms::init() {
 
     __HAL_RCC_DMA1_CLK_ENABLE();  
     HAL_DMA_Init(&hdma_memtomem);
-}
-
-Pin* STM32F4_SPIComms::createPin(const std::string& portAndPin, PinName pinName, const PinMap* map) {
-    uint32_t function = STM_PIN_AFNUM(pinmap_function(pinName, map));
-    return new Pin(portAndPin, GPIO_MODE_AF_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW, function);
-}
-
-void STM32F4_SPIComms::enableSPIClock(SPI_TypeDef* instance) {
-    if (instance == SPI1) __HAL_RCC_SPI1_CLK_ENABLE();
-    else if (instance == SPI2) __HAL_RCC_SPI2_CLK_ENABLE();
-    else if (instance == SPI3) __HAL_RCC_SPI3_CLK_ENABLE();
-    else if (instance == SPI4) __HAL_RCC_SPI4_CLK_ENABLE();
 }
 
 void STM32F4_SPIComms::initDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_TypeDef* DMA_TX_Stream, uint32_t DMA_channel) {
