@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "bsp_driver_sd.h": "c",
-        "fatfs_platform.h": "c"
+        "fatfs_platform.h": "c",
+        "wizchip_conf.h": "c",
+        "w5500.h": "c"
     }
 }

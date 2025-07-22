@@ -6,7 +6,8 @@ STM32F4_EthComms::STM32F4_EthComms(volatile rxData_t* _ptrRxData, volatile txDat
     mosiPortAndPin(_mosiPortAndPin),
     misoPortAndPin(_misoPortAndPin),
 	clkPortAndPin(_clkPortAndPin),
-    csPortAndPin(_csPortAndPin)
+    csPortAndPin(_csPortAndPin),
+    wiznet(std::make_shared<STM32F4_EthComms>(*this))
 {
     ptrRxDMABuffer = &rxDMABuffer;
 
@@ -24,6 +25,44 @@ STM32F4_EthComms::STM32F4_EthComms(volatile rxData_t* _ptrRxData, volatile txDat
 
 STM32F4_EthComms::~STM32F4_EthComms() {
 
+}
+
+uint8_t STM32F4_EthComms::spi_get_byte(void)
+{
+	// spi_port.Instance->DR = 0xFF; // Writing dummy data into Data register
+
+    // while(!__HAL_SPI_GET_FLAG(&spi_port, SPI_FLAG_RXNE));
+
+    // return (uint8_t)spi_port.Instance->DR;
+}
+
+uint8_t STM32F4_EthComms::spi_put_byte(uint8_t byte)
+{
+	// spi_port.Instance->DR = byte;
+
+    // while(!__HAL_SPI_GET_FLAG(&spi_port, SPI_FLAG_TXE));
+    // while(!__HAL_SPI_GET_FLAG(&spi_port, SPI_FLAG_RXNE));
+
+    // __HAL_SPI_CLEAR_OVRFLAG(&spi_port);
+
+    // return (uint8_t)spi_port.Instance->DR;
+}
+
+void STM32F4_EthComms::spi_write(uint8_t *data, uint16_t len)
+{
+    // if(HAL_SPI_Transmit_DMA(&spi_port, data, len) == HAL_OK)
+    //     while(spi_port.State != HAL_SPI_STATE_READY);
+
+    // __HAL_DMA_DISABLE(&spi_dma_tx);
+}
+
+void STM32F4_EthComms::spi_read(uint8_t *data, uint16_t len)
+{
+    // if(HAL_SPI_Receive_DMA(&spi_port, data, len) == HAL_OK)
+    //     while(spi_port.State != HAL_SPI_STATE_READY);
+
+    // __HAL_DMA_DISABLE(&spi_dma_rx);
+    // __HAL_DMA_DISABLE(&spi_dma_tx);
 }
 
 void STM32F4_EthComms::init(void) {

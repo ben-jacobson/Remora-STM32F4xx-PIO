@@ -4,7 +4,10 @@
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_hal_dma.h"
 
-// #include <memory>
+#include <stdio.h>
+#include <string.h>
+#include <memory>
+
 // #include <algorithm>
 
 #include "../remora-core/remora.h"
@@ -12,22 +15,8 @@
 #include "../remora-core/modules/moduleInterrupt.h"
 #include "hal_utils.h"
 
-extern "C"
-{
-// WIZnet includes
-#include "wizchip_conf.h"
-//#include "socket.h"
-}
-
-// LWIP Ethernet
-#include "lwip/init.h"
-#include "lwip/netif.h"
-#include "lwip/timeouts.h"
-#include "lwip/pbuf.h"
-#include "lwip/udp.h"
-#include "lwip/apps/lwiperf.h"
-#include "lwip/etharp.h"
-#include "tftpserver.h"
+#include "remora-core/drivers/Networking/lwip.h"
+#include "remora-core/drivers/Networking/wiznet.h"
 
 // typedef struct
 // {
@@ -74,6 +63,9 @@ private:
     uint8_t						RXbufferIdx;
     bool						newDataReceived;
 
+    lwip_handle lwip;
+    wiznet_handle wiznet;
+
 	// ModuleInterrupt<STM32F4_EthComms>*	NssInterrupt;
     // ModuleInterrupt<STM32F4_EthComms>*	dmaTxInterrupt;
 	// ModuleInterrupt<STM32F4_EthComms>*	dmaRxInterrupt;
@@ -99,6 +91,11 @@ private:
 public:
     STM32F4_EthComms(volatile rxData_t*, volatile txData_t*, std::string, std::string, std::string, std::string);
 	virtual ~STM32F4_EthComms();
+
+    uint8_t spi_get_byte(void);
+    uint8_t spi_put_byte(uint8_t);
+    void spi_write(uint8_t*, uint16_t);
+    void spi_read(uint8_t*, uint16_t);
 
     void init(void);
     void start(void);
