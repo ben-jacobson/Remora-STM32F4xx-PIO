@@ -1,5 +1,5 @@
-# Remora-Core-F4-Port
-Remora-Core-STM32F4xx
+# Remora-STM32F4xx-PIO
+Port or Remora for STM32F4xx family, using new Remora-Core abstraction.
 
 # Todos
 - Get JSON config loading working:

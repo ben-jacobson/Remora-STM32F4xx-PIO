@@ -15,9 +15,6 @@
 #include "../remora-core/modules/moduleInterrupt.h"
 #include "hal_utils.h"
 
-#include "remora-core/drivers/Networking/lwip.h"
-#include "remora-core/drivers/Networking/wiznet.h"
-
 // typedef struct
 // {
 //   __IO uint32_t ISR;   //!< DMA interrupt status register 
@@ -31,75 +28,76 @@
 //     DMA_OTHER = 3        // Other or error status
 // } DMA_TransferStatus_t;
 
+//class wiznet_handle;  // forward declare
+
 class STM32F4_EthComms : public CommsInterface {
-private:
-    volatile rxData_t*  		ptrRxData;
-    volatile txData_t*  		ptrTxData;
-    volatile DMA_RxBuffer_t* 	ptrRxDMABuffer;
+    private:
+    
+        volatile rxData_t*  		ptrRxData;
+        volatile txData_t*  		ptrTxData;
+        volatile DMA_RxBuffer_t* 	ptrRxDMABuffer;
 
-    // SPI_TypeDef*        		spiType;
-    SPI_HandleTypeDef   		spiHandle;
-    DMA_HandleTypeDef   		hdma_spi_tx;
-    DMA_HandleTypeDef   		hdma_spi_rx;
-    DMA_HandleTypeDef   		hdma_memtomem;
-    HAL_StatusTypeDef   		dmaStatus;
+        // SPI_TypeDef*        		spiType;
+        SPI_HandleTypeDef   		spiHandle;
+        DMA_HandleTypeDef   		hdma_spi_tx;
+        DMA_HandleTypeDef   		hdma_spi_rx;
+        DMA_HandleTypeDef   		hdma_memtomem;
+        HAL_StatusTypeDef   		dmaStatus;
 
-    std::string                 mosiPortAndPin; 
-    std::string                 misoPortAndPin; 
-    std::string                 clkPortAndPin; 
-    std::string                 csPortAndPin; 
+        std::string                 mosiPortAndPin; 
+        std::string                 misoPortAndPin; 
+        std::string                 clkPortAndPin; 
+        std::string                 csPortAndPin; 
 
-    PinName                     mosiPinName;
-    PinName                     misoPinName;
-    PinName                     clkPinName;
-    PinName                     csPinName;
+        PinName                     mosiPinName;
+        PinName                     misoPinName;
+        PinName                     clkPinName;
+        PinName                     csPinName;
 
-    Pin*                        mosiPin;
-    Pin*                        misoPin;
-    Pin*                        clkPin;
-    Pin*                        csPin;
+        Pin*                        mosiPin;
+        Pin*                        misoPin;
+        Pin*                        clkPin;
+        Pin*                        csPin;
+        Pin*                        rstPin;
 
-    uint8_t						RxDMAmemoryIdx;
-    uint8_t						RXbufferIdx;
-    bool						newDataReceived;
+        uint8_t						RxDMAmemoryIdx;
+        uint8_t						RXbufferIdx;
+        bool						newDataReceived;
 
-    lwip_handle lwip;
-    wiznet_handle wiznet;
+        // ModuleInterrupt<STM32F4_EthComms>*	NssInterrupt;
+        // ModuleInterrupt<STM32F4_EthComms>*	dmaTxInterrupt;
+        // ModuleInterrupt<STM32F4_EthComms>*	dmaRxInterrupt;
 
-	// ModuleInterrupt<STM32F4_EthComms>*	NssInterrupt;
-    // ModuleInterrupt<STM32F4_EthComms>*	dmaTxInterrupt;
-	// ModuleInterrupt<STM32F4_EthComms>*	dmaRxInterrupt;
+        // IRQn_Type					irqNss;
+        // IRQn_Type					irqDMArx;
+        // IRQn_Type					irqDMAtx;
 
-	// IRQn_Type					irqNss;
-	// IRQn_Type					irqDMArx;
-	// IRQn_Type					irqDMAtx;
+        // uint8_t						interruptType;
+        // bool						newWriteData;
 
-//    uint8_t						interruptType;
-    // bool						newWriteData;
+        // Pin* createPin(const std::string& portAndPin, PinName pinName, const PinMap* map);
+        void initDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_TypeDef* DMA_TX_Stream, uint32_t DMA_channel);
 
-    // Pin* createPin(const std::string& portAndPin, PinName pinName, const PinMap* map);
-    void initDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_TypeDef* DMA_TX_Stream, uint32_t DMA_channel);
+        // HAL_StatusTypeDef startMultiBufferDMASPI(uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint16_t);
+        // int getActiveDMAmemory(DMA_HandleTypeDef*);
 
-	// HAL_StatusTypeDef startMultiBufferDMASPI(uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint16_t);
-	// int getActiveDMAmemory(DMA_HandleTypeDef*);
+        // int handleDMAInterrupt(DMA_HandleTypeDef *);
+        // void handleRxInterrupt(void);
+        // void handleTxInterrupt(void);
+        // void handleNssInterrupt(void);
+        
+    public:   
+        STM32F4_EthComms(volatile rxData_t*, volatile txData_t*, std::string, std::string, std::string, std::string);
+        virtual ~STM32F4_EthComms();
 
-	// int handleDMAInterrupt(DMA_HandleTypeDef *);
-	// void handleRxInterrupt(void);
-	// void handleTxInterrupt(void);
-	// void handleNssInterrupt(void);
+        static uint8_t spi_get_byte(void);
+        static uint8_t spi_put_byte(uint8_t);
+        static void spi_write(uint8_t*, uint16_t);
+        static void spi_read(uint8_t*, uint16_t);
 
-public:
-    STM32F4_EthComms(volatile rxData_t*, volatile txData_t*, std::string, std::string, std::string, std::string);
-	virtual ~STM32F4_EthComms();
-
-    uint8_t spi_get_byte(void);
-    uint8_t spi_put_byte(uint8_t);
-    void spi_write(uint8_t*, uint16_t);
-    void spi_read(uint8_t*, uint16_t);
-
-    void init(void);
-    void start(void);
-    void tasks(void);
+        void init(void);
+        void start(void);
+        void tasks(void);
 };
 
 #endif

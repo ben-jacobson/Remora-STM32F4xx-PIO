@@ -1,4 +1,5 @@
 #include "STM32F4_EthComms.h"
+#include "../remora-core/drivers/W5500_Networking/W5500_Networking.h"
 
 STM32F4_EthComms::STM32F4_EthComms(volatile rxData_t* _ptrRxData, volatile txData_t* _ptrTxData, std::string _mosiPortAndPin, std::string _misoPortAndPin, std::string _clkPortAndPin, std::string _csPortAndPin) :
 	ptrRxData(_ptrRxData),
@@ -6,8 +7,8 @@ STM32F4_EthComms::STM32F4_EthComms(volatile rxData_t* _ptrRxData, volatile txDat
     mosiPortAndPin(_mosiPortAndPin),
     misoPortAndPin(_misoPortAndPin),
 	clkPortAndPin(_clkPortAndPin),
-    csPortAndPin(_csPortAndPin),
-    wiznet(std::make_shared<STM32F4_EthComms>(*this))
+    csPortAndPin(_csPortAndPin)
+    //wiznet(std::make_shared<STM32F4_EthComms>(*this))
 {
     ptrRxDMABuffer = &rxDMABuffer;
 
@@ -20,7 +21,6 @@ STM32F4_EthComms::STM32F4_EthComms(volatile rxData_t* _ptrRxData, volatile txDat
     clkPinName = portAndPinToPinName(clkPortAndPin.c_str());
     csPinName = portAndPinToPinName(csPortAndPin.c_str());
 
-    spiHandle.Instance = (SPI_TypeDef* )getSPIPeripheralName(mosiPinName, misoPinName, clkPinName);
 }
 
 STM32F4_EthComms::~STM32F4_EthComms() {
@@ -64,6 +64,9 @@ void STM32F4_EthComms::spi_read(uint8_t *data, uint16_t len)
     // __HAL_DMA_DISABLE(&spi_dma_rx);
     // __HAL_DMA_DISABLE(&spi_dma_tx);
 }
+
+// void reg_wizchip_spi_cbfunc(uint8_t (*spi_rb)(void), uint8_t (*spi_wb)(uint8_t wb))
+
 
 void STM32F4_EthComms::init(void) {
     // Configure the NSS (chip select) pin as interrupt
@@ -161,14 +164,14 @@ void STM32F4_EthComms::init(void) {
 }
 
 void STM32F4_EthComms::start(void) {
-    wiznet_handle->EthernetInit();
-    lwip_handle->udpServerInit();
-    tftp_handle->IAP_tftpd_init();    
+    network::EthernetInit(std::make_shared<STM32F4_EthComms>(*this), csPin, rstPin);
+    network::udpServerInit();
+    //tftp_handle::IAP_tftpd_init();    
 }
 
 void STM32F4_EthComms::tasks(void) {    
 
-    wiznet_handle->EthernetTasks();
+    network::EthernetTasks();
 
 	if (newDataReceived) {
 	    uint8_t* srcBuffer = (uint8_t*)ptrRxDMABuffer->buffer[RXbufferIdx].rxBuffer;
