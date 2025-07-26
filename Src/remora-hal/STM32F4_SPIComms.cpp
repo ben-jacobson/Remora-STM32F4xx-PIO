@@ -34,10 +34,10 @@ void STM32F4_SPIComms::init() {
     delete csPin;
 
     // Create alternate function SPI pins
-    mosiPin = createPin(mosiPortAndPin, mosiPinName, PinMap_SPI_MOSI);
-    misoPin = createPin(misoPortAndPin, misoPinName, PinMap_SPI_MISO);
-    clkPin  = createPin(clkPortAndPin,  clkPinName,  PinMap_SPI_SCLK);
-    csPin   = createPin(csPortAndPin,   csPinName,   PinMap_SPI_SSEL);
+    mosiPin = createPinFromPinMap(mosiPortAndPin, mosiPinName, PinMap_SPI_MOSI);
+    misoPin = createPinFromPinMap(misoPortAndPin, misoPinName, PinMap_SPI_MISO);
+    clkPin  = createPinFromPinMap(clkPortAndPin,  clkPinName,  PinMap_SPI_SCLK);
+    csPin   = createPinFromPinMap(csPortAndPin,   csPinName,   PinMap_SPI_SSEL);
 
     spiHandle.Init.Mode           			= SPI_MODE_SLAVE;
     spiHandle.Init.Direction      			= SPI_DIRECTION_2LINES;

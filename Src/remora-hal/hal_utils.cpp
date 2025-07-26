@@ -28,7 +28,7 @@ void enableSPIClock(SPI_TypeDef* instance) {
     else if (instance == SPI4) __HAL_RCC_SPI4_CLK_ENABLE();
 }
 
-Pin* createPin(const std::string& portAndPin, PinName pinName, const PinMap* map, uint32_t gpio_mode, uint32_t gpio_pull, uint32_t gpio_speed) { 
+Pin* createPinFromPinMap(const std::string& portAndPin, PinName pinName, const PinMap* map, uint32_t gpio_mode, uint32_t gpio_pull, uint32_t gpio_speed) { 
     uint32_t function = STM_PIN_AFNUM(pinmap_function(pinName, map));
     return new Pin(portAndPin, gpio_mode, gpio_pull, gpio_speed, function);
 }

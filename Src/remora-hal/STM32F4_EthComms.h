@@ -48,11 +48,14 @@ class STM32F4_EthComms : public CommsInterface {
         std::string                 misoPortAndPin; 
         std::string                 clkPortAndPin; 
         std::string                 csPortAndPin; 
+        std::string                 rstPortAndPin;
 
         PinName                     mosiPinName;
         PinName                     misoPinName;
         PinName                     clkPinName;
         PinName                     csPinName;
+        PinName                     rstPinName;
+
 
         Pin*                        mosiPin;
         Pin*                        misoPin;
@@ -75,7 +78,6 @@ class STM32F4_EthComms : public CommsInterface {
         // uint8_t						interruptType;
         // bool						newWriteData;
 
-        // Pin* createPin(const std::string& portAndPin, PinName pinName, const PinMap* map);
         void initDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_TypeDef* DMA_TX_Stream, uint32_t DMA_channel);
 
         // HAL_StatusTypeDef startMultiBufferDMASPI(uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint16_t);
@@ -87,13 +89,14 @@ class STM32F4_EthComms : public CommsInterface {
         // void handleNssInterrupt(void);
         
     public:   
-        STM32F4_EthComms(volatile rxData_t*, volatile txData_t*, std::string, std::string, std::string, std::string);
+        STM32F4_EthComms(volatile rxData_t*, volatile txData_t*, std::string, std::string, std::string, std::string, std::string);
         virtual ~STM32F4_EthComms();
 
         static uint8_t spi_get_byte(void);
         static uint8_t spi_put_byte(uint8_t);
         static void spi_write(uint8_t*, uint16_t);
         static void spi_read(uint8_t*, uint16_t);
+        void dataReceived(void);
 
         void init(void);
         void start(void);

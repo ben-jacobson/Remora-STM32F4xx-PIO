@@ -8,7 +8,7 @@
 
 SPIName getSPIPeripheralName(PinName, PinName, PinName);
 void enableSPIClock(SPI_TypeDef *);
-Pin* createPin(const std::string&, PinName, const PinMap*,
+Pin* createPinFromPinMap(const std::string&, PinName, const PinMap*,
                uint32_t = GPIO_MODE_AF_PP,
                uint32_t = GPIO_NOPULL,
                uint32_t = GPIO_SPEED_FREQ_LOW);

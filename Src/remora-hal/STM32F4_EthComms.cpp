@@ -1,14 +1,14 @@
 #include "STM32F4_EthComms.h"
 #include "../remora-core/drivers/W5500_Networking/W5500_Networking.h"
 
-STM32F4_EthComms::STM32F4_EthComms(volatile rxData_t* _ptrRxData, volatile txData_t* _ptrTxData, std::string _mosiPortAndPin, std::string _misoPortAndPin, std::string _clkPortAndPin, std::string _csPortAndPin) :
+STM32F4_EthComms::STM32F4_EthComms(volatile rxData_t* _ptrRxData, volatile txData_t* _ptrTxData, std::string _mosiPortAndPin, std::string _misoPortAndPin, std::string _clkPortAndPin, std::string _csPortAndPin, std::string _rstPortAndPin) :
 	ptrRxData(_ptrRxData),
 	ptrTxData(_ptrTxData),
     mosiPortAndPin(_mosiPortAndPin),
     misoPortAndPin(_misoPortAndPin),
 	clkPortAndPin(_clkPortAndPin),
-    csPortAndPin(_csPortAndPin)
-    //wiznet(std::make_shared<STM32F4_EthComms>(*this))
+    csPortAndPin(_csPortAndPin),
+    rstPortAndPin(_rstPortAndPin)
 {
     ptrRxDMABuffer = &rxDMABuffer;
 
@@ -20,7 +20,7 @@ STM32F4_EthComms::STM32F4_EthComms(volatile rxData_t* _ptrRxData, volatile txDat
     misoPinName = portAndPinToPinName(misoPortAndPin.c_str());
     clkPinName = portAndPinToPinName(clkPortAndPin.c_str());
     csPinName = portAndPinToPinName(csPortAndPin.c_str());
-
+    rstPinName = portAndPinToPinName(rstPortAndPin.c_str());
 }
 
 STM32F4_EthComms::~STM32F4_EthComms() {
@@ -67,6 +67,9 @@ void STM32F4_EthComms::spi_read(uint8_t *data, uint16_t len)
 
 // void reg_wizchip_spi_cbfunc(uint8_t (*spi_rb)(void), uint8_t (*spi_wb)(uint8_t wb))
 
+void STM32F4_EthComms::dataReceived(void) {
+	newDataReceived= true;
+}
 
 void STM32F4_EthComms::init(void) {
     // Configure the NSS (chip select) pin as interrupt
@@ -74,10 +77,11 @@ void STM32F4_EthComms::init(void) {
     delete csPin;
 
     // Create alternate function SPI pins
-    mosiPin = createPin(mosiPortAndPin, mosiPinName, PinMap_SPI_MOSI);
-    misoPin = createPin(misoPortAndPin, misoPinName, PinMap_SPI_MISO);
-    clkPin  = createPin(clkPortAndPin,  clkPinName,  PinMap_SPI_SCLK);
-    csPin   = createPin(csPortAndPin,   csPinName,   PinMap_SPI_SSEL);
+    mosiPin = createPinFromPinMap(mosiPortAndPin, mosiPinName, PinMap_SPI_MOSI);
+    misoPin = createPinFromPinMap(misoPortAndPin, misoPinName, PinMap_SPI_MISO);
+    clkPin  = createPinFromPinMap(clkPortAndPin,  clkPinName,  PinMap_SPI_SCLK);
+    csPin   = createPinFromPinMap(csPortAndPin,   csPinName,   PinMap_SPI_SSEL);
+    rstPin = new Pin(rstPortAndPin, GPIO_MODE_OUTPUT_PP);
 
     spiHandle.Init.Mode           			= SPI_MODE_MASTER;
     spiHandle.Init.Direction      			= SPI_DIRECTION_2LINES;
@@ -164,7 +168,7 @@ void STM32F4_EthComms::init(void) {
 }
 
 void STM32F4_EthComms::start(void) {
-    network::EthernetInit(std::make_shared<STM32F4_EthComms>(*this), csPin, rstPin);
+    network::EthernetInit(ptrRxData, ptrTxData, std::make_shared<STM32F4_EthComms>(*this), csPin, rstPin);
     network::udpServerInit();
     //tftp_handle::IAP_tftpd_init();    
 }

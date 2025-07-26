@@ -64,7 +64,7 @@ int main(void)
         commsHandler = std::make_shared<CommsHandler>();
     }
     else if (Config::pruControlMethod == ETH_CTRL) {
-        comms = std::make_unique<STM32F4_EthComms>(&rxData, &txData, SPI_MOSI, SPI_MISO, SPI_CLK, SPI_CS);
+        comms = std::make_unique<STM32F4_EthComms>(&rxData, &txData, SPI_MOSI, SPI_MISO, SPI_CLK, SPI_CS, WIZ_RST);
         commsHandler = std::make_shared<CommsHandler>();
     }
     else {
