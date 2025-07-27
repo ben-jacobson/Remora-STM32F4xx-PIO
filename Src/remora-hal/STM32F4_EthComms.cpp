@@ -2,7 +2,7 @@
 #include "../remora-core/drivers/W5500_Networking/W5500_Networking.h"
 
 #include "remora-core/configuration.h"  
-#if defined(CONTROL_METHOD) && (CONTROL_METHOD == ETH_CTRL) // only compile this if ETH_CTRL and libraries are set up in platformio.ini
+#ifdef ETH_CTRL
 
 STM32F4_EthComms::STM32F4_EthComms(volatile rxData_t* _ptrRxData, volatile txData_t* _ptrTxData, std::string _mosiPortAndPin, std::string _misoPortAndPin, std::string _clkPortAndPin, std::string _csPortAndPin, std::string _rstPortAndPin) :
     mosiPortAndPin(_mosiPortAndPin),

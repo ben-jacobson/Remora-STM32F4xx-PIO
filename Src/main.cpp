@@ -27,10 +27,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "remora-core/remora.h"
 
-#if defined(CONTROL_METHOD) && (CONTROL_METHOD == SPI_CTRL)
-  #include "remora-hal/STM32F4_SPIComms.h"
-#else if defined(CONTROL_METHOD) && (CONTROL_METHOD == ETH_CTRL)
+#ifdef ETH_CTRL
   #include "remora-hal/STM32F4_EthComms.h"
+#else
+    #include "remora-hal/STM32F4_SPIComms.h"
 #endif
 
 #include "remora-hal/STM32F4_timer.h"
@@ -64,17 +64,17 @@ int main(void)
     std::unique_ptr<CommsInterface> comms;
     std::shared_ptr<CommsHandler> commsHandler;
 
-    #if defined(CONTROL_METHOD) && (CONTROL_METHOD == SPI_CTRL)
-        comms = std::make_unique<STM32F4_SPIComms>(&rxData, &txData, SPI_MOSI, SPI_MISO, SPI_CLK, SPI_CS);
-        commsHandler = std::make_shared<CommsHandler>();
-    #elif defined(CONTROL_METHOD) && (CONTROL_METHOD == ETH_CTRL)
+    #if defined(ETH_CTRL)
         #ifndef WIZ_RST
             #error "Please configure your WIZ_RST pin in platformio.ini"
         #endif
         comms = std::make_unique<STM32F4_EthComms>(&rxData, &txData, SPI_MOSI, SPI_MISO, SPI_CLK, SPI_CS, WIZ_RST);
         commsHandler = std::make_shared<CommsHandler>();
+    #elif defined(SPI_CTRL)
+        comms = std::make_unique<STM32F4_SPIComms>(&rxData, &txData, SPI_MOSI, SPI_MISO, SPI_CLK, SPI_CS);
+        commsHandler = std::make_shared<CommsHandler>();
     #else 
-        #error "Error in configuration, please set PlatformIO.ini build flag or set pruControlMethod in Configuration.h, to either SPI_CTRL or ETH_CTRL";
+        #error "Error in configuration, please set PlatformIO.ini build flag to either SPI_CTRL or ETH_CTRL";
     #endif
 
     commsHandler->setInterface(std::move(comms));
