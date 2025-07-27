@@ -2,14 +2,14 @@
 #include "../remora-core/drivers/W5500_Networking/W5500_Networking.h"
 
 STM32F4_EthComms::STM32F4_EthComms(volatile rxData_t* _ptrRxData, volatile txData_t* _ptrTxData, std::string _mosiPortAndPin, std::string _misoPortAndPin, std::string _clkPortAndPin, std::string _csPortAndPin, std::string _rstPortAndPin) :
-	ptrRxData(_ptrRxData),
-	ptrTxData(_ptrTxData),
     mosiPortAndPin(_mosiPortAndPin),
     misoPortAndPin(_misoPortAndPin),
 	clkPortAndPin(_clkPortAndPin),
     csPortAndPin(_csPortAndPin),
     rstPortAndPin(_rstPortAndPin)
 {
+    ptrRxData = _ptrRxData;
+	ptrTxData = ptrTxData;
     ptrRxDMABuffer = &rxDMABuffer;
 
     // irqNss = SPI_CS_IRQ;
@@ -27,46 +27,6 @@ STM32F4_EthComms::~STM32F4_EthComms() {
 
 }
 
-uint8_t STM32F4_EthComms::spi_get_byte(void)
-{
-	// spi_port.Instance->DR = 0xFF; // Writing dummy data into Data register
-
-    // while(!__HAL_SPI_GET_FLAG(&spi_port, SPI_FLAG_RXNE));
-
-    // return (uint8_t)spi_port.Instance->DR;
-}
-
-uint8_t STM32F4_EthComms::spi_put_byte(uint8_t byte)
-{
-	// spi_port.Instance->DR = byte;
-
-    // while(!__HAL_SPI_GET_FLAG(&spi_port, SPI_FLAG_TXE));
-    // while(!__HAL_SPI_GET_FLAG(&spi_port, SPI_FLAG_RXNE));
-
-    // __HAL_SPI_CLEAR_OVRFLAG(&spi_port);
-
-    // return (uint8_t)spi_port.Instance->DR;
-}
-
-void STM32F4_EthComms::spi_write(uint8_t *data, uint16_t len)
-{
-    // if(HAL_SPI_Transmit_DMA(&spi_port, data, len) == HAL_OK)
-    //     while(spi_port.State != HAL_SPI_STATE_READY);
-
-    // __HAL_DMA_DISABLE(&spi_dma_tx);
-}
-
-void STM32F4_EthComms::spi_read(uint8_t *data, uint16_t len)
-{
-    // if(HAL_SPI_Receive_DMA(&spi_port, data, len) == HAL_OK)
-    //     while(spi_port.State != HAL_SPI_STATE_READY);
-
-    // __HAL_DMA_DISABLE(&spi_dma_rx);
-    // __HAL_DMA_DISABLE(&spi_dma_tx);
-}
-
-// void reg_wizchip_spi_cbfunc(uint8_t (*spi_rb)(void), uint8_t (*spi_wb)(uint8_t wb))
-
 void STM32F4_EthComms::dataReceived(void) {
 	newDataReceived= true;
 }
@@ -74,15 +34,17 @@ void STM32F4_EthComms::dataReceived(void) {
 void STM32F4_EthComms::init(void) {
     // Configure the NSS (chip select) pin as interrupt
     csPin = new Pin(csPortAndPin, GPIO_MODE_AF_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_VERY_HIGH, 0);  // no alt, can probably live without
+    rstPin = new Pin(rstPortAndPin, GPIO_MODE_AF_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_VERY_HIGH, 0);
     delete csPin;
+    delete rstPin;
 
     // Create alternate function SPI pins
     mosiPin = createPinFromPinMap(mosiPortAndPin, mosiPinName, PinMap_SPI_MOSI);
     misoPin = createPinFromPinMap(misoPortAndPin, misoPinName, PinMap_SPI_MISO);
     clkPin  = createPinFromPinMap(clkPortAndPin,  clkPinName,  PinMap_SPI_SCLK);
     csPin   = createPinFromPinMap(csPortAndPin,   csPinName,   PinMap_SPI_SSEL);
-    rstPin = new Pin(rstPortAndPin, GPIO_MODE_OUTPUT_PP);
 
+    spiHandle.Instance = (SPI_TypeDef* )getSPIPeripheralName(mosiPinName, misoPinName, clkPinName);
     spiHandle.Init.Mode           			= SPI_MODE_MASTER;
     spiHandle.Init.Direction      			= SPI_DIRECTION_2LINES;
     spiHandle.Init.DataSize       			= SPI_DATASIZE_8BIT;
@@ -168,7 +130,7 @@ void STM32F4_EthComms::init(void) {
 }
 
 void STM32F4_EthComms::start(void) {
-    network::EthernetInit(ptrRxData, ptrTxData, std::make_shared<STM32F4_EthComms>(*this), csPin, rstPin);
+    network::EthernetInit(std::make_shared<STM32F4_EthComms>(*this), csPin, rstPin);
     network::udpServerInit();
     //tftp_handle::IAP_tftpd_init();    
 }

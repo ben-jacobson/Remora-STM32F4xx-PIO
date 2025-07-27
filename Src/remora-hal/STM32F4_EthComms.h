@@ -8,8 +8,6 @@
 #include <string.h>
 #include <memory>
 
-// #include <algorithm>
-
 #include "../remora-core/remora.h"
 #include "../remora-core/comms/commsInterface.h"
 #include "../remora-core/modules/moduleInterrupt.h"
@@ -28,13 +26,8 @@
 //     DMA_OTHER = 3        // Other or error status
 // } DMA_TransferStatus_t;
 
-//class wiznet_handle;  // forward declare
-
 class STM32F4_EthComms : public CommsInterface {
     private:
-    
-        volatile rxData_t*  		ptrRxData;
-        volatile txData_t*  		ptrTxData;
         volatile DMA_RxBuffer_t* 	ptrRxDMABuffer;
 
         // SPI_TypeDef*        		spiType;
@@ -91,11 +84,6 @@ class STM32F4_EthComms : public CommsInterface {
     public:   
         STM32F4_EthComms(volatile rxData_t*, volatile txData_t*, std::string, std::string, std::string, std::string, std::string);
         virtual ~STM32F4_EthComms();
-
-        static uint8_t spi_get_byte(void);
-        static uint8_t spi_put_byte(uint8_t);
-        static void spi_write(uint8_t*, uint16_t);
-        static void spi_read(uint8_t*, uint16_t);
         void dataReceived(void);
 
         void init(void);
