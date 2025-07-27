@@ -144,7 +144,7 @@ static void MX_UART_Init(void)
     #ifdef UART_PORT
         uart_handle.Instance = UART_PORT;
     #else
-        uart_handle.Instance = USART1;
+        uart_handle.Instance = USART2;
     #endif
     uart_handle.Init.BaudRate = Config::pcBaud;
     uart_handle.Init.WordLength = UART_WORDLENGTH_8B;
