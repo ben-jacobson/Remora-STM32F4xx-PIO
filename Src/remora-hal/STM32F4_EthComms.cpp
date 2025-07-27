@@ -1,6 +1,9 @@
 #include "STM32F4_EthComms.h"
 #include "../remora-core/drivers/W5500_Networking/W5500_Networking.h"
 
+#include "remora-core/configuration.h"  
+#if defined(CONTROL_METHOD) && (CONTROL_METHOD == ETH_CTRL) // only compile this if ETH_CTRL and libraries are set up in platformio.ini
+
 STM32F4_EthComms::STM32F4_EthComms(volatile rxData_t* _ptrRxData, volatile txData_t* _ptrTxData, std::string _mosiPortAndPin, std::string _misoPortAndPin, std::string _clkPortAndPin, std::string _csPortAndPin, std::string _rstPortAndPin) :
     mosiPortAndPin(_mosiPortAndPin),
     misoPortAndPin(_misoPortAndPin),
@@ -201,3 +204,5 @@ void STM32F4_EthComms::initDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_Typ
 
     __HAL_LINKDMA(&spiHandle, hdmatx, hdma_spi_tx);
 }
+
+#endif

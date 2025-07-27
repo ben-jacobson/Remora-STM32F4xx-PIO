@@ -1,6 +1,9 @@
 #ifndef STM32F4_ETHComms_H
 #define STM32F4_ETHComms_H
 
+#include "remora-core/configuration.h"  
+#if defined(CONTROL_METHOD) && (CONTROL_METHOD == ETH_CTRL) // only compile this if ETH_CTRL and libraries are set up in platformio.ini
+
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_hal_dma.h"
 
@@ -93,3 +96,4 @@ class STM32F4_EthComms : public CommsInterface {
 
 #endif
 
+#endif
