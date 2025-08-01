@@ -65,12 +65,11 @@ int main(void)
             #error "Please configure your WIZ_RST pin in platformio.ini"
         #endif
         comms = std::make_unique<STM32F4_EthComms>(&rxData, &txData, SPI_MOSI, SPI_MISO, SPI_CLK, SPI_CS, WIZ_RST);
-        commsHandler = std::make_shared<CommsHandler>();
     #else
         comms = std::make_unique<STM32F4_SPIComms>(&rxData, &txData, SPI_MOSI, SPI_MISO, SPI_CLK, SPI_CS);
-        commsHandler = std::make_shared<CommsHandler>();
     #endif
 
+    commsHandler = std::make_shared<CommsHandler>();
     commsHandler->setInterface(std::move(comms));
 
     auto baseTimer = std::make_unique<STM32F4_timer>(TIM3, TIM3_IRQn, Config::pruBaseFreq, nullptr, Config::baseThreadIrqPriority);

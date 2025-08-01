@@ -16,7 +16,7 @@ STM32F4_EthComms::STM32F4_EthComms(volatile rxData_t* _ptrRxData, volatile txDat
     rstPortAndPin(_rstPortAndPin)
 {
     ptrRxData = _ptrRxData;
-	ptrTxData = ptrTxData;
+	ptrTxData = _ptrTxData;
     //ptrRxDMABuffer = &rxDMABuffer;
 
     // irqNss = SPI_CS_IRQ;
@@ -33,10 +33,6 @@ STM32F4_EthComms::STM32F4_EthComms(volatile rxData_t* _ptrRxData, volatile txDat
 STM32F4_EthComms::~STM32F4_EthComms() {
 
 }
-
-// void STM32F4_EthComms::dataReceived(void) {
-// 	newDataReceived = true;
-// }
 
 void STM32F4_EthComms::init(void) {
     
@@ -102,7 +98,7 @@ void STM32F4_EthComms::init(void) {
         printf("Error initialising SPI\n");
     }
 
-    // temporary disable until we progress to this.
+    // For the time being, the Wiznet code moves the data packet into the buffer. May need to refactor so that it triggers our mem2mem. 
     //printf("Initialising DMA for Memory to Memory transfer\n");
 
     // hdma_memtomem.Instance 					= DMA1_Stream2;       // F4 doesn't have a nice clean mem2mem so will manually use DMA1
@@ -153,6 +149,25 @@ void STM32F4_EthComms::tasks(void) {
 
     network::EthernetTasks();
 
+    switch (ptrRxData->header)
+    {
+        case Config::pruRead:
+            // No action needed for PRU_READ.
+            dataCallback(true);
+            break;
+
+        case Config::pruWrite:
+            // Valid PRU_WRITE header, flag RX data transfer.
+            dataCallback(true);
+            break;
+
+        default:
+            dataCallback(false);
+            break;
+    }
+
+
+    // Data is currently being put directly into buffer, will assess viability of using DMA mem2mem to achieve this. Probably faster. 
 	// if (newDataReceived) {
 	//     uint8_t* srcBuffer = (uint8_t*)ptrRxDMABuffer->buffer[RXbufferIdx].rxBuffer;
 	//     uint8_t* destBuffer = (uint8_t*)ptrRxData->rxBuffer;

@@ -13,7 +13,7 @@
 
 #include "../remora-core/remora.h"
 #include "../remora-core/comms/commsInterface.h"
-#include "../remora-core/modules/moduleInterrupt.h"
+//#include "../remora-core/modules/moduleInterrupt.h"
 #include "hal_utils.h"
 
 // typedef struct
@@ -56,9 +56,11 @@ class STM32F4_EthComms : public CommsInterface {
         Pin*                        csPin;
         Pin*                        rstPin;
 
-        //uint8_t						RxDMAmemoryIdx;
-        //uint8_t						RXbufferIdx;
-        //bool						newDataReceived;
+        // uint8_t						RxDMAmemoryIdx;
+        // uint8_t						RXbufferIdx;
+
+        // bool						newWriteData;
+        // bool						newDataReceived;
 
         // ModuleInterrupt<STM32F4_EthComms>*	NssInterrupt;
         // ModuleInterrupt<STM32F4_EthComms>*	dmaTxInterrupt;
@@ -69,7 +71,6 @@ class STM32F4_EthComms : public CommsInterface {
         // IRQn_Type					irqDMAtx;
 
         // uint8_t						interruptType;
-        // bool						newWriteData;
 
         void initDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_TypeDef* DMA_TX_Stream, uint32_t DMA_channel);
 
@@ -90,7 +91,6 @@ class STM32F4_EthComms : public CommsInterface {
 
         STM32F4_EthComms(volatile rxData_t*, volatile txData_t*, std::string, std::string, std::string, std::string, std::string);
         virtual ~STM32F4_EthComms();
-        //void dataReceived(void);
 
         void init(void);
         void start(void);
