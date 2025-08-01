@@ -53,7 +53,7 @@ void STM32F4_SPIComms::init() {
 
     printf("Initialising SPI slave\n");
     HAL_SPI_Init(&this->spiHandle);
-    enableSPIClock(spiHandle.Instance);
+    enableSPIClocks(spiHandle.Instance);
 
     if (spiHandle.Instance == SPI1)
     {

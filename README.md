@@ -1,7 +1,7 @@
 # Remora-STM32F4xx-PIO
 Port or Remora for STM32F4xx family, driven by latest Remora-Core abstraction layer.
 
-# Status
+# Todos / Status
 - JSON config loading - in progress. Todos:
     - Set up NOINIT in the linker script so that config is not overwritten
     - Come back to the code that loads using TFTPY after you have set up Ethernet control and a default config
@@ -17,6 +17,15 @@ Port or Remora for STM32F4xx family, driven by latest Remora-Core abstraction la
 - Software PWM yet to be ported.
 - Encoder modules yet to be ported.
 - Linker scripts to be built for range of F4xx builds
+- Turns out, refactoring our CONTROL_METHOD build flags was due to a silly error where I didn't inherit the right build flags. Check with the guys and see what they think should be the standard across multiple builds.
+- ADC - move MSP init code into class
+- Clear up conflict in DMA IRQs between SPI and Ethernet comms modules, just some simple include guarding will suffice.
+- Test out differnet clock config code, what's different between the boards?
+- Test code to clear up:
+    - Alternate clock config for testing.
+    - Extra DMA and SPI callback functions
+
+
 
 # Wiznet W5500 connection
 - PA_5: SCK

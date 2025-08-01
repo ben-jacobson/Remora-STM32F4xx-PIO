@@ -21,11 +21,47 @@ SPIName getSPIPeripheralName(PinName mosi, PinName miso, PinName sclk)
     return spi_per;
 }
 
-void enableSPIClock(SPI_TypeDef* instance) {
-    if (instance == SPI1) __HAL_RCC_SPI1_CLK_ENABLE();
-    else if (instance == SPI2) __HAL_RCC_SPI2_CLK_ENABLE();
-    else if (instance == SPI3) __HAL_RCC_SPI3_CLK_ENABLE();
-    else if (instance == SPI4) __HAL_RCC_SPI4_CLK_ENABLE();
+void enableSPIClocks(SPI_TypeDef* spi_instance) {
+    if (spi_instance == SPI1) __HAL_RCC_SPI1_CLK_ENABLE();
+    else if (spi_instance == SPI2) __HAL_RCC_SPI2_CLK_ENABLE();
+    else if (spi_instance == SPI3) __HAL_RCC_SPI3_CLK_ENABLE();
+    else if (spi_instance == SPI4) __HAL_RCC_SPI4_CLK_ENABLE();
+}
+
+void InitDMAIRQs(SPI_TypeDef* spi_instance)
+{
+    if (spi_instance == SPI1)
+    {
+        __HAL_RCC_DMA2_CLK_ENABLE();
+
+        HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
+        HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+        HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 0, 0);
+        HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);              
+    }
+    else if (spi_instance == SPI2)
+    {
+        __HAL_RCC_DMA1_CLK_ENABLE();
+
+        HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 0, 0);
+        HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
+        HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 0, 0);
+        HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);       
+    }
+    else if (spi_instance == SPI3)
+    {
+        __HAL_RCC_DMA1_CLK_ENABLE();
+
+        HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
+        HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
+        HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 0, 0);
+        HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);     
+    }
+    else
+    {
+        printf("Invalid SPI bus selected, please check your SPI configuration in your PlatformIO SPI1-3\n");
+        return;
+    }
 }
 
 Pin* createPinFromPinMap(const std::string& portAndPin, PinName pinName, const PinMap* map, uint32_t gpio_mode, uint32_t gpio_pull, uint32_t gpio_speed) { 

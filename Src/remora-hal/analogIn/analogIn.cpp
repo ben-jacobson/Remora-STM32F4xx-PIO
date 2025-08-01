@@ -105,11 +105,11 @@ uint32_t AnalogIn::getADCChannelConstant(int channel)
 
 void AnalogIn::enableADCClock(ADC_TypeDef* adc)
 {
-    // if (adc == ADC1 || adc == ADC2) {
-    //     __HAL_RCC_ADC2_CLK_ENABLE();
-    // } else if (adc == ADC3) {
-    //     __HAL_RCC_ADC3_CLK_ENABLE();
-    // } else {
-    //     printf("Unknown ADC instance\n");
-    // }
+    if (adc == ADC1 || adc == ADC2) {
+        __HAL_RCC_ADC2_CLK_ENABLE();
+    } else if (adc == ADC3) {
+        __HAL_RCC_ADC3_CLK_ENABLE();
+    } else {
+        printf("Unknown ADC instance\n");
+    }
 }

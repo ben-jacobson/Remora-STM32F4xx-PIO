@@ -41,7 +41,6 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -197,6 +196,12 @@ void SysTick_Handler(void)
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32f4xx.s).                    */
 /******************************************************************************/
+
+/*
+
+    Note - the usual DMA and SPI interrupt IRQs have been moved over to IRQHandler unit.
+
+*/
 
 /* USER CODE BEGIN 1 */
 

@@ -31,14 +31,11 @@
 
 class STM32F4_EthComms : public CommsInterface {
     private:
-        volatile DMA_RxBuffer_t* 	ptrRxDMABuffer;
+        ///volatile DMA_RxBuffer_t* 	ptrRxDMABuffer;
 
         // SPI_TypeDef*        		spiType;
-        SPI_HandleTypeDef   		spiHandle;
-        DMA_HandleTypeDef   		hdma_spi_tx;
-        DMA_HandleTypeDef   		hdma_spi_rx;
-        DMA_HandleTypeDef   		hdma_memtomem;
-        HAL_StatusTypeDef   		dmaStatus;
+        //DMA_HandleTypeDef   		hdma_memtomem;
+        //HAL_StatusTypeDef   		dmaStatus;
 
         std::string                 mosiPortAndPin; 
         std::string                 misoPortAndPin; 
@@ -59,9 +56,9 @@ class STM32F4_EthComms : public CommsInterface {
         Pin*                        csPin;
         Pin*                        rstPin;
 
-        uint8_t						RxDMAmemoryIdx;
-        uint8_t						RXbufferIdx;
-        bool						newDataReceived;
+        //uint8_t						RxDMAmemoryIdx;
+        //uint8_t						RXbufferIdx;
+        //bool						newDataReceived;
 
         // ModuleInterrupt<STM32F4_EthComms>*	NssInterrupt;
         // ModuleInterrupt<STM32F4_EthComms>*	dmaTxInterrupt;
@@ -82,16 +79,27 @@ class STM32F4_EthComms : public CommsInterface {
         // int handleDMAInterrupt(DMA_HandleTypeDef *);
         // void handleRxInterrupt(void);
         // void handleTxInterrupt(void);
-        // void handleNssInterrupt(void);
+        // void handleNssInterrupt(void); 
         
     public:   
+        static STM32F4_EthComms* instance;
+
+        static SPI_HandleTypeDef spiHandle;
+        static DMA_HandleTypeDef hdma_spi_tx;
+        static DMA_HandleTypeDef hdma_spi_rx;
+
         STM32F4_EthComms(volatile rxData_t*, volatile txData_t*, std::string, std::string, std::string, std::string, std::string);
         virtual ~STM32F4_EthComms();
-        void dataReceived(void);
+        //void dataReceived(void);
 
         void init(void);
         void start(void);
         void tasks(void);
+
+        uint8_t read_byte(void) override;
+        uint8_t write_byte(uint8_t) override;
+        void DMA_write(uint8_t*, uint16_t) override;
+        void DMA_read(uint8_t*, uint16_t) override;
 };
 
 #endif

@@ -3,6 +3,7 @@
 
 #include "remora-core/interrupt/interrupt.h"
 #include "stm32f4xx_hal.h"
+#include "remora-hal/STM32F4_EthComms.h"
 
 extern "C" {
 
@@ -13,13 +14,58 @@ extern "C" {
         }
     }
 
-    void DMA1_Stream0_IRQHandler() {
-        Interrupt::InvokeHandler(DMA1_Stream0_IRQn);
+    // void DMA1_Stream0_IRQHandler() {     // Need to set include guards to renable SPIComms DMA
+    //     Interrupt::InvokeHandler(DMA1_Stream0_IRQn);
+    // }
+
+    // void DMA1_Stream1_IRQHandler() {
+    //     Interrupt::InvokeHandler(DMA1_Stream1_IRQn);
+    // }
+
+    void DMA2_Stream0_IRQHandler(void) // SPI 1 RX
+    {
+        HAL_DMA_IRQHandler(&STM32F4_EthComms::hdma_spi_rx);
     }
 
-    void DMA1_Stream1_IRQHandler() {
-        Interrupt::InvokeHandler(DMA1_Stream1_IRQn);
+    void DMA1_Stream3_IRQHandler(void)
+    {
+        HAL_DMA_IRQHandler(&STM32F4_EthComms::hdma_spi_rx);
     }
+
+    void DMA1_Stream0_IRQHandler(void)
+    {
+        HAL_DMA_IRQHandler(&STM32F4_EthComms::hdma_spi_rx);
+    }
+
+    void DMA2_Stream3_IRQHandler(void) // SPI 1 TX
+    {  
+        HAL_DMA_IRQHandler(&STM32F4_EthComms::hdma_spi_tx);    
+    }
+
+    void DMA1_Stream4_IRQHandler(void)
+    { 
+        HAL_DMA_IRQHandler(&STM32F4_EthComms::hdma_spi_tx);    
+    }
+
+    void DMA1_Stream5_IRQHandler(void)
+    {  
+        HAL_DMA_IRQHandler(&STM32F4_EthComms::hdma_spi_tx);    
+    }
+
+    void SPI1_IRQHandler(void)
+    {
+        HAL_SPI_IRQHandler(&STM32F4_EthComms::spiHandle);
+    }
+
+    void SPI2_IRQHandler(void)
+    {
+        HAL_SPI_IRQHandler(&STM32F4_EthComms::spiHandle);
+    }
+
+    void SPI3_IRQHandler(void)
+    {
+        HAL_SPI_IRQHandler(&STM32F4_EthComms::spiHandle);        
+    }    
 
     void TIM2_IRQHandler() {
         if (TIM2->SR & TIM_SR_UIF) {

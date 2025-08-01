@@ -7,11 +7,13 @@
 #include "PinNamesTypes.h" 
 
 SPIName getSPIPeripheralName(PinName, PinName, PinName);
-void enableSPIClock(SPI_TypeDef *);
+void enableSPIClocks(SPI_TypeDef *);
+void InitDMAIRQs(SPI_TypeDef *);
+
 Pin* createPinFromPinMap(const std::string&, PinName, const PinMap*,
                uint32_t = GPIO_MODE_AF_PP,
                uint32_t = GPIO_NOPULL,
-               uint32_t = GPIO_SPEED_FREQ_LOW);
+               uint32_t = GPIO_SPEED_FREQ_VERY_HIGH);
 
 void delay_ms(uint32_t);
 
