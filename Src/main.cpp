@@ -38,7 +38,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 UART_HandleTypeDef uart_handle;
 
 void SystemClock_Config(void);
-static void MX_GPIO_Init(void);
 static void MX_UART_Init(void);
 
 // re-target printf to defined UART by redeclaring weak function in syscalls.c
@@ -53,8 +52,7 @@ int main(void)
 {
     HAL_Init();
     SystemClock_Config();
-    MX_GPIO_Init();
-    MX_UART_Init();
+    MX_UART_Init(); // todo, create some abstraction to handle this and allow selection via platformio.ini
 
     HAL_Delay(1000); 
     printf("Initialising Remora...\n");
@@ -163,10 +161,10 @@ static void MX_UART_Init(void)
   * @param None
   * @retval None
   */
-static void MX_GPIO_Init(void)
+/*static void MX_GPIO_Init(void)
 {
   // we Initialise our own via Pin abstraction
-}
+}*/
 
 /* USER CODE BEGIN 4 */
 

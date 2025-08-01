@@ -15,8 +15,6 @@ STM32F4_EthComms::STM32F4_EthComms(volatile rxData_t* _ptrRxData, volatile txDat
     csPortAndPin(_csPortAndPin),
     rstPortAndPin(_rstPortAndPin)
 {
-    //STM32F4_EthComms::instance = this;  // enable access to some variables inside of this statically
-
     ptrRxData = _ptrRxData;
 	ptrTxData = ptrTxData;
     //ptrRxDMABuffer = &rxDMABuffer;
@@ -37,7 +35,7 @@ STM32F4_EthComms::~STM32F4_EthComms() {
 }
 
 // void STM32F4_EthComms::dataReceived(void) {
-// 	newDataReceived= true;
+// 	newDataReceived = true;
 // }
 
 void STM32F4_EthComms::init(void) {
@@ -49,10 +47,8 @@ void STM32F4_EthComms::init(void) {
     enableSPIClocks(spiHandle.Instance);
 
     printf("initialising SPI pins\n");
-    csPin = new Pin(csPortAndPin, GPIO_MODE_AF_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_VERY_HIGH, 0);  // no alt, can probably live without
-    rstPin = new Pin(rstPortAndPin, GPIO_MODE_AF_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_VERY_HIGH, 0);
-    delete csPin;
-    delete rstPin;
+    csPin = new Pin(csPortAndPin, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_VERY_HIGH, 0);  
+    rstPin = new Pin(rstPortAndPin, GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_VERY_HIGH, 0);
 
     // Create alternate function SPI pins
     mosiPin = createPinFromPinMap(mosiPortAndPin, mosiPinName, PinMap_SPI_MOSI);
@@ -106,7 +102,7 @@ void STM32F4_EthComms::init(void) {
         printf("Error initialising SPI\n");
     }
 
-    // temporary disable while figuring out what's happening with the SPI bus
+    // temporary disable until we progress to this.
     //printf("Initialising DMA for Memory to Memory transfer\n");
 
     // hdma_memtomem.Instance 					= DMA1_Stream2;       // F4 doesn't have a nice clean mem2mem so will manually use DMA1
@@ -251,9 +247,6 @@ void STM32F4_EthComms::DMA_read(uint8_t *data, uint16_t len)
 {
     if (HAL_SPI_Receive_DMA(&spiHandle, data, len) == HAL_OK)
         while(spiHandle.State != HAL_SPI_STATE_READY);
-
-    //__HAL_DMA_DISABLE(&STM32F4_EthComms::hdma_spi_rx);
-    //__HAL_DMA_DISABLE(&STM32F4_EthComms::hdma_spi_tx); // these shouldn't be needed as are handled by the STM framework?
 }
 
 #endif

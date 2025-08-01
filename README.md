@@ -12,7 +12,7 @@ Port or Remora for STM32F4xx family, driven by latest Remora-Core abstraction la
     - Scope out the Wiznet module INT line, can this be used for IRQ for recieving control packets?    
     - Test controls to / from LinuxCNC
     - Set up config loading via TFTP and hook into the JSON config loading
-- Uart3 supported for console logging. Some support for others, platformIO config to be tested
+- Uart3 supported for console logging. Some support for others, platformIO config to be tested. Also need to create some abstractions around this.
 - Stepgen, blink, digital IO, analog Ins, and PWM to be ported
 - Software PWM yet to be ported.
 - Encoder modules yet to be ported.
