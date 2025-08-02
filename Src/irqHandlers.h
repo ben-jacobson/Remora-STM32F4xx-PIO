@@ -14,14 +14,19 @@ extern "C" {
         }
     }
 
-    // void DMA1_Stream0_IRQHandler() {     // Need to set include guards to renable SPIComms DMA
-    //     Interrupt::InvokeHandler(DMA1_Stream0_IRQn);
-    // }
+    #ifdef SPI_CTRL
+    void DMA1_Stream0_IRQHandler() {  
+        Interrupt::InvokeHandler(DMA1_Stream0_IRQn);
+    }
 
-    // void DMA1_Stream1_IRQHandler() {
-    //     Interrupt::InvokeHandler(DMA1_Stream1_IRQn);
-    // }
+    void DMA1_Stream1_IRQHandler() {
+        Interrupt::InvokeHandler(DMA1_Stream1_IRQn);
+    }
+    #endif
 
+
+    #ifdef ETH_CTRL
+    // these don't seem needed for SPI control, to be tested later
     void DMA2_Stream0_IRQHandler(void) // SPI 1 RX
     {
         HAL_DMA_IRQHandler(&STM32F4_EthComms::hdma_spi_rx);
@@ -66,6 +71,7 @@ extern "C" {
     {
         HAL_SPI_IRQHandler(&STM32F4_EthComms::spiHandle);        
     }    
+    #endif
 
     void TIM2_IRQHandler() {
         if (TIM2->SR & TIM_SR_UIF) {
