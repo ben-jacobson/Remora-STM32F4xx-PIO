@@ -8,6 +8,8 @@ SPI_HandleTypeDef STM32F4_EthComms::spiHandle;
 DMA_HandleTypeDef STM32F4_EthComms::hdma_spi_tx;
 DMA_HandleTypeDef STM32F4_EthComms::hdma_spi_rx;
 
+volatile DMA_RxBuffer_t rxDMABuffer;
+
 STM32F4_EthComms::STM32F4_EthComms(volatile rxData_t* _ptrRxData, volatile txData_t* _ptrTxData, std::string _mosiPortAndPin, std::string _misoPortAndPin, std::string _clkPortAndPin, std::string _csPortAndPin, std::string _rstPortAndPin) :
     mosiPortAndPin(_mosiPortAndPin),
     misoPortAndPin(_misoPortAndPin),
@@ -17,10 +19,10 @@ STM32F4_EthComms::STM32F4_EthComms(volatile rxData_t* _ptrRxData, volatile txDat
 {
     ptrRxData = _ptrRxData;
 	ptrTxData = _ptrTxData;
-    //ptrRxDMABuffer = &rxDMABuffer;
+    ptrRxDMABuffer = &rxDMABuffer;
 
-    // irqNss = SPI_CS_IRQ;
-    // irqDMAtx = DMA1_Stream0_IRQn;
+    // irqNss = SPI_CS_IRQ; // need to find a new way to interrupt and advise that new data is waiting to be streamed in. May not even be interrupt based. 
+    // irqDMAtx = DMA1_Stream0_IRQn; // These now clash with SPI DMA streams 
     // irqDMArx = DMA1_Stream1_IRQn;
 
     mosiPinName = portAndPinToPinName(mosiPortAndPin.c_str());

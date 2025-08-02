@@ -21,11 +21,7 @@ Port or Remora for STM32F4xx family, driven by latest Remora-Core abstraction la
 - ADC - move MSP init code into class
 - Clear up conflict in DMA IRQs between SPI and Ethernet comms modules, just some simple include guarding will suffice.
 - Test out differnet clock config code, what's different between the boards?
-- Test code to clear up:
-    - Alternate clock config for testing.
-    - Extra DMA and SPI callback functions
-
-
+- Test if DMA callbacks in IRQHandle are needed for both ETH and SPI builds
 
 # Wiznet W5500 connection
 - PA_5: SCK
