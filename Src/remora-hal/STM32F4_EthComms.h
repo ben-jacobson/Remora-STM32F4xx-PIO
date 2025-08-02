@@ -13,7 +13,7 @@
 
 #include "../remora-core/remora.h"
 #include "../remora-core/comms/commsInterface.h"
-//#include "../remora-core/modules/moduleInterrupt.h"
+#include "../remora-core/modules/moduleInterrupt.h"
 #include "hal_utils.h"
 
 // typedef struct
@@ -31,10 +31,13 @@
 
 class STM32F4_EthComms : public CommsInterface {
     private:
-        ///volatile DMA_RxBuffer_t* 	ptrRxDMABuffer;
+        //volatile DMA_RxBuffer_t* 	ptrRxDMABuffer;
 
         // SPI_TypeDef*        		spiType;
-        //DMA_HandleTypeDef   		hdma_memtomem;
+        SPI_HandleTypeDef           spiHandle;
+        DMA_HandleTypeDef           hdma_spi_tx;
+        DMA_HandleTypeDef           hdma_spi_rx;          
+        DMA_HandleTypeDef   		hdma_memtomem;
         //HAL_StatusTypeDef   		dmaStatus;
 
         std::string                 mosiPortAndPin; 
@@ -49,7 +52,6 @@ class STM32F4_EthComms : public CommsInterface {
         PinName                     csPinName;
         PinName                     rstPinName;
 
-
         Pin*                        mosiPin;
         Pin*                        misoPin;
         Pin*                        clkPin;
@@ -57,38 +59,30 @@ class STM32F4_EthComms : public CommsInterface {
         Pin*                        rstPin;
 
         // uint8_t						RxDMAmemoryIdx;
-        // uint8_t						RXbufferIdx;
+        //uint8_t						RXbufferIdx;
+        //bool						copyRXbuffer;
 
-        // bool						newWriteData;
-        // bool						newDataReceived;
+        ModuleInterrupt<STM32F4_EthComms>*	spiInterrupt;        
+        ModuleInterrupt<STM32F4_EthComms>*	dmaTxInterrupt;
+        ModuleInterrupt<STM32F4_EthComms>*	dmaRxInterrupt;
 
-        // ModuleInterrupt<STM32F4_EthComms>*	NssInterrupt;
-        // ModuleInterrupt<STM32F4_EthComms>*	dmaTxInterrupt;
-        // ModuleInterrupt<STM32F4_EthComms>*	dmaRxInterrupt;
+        IRQn_Type					irqDMArx;
+        IRQn_Type					irqDMAtx;
 
-        // IRQn_Type					irqNss;
-        // IRQn_Type					irqDMArx;
-        // IRQn_Type					irqDMAtx;
+        //uint8_t						interruptType;
+        //bool						newWriteData;
 
-        // uint8_t						interruptType;
+        void initSPIDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_TypeDef* DMA_TX_Stream, uint32_t DMA_channel);
 
-        void initDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_TypeDef* DMA_TX_Stream, uint32_t DMA_channel);
+        //HAL_StatusTypeDef startMultiBufferDMASPI(uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint16_t);
+        //int getActiveDMAmemory(DMA_HandleTypeDef*);
 
-        // HAL_StatusTypeDef startMultiBufferDMASPI(uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint16_t);
-        // int getActiveDMAmemory(DMA_HandleTypeDef*);
-
-        // int handleDMAInterrupt(DMA_HandleTypeDef *);
-        // void handleRxInterrupt(void);
-        // void handleTxInterrupt(void);
-        // void handleNssInterrupt(void); 
+        //int handleDMAInterrupt(DMA_HandleTypeDef *);
+        void handleRxInterrupt(void);
+        void handleTxInterrupt(void);        
+        void handleSPIInterrupt(void);
         
     public:   
-        static STM32F4_EthComms* instance;
-
-        static SPI_HandleTypeDef spiHandle;
-        static DMA_HandleTypeDef hdma_spi_tx;
-        static DMA_HandleTypeDef hdma_spi_rx;
-
         STM32F4_EthComms(volatile rxData_t*, volatile txData_t*, std::string, std::string, std::string, std::string, std::string);
         virtual ~STM32F4_EthComms();
 

@@ -58,17 +58,17 @@ void STM32F4_SPIComms::init() {
     if (spiHandle.Instance == SPI1)
     {
         printf("Initialising SPI1 DMA\n");
-        initDMA(DMA2_Stream0, DMA2_Stream3, DMA_CHANNEL_3);
+        initSPIDMA(DMA2_Stream0, DMA2_Stream3, DMA_CHANNEL_3);
     }
     else if (spiHandle.Instance == SPI2)
     {
         printf("Initialising SPI2 DMA\n");
-        initDMA(DMA1_Stream3, DMA1_Stream4, DMA_CHANNEL_0);
+        initSPIDMA(DMA1_Stream3, DMA1_Stream4, DMA_CHANNEL_0);
     }
     else if (spiHandle.Instance == SPI3)
     {
         printf("Initialising SPI3 DMA\n");
-        initDMA(DMA1_Stream0, DMA1_Stream5, DMA_CHANNEL_0);
+        initSPIDMA(DMA1_Stream0, DMA1_Stream5, DMA_CHANNEL_0);
     }
     else
     {
@@ -96,7 +96,7 @@ void STM32F4_SPIComms::init() {
     HAL_DMA_Init(&hdma_memtomem);
 }
 
-void STM32F4_SPIComms::initDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_TypeDef* DMA_TX_Stream, uint32_t DMA_channel) {
+void STM32F4_SPIComms::initSPIDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_TypeDef* DMA_TX_Stream, uint32_t DMA_channel) {
     // RX
     hdma_spi_rx.Instance = DMA_RX_Stream;
     hdma_spi_rx.Init.Channel = DMA_channel; 
@@ -333,6 +333,8 @@ HAL_StatusTypeDef STM32F4_SPIComms::startMultiBufferDMASPI(uint8_t *pTxBuffer0, 
 
 int STM32F4_SPIComms::handleDMAInterrupt(DMA_HandleTypeDef *hdma)
 {
+  // this seems to be a refactor of void HAL_DMA_IRQHandler(DMA_HandleTypeDef *hdma)? I wonder if this could be replaced with STM HAL??
+
   uint32_t tmpisr_dma;
   int interrupt;
 
@@ -533,7 +535,7 @@ void STM32F4_SPIComms::tasks() {
 
 	    __disable_irq();
 
-	    dmaStatus = HAL_DMA_Start( // old H7 mem to mem code
+	    dmaStatus = HAL_DMA_Start( 
 	    							&hdma_memtomem,
 									(uint32_t)srcBuffer,
 									(uint32_t)destBuffer,

@@ -14,7 +14,7 @@ extern "C" {
         }
     }
 
-    #ifdef SPI_CTRL
+    #ifdef SPI_CTRL // these need to be remapped - the F4 isn't as flexible as the H7 and has fixed streams available for different SPI buses. We have this set up in the ETHComms, but they don't link back to the DMA IRQs
     void DMA1_Stream0_IRQHandler() {  
         Interrupt::InvokeHandler(DMA1_Stream0_IRQn);
     }
@@ -26,51 +26,75 @@ extern "C" {
 
 
     #ifdef ETH_CTRL
-    // these don't seem needed for SPI control, to be tested later
-    void DMA2_Stream0_IRQHandler(void) // SPI 1 RX
-    {
-        HAL_DMA_IRQHandler(&STM32F4_EthComms::hdma_spi_rx);
+
+    // macro for automatically creating the DMA Stream IRQ handlers, e.g DMA2_Stream0_IRQHandler()
+    #define DMA_STREAM_IRQ_HANDLER(DMA_num, DMA_stream, IRQ_n)      \
+    void DMA##DMA_num##_Stream##DMA_stream##_IRQHandler(void) {     \
+        Interrupt::InvokeHandler(IRQ_n);                            \
     }
 
-    void DMA1_Stream3_IRQHandler(void)
-    {
-        HAL_DMA_IRQHandler(&STM32F4_EthComms::hdma_spi_rx);
+    DMA_STREAM_IRQ_HANDLER(2, 0, DMA2_Stream0_IRQn) // SPI 1 RX
+    DMA_STREAM_IRQ_HANDLER(1, 3, DMA1_Stream3_IRQn) 
+    DMA_STREAM_IRQ_HANDLER(1, 0, DMA1_Stream0_IRQn) 
+    DMA_STREAM_IRQ_HANDLER(2, 3, DMA2_Stream3_IRQn) // SPI 1 TX
+    DMA_STREAM_IRQ_HANDLER(1, 4, DMA1_Stream4_IRQn) 
+    DMA_STREAM_IRQ_HANDLER(1, 5, DMA1_Stream5_IRQn) 
+
+    // void DMA2_Stream0_IRQHandler(void) // SPI 1 RX
+    // {
+    //     Interrupt::InvokeHandler(DMA2_Stream0_IRQn);
+    // }
+
+    // void DMA1_Stream3_IRQHandler(void)
+    // {
+    //     Interrupt::InvokeHandler(DMA1_Stream3_IRQn);
+    // }
+
+    // void DMA1_Stream0_IRQHandler(void)
+    // {
+    //     Interrupt::InvokeHandler(DMA1_Stream0_IRQn);
+    // }
+
+    // void DMA2_Stream3_IRQHandler(void) // SPI 1 TX
+    // {  
+    //     Interrupt::InvokeHandler(DMA2_Stream3_IRQn); 
+    // }
+
+    // void DMA1_Stream4_IRQHandler(void)
+    // { 
+    //     Interrupt::InvokeHandler(DMA1_Stream4_IRQn);
+    // }
+
+    // void DMA1_Stream5_IRQHandler(void)
+    // {  
+    //     Interrupt::InvokeHandler(DMA1_Stream5_IRQn); 
+    // }
+
+    // macro for automatically creating the SPI IRQ handlers, e.g SPI1_IRQHandler()
+    #define SPI_IRQ_HANDLER(SPI_IRQ_FUNCTION_NAME, SPI_IRQ_NUM) \
+    void SPI_IRQ_FUNCTION_NAME(void) {                          \
+        Interrupt::InvokeHandler(SPI_IRQ_NUM);                  \
     }
 
-    void DMA1_Stream0_IRQHandler(void)
-    {
-        HAL_DMA_IRQHandler(&STM32F4_EthComms::hdma_spi_rx);
-    }
+    SPI_IRQ_HANDLER(SPI1_IRQHandler, SPI1_IRQn)
+    SPI_IRQ_HANDLER(SPI2_IRQHandler, SPI2_IRQn)
+    SPI_IRQ_HANDLER(SPI3_IRQHandler, SPI3_IRQn)
 
-    void DMA2_Stream3_IRQHandler(void) // SPI 1 TX
-    {  
-        HAL_DMA_IRQHandler(&STM32F4_EthComms::hdma_spi_tx);    
-    }
+    // void SPI1_IRQHandler(void)
+    // {
+    //     Interrupt::InvokeHandler(SPI1_IRQn); 
+    // }
 
-    void DMA1_Stream4_IRQHandler(void)
-    { 
-        HAL_DMA_IRQHandler(&STM32F4_EthComms::hdma_spi_tx);    
-    }
+    // void SPI2_IRQHandler(void)
+    // {
+    //     Interrupt::InvokeHandler(SPI2_IRQn); 
+    // }
 
-    void DMA1_Stream5_IRQHandler(void)
-    {  
-        HAL_DMA_IRQHandler(&STM32F4_EthComms::hdma_spi_tx);    
-    }
+    // void SPI3_IRQHandler(void)
+    // {
+    //     Interrupt::InvokeHandler(SPI3_IRQn); 
+    // }    
 
-    void SPI1_IRQHandler(void)
-    {
-        HAL_SPI_IRQHandler(&STM32F4_EthComms::spiHandle);
-    }
-
-    void SPI2_IRQHandler(void)
-    {
-        HAL_SPI_IRQHandler(&STM32F4_EthComms::spiHandle);
-    }
-
-    void SPI3_IRQHandler(void)
-    {
-        HAL_SPI_IRQHandler(&STM32F4_EthComms::spiHandle);        
-    }    
     #endif
 
     void TIM2_IRQHandler() {
