@@ -58,7 +58,7 @@ int main(void)
         SCB->VTOR = (uint32_t)&_FLASH_VectorTable;
         __DSB();
         __enable_irq();
-    #endif/
+    #endif
 
     HAL_Init();
     SystemClock_Config();

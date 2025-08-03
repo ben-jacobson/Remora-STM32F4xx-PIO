@@ -72,3 +72,19 @@ Pin* createPinFromPinMap(const std::string& portAndPin, PinName pinName, const P
 void delay_ms(uint32_t ms) {
     HAL_Delay(ms);
 }
+
+void mass_erase_flash_sector(uint32_t Sector) {
+    uint32_t error; 
+
+    static FLASH_EraseInitTypeDef sector_to_erase = {
+        .TypeErase = FLASH_TYPEERASE_SECTORS,
+        .Banks = FLASH_BANK_1,
+        .Sector = Sector, 
+        .NbSectors = 1,
+        .VoltageRange = FLASH_VOLTAGE_RANGE_3
+    };
+
+    if (HAL_FLASHEx_Erase(&sector_to_erase, &error) != HAL_OK) {
+        Error_Handler();
+    }
+}
