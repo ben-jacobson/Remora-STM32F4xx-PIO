@@ -1,38 +1,59 @@
 # Remora-STM32F4xx-PIO
-Port or Remora for STM32F4xx family, driven by latest Remora-Core abstraction layer.
+Port or Remora for STM32F4xx family, ported to use the latest Remora-Core abstraction layer.
 
 # Todos / Status
-- JSON config loading - in progress. Todos:
-    - Set up NOINIT in the linker script so that config is not overwritten
-    - Come back to the code that loads using TFTPY after you have set up Ethernet control and a default config
-- Wiznet control code - in progress. Todos:
-    - Testing of Wiznet handling code
-    - Testing of Lwip handling code
-    - Connect up the DMA transfers between Phy, UDP and CommsInterface layers. 
-    - Scope out the Wiznet module INT line, can this be used for IRQ for recieving control packets?    
-    - Test controls to / from LinuxCNC
-    - Set up config loading via TFTP and hook into the JSON config loading
-- Uart3 supported for console logging. Some support for others, platformIO config to be tested. Also need to create some abstractions around this.
-- Stepgen, blink, digital IO, analog Ins, and PWM to be ported
-- Software PWM yet to be ported.
-- Encoder modules yet to be ported.
-- Linker scripts to be built for range of F4xx builds
-- Turns out, refactoring our CONTROL_METHOD build flags was due to a silly error where I didn't inherit the right build flags. Check with the guys and see what they think should be the standard across multiple builds.
-- ADC - move MSP init code into class
-- Clear up conflict in DMA IRQs between SPI and Ethernet comms modules, just some simple include guarding will suffice.
-- Test out differnet clock config code, what's different between the boards?
-- Test if DMA callbacks in IRQHandle are needed for both ETH and SPI builds
+- Network control code - in progress:
+    - Current status:
+        - Wiznet and LWIP integrated
+        - Connects to the network
+        - Using the Remora-Eth-3.0 LinuxCNC component, able to switch the PRU in and out of eStop modes.
+    - Todos:
+        - Set up FTP client for JSON config loading
+        - See if we can make use of the Wiznet INT output somehow
+        - Work with the team on an idea for Remora to trigger an interrupt 
+        - Test for checking around lost packets
+- JSON config loading - in progress:
+    - Current status:
+        - Able to detect empty config and load default blinky. Blinky module working
+    - Todos:
+        - Set up the linker script to allocate memory for the config
+        - Once FTP is set up, hook up the functions for loading config into memory and resetting PRU
+        - Once config loading is complete, upload our test config and run some tests for stepgen, digital in and digital out
+- SPI Comms - in progress:
+    - Current status:
+        - Ported in and builds, not yet tested
+    - Todos:
+        - Find a LinuxCNC image for RPI3 as this is all we have on hand. 
+        - Full testing required on SPIComms ported in from H7
+        - Some refactoring to use new introduced interface features and hal_utils. 
+        - Refactoring of Mbed code used for handling DMA interrupts. See if we can replace with a set of idiomatic STM HAL DMA handlers
+- Uart3 support - in progress: 
+    - Current status:
+        - Basic set up for console logging on a select peripheral set in PlatformIO.ini
+    - Todos:
+        - Refactor so that this is handled by a class. Perhaps use the comms interface? 
+- Modules - in progress:
+    - Blinky - working
+    - Stepgen, digital IO, Analog Ins - to be tested
+    - Hardware PWM yet to be ported in from deprecated F4 code base
+    - Encoder modules yet to be ported.
+    - Linker scripts to be built for a range of F4xx builds
+- Adhoc todos: 
+    - ADC - move MSP init code into class
+    - Clear up conflict in DMA IRQs between SPI and Ethernet comms modules, just some simple include guarding will suffice.
+    - Test out differnet clock config code, what's different between the boards?
+    - Look at IRQHandle and move the DMAStreams over to unused channel/stream combos for SPIComms on F4
 
 # Wiznet W5500 connection
 - PA_5: SCK
 - PA_6: MISO
 - PA_7: MOSI
-- WIZ_RST and SPI_CS are configured in Platformio.ini. 
-- SPI_INT is not yet used by this firmware
+- WIZ_RST: configured in Platformio.ini. Default = PB_5
+- SPI_CS: configured in Platformio.ini. Default = PB_6
 
 # UART connections
-- PD_9: UART_TX
-- PD_8: UART_RX - Firmware doesn't make use of this, but left for completeness and future expansion
+- UART_TX: PD_9
+- UART_RX: PD_8 - Firmware doesn't make use of this, but left for completeness and future expansion
 
 # Allocation of Step Generators, IO and PWM
 Please refer to the Remora documentation to configure GPIO to perform various functions like stepgen, digital IO and PWM: https://remora-docs.readthedocs.io/en/latest/configuration/configuration.html
@@ -48,9 +69,9 @@ Software PWM is not yet supported and may not ever be. Please use Hardware PWM f
 ------------------------------------------
 
 # Installation instructions
-Building the firmware from source using PlatformIO. On initial release, precompiled binaries will be made available in this repo enabling upload via an STLink. 
+You may build the firmware from source using PlatformIO. On initial release, precompiled binaries will be made available in this repo enabling upload via an STLink. 
 
-This firmware uses the Remora-eth-0.3.0 ethernet component avaialable on the NVEM Remora port found here: https://github.com/scottalford75/Remora-RT1052-cpp/tree/main/LinuxCNC/components/Remora-eth
+This firmware uses the Remora-eth-0.3.0 ethernet component avaialable in the LinuxCNC/Components folder.
 
 Compile the component using halcompile
 ```

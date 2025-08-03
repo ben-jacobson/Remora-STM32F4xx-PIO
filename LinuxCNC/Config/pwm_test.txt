@@ -1,0 +1,37 @@
+{
+    "Board": "NUCLEOF411ZE Hat",
+    "Modules": [
+        {
+            "Thread": "Servo",
+            "Type": "PWM",
+            "Comment":                      "PWM0",
+            "SP[i]":                        0,
+            "PWM Pin":                      "PA_10",
+            "Hardware PWM":                 "True",
+            "Variable Freq":                "True",
+            "Period SP[i]":                 1
+        },
+        {
+            "Thread": "Servo",
+            "Type": "PWM",
+            "Comment":                      "PWM1",
+            "SP[i]":                        2,
+            "PWM Pin":                      "PB_2",
+            "PWM Max":                      192,
+            "Hardware PWM":                 "True",
+            "Variable Freq":                "False",
+            "Period us":                    800
+        },      
+        {
+            "Thread": "Servo",
+            "Type": "PWM",
+            "Comment":                      "PWM2",
+            "SP[i]":                        3,
+            "PWM Pin":                      "PA_0",
+            "PWM Max":                      192,
+            "Hardware PWM":                 "True",
+            "Variable Freq":                "False",
+            "Period us":                    1000
+        }             
+    ]
+}

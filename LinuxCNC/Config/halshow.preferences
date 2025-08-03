@@ -1,0 +1,40 @@
+# Halshow settings
+# This file is generated automatically.
+wm geometry . 1168x569+79+146
+placeFrames 0.3
+set ::ratio 0.3
+set ::old_w_leftf 160
+set ::watchlist {
+    pin+remora.output.00
+    pin+remora.output.01
+    pin+remora.output.02
+    pin+remora.output.03
+    pin+remora.output.04
+    pin+remora.output.05
+    pin+remora.output.06
+    pin+remora.output.07
+    pin+remora.input.00
+    pin+remora.input.01
+    pin+remora.input.02
+    pin+remora.input.03
+    pin+remora.input.04
+    pin+remora.input.05
+    pin+remora.input.06
+    pin+remora.input.07
+    pin+remora.input.08
+    pin+remora.input.09
+    pin+remora.input.10
+    pin+remora.input.11
+    pin+remora.input.12
+    pin+remora.input.13
+    sig+spindle-dac-period-us
+    sig+test-second-pwm-duty-percent
+    sig+test-second-pwm-period-us
+}
+set ::workmode watchhal
+set ::watchInterval 100
+set ::col1_width 100
+set ::ffmts 
+set ::ifmts 
+set ::alwaysOnTop 0
+set ::autoSaveWatchlist 1
