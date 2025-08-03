@@ -43,6 +43,7 @@ Port or Remora for STM32F4xx family, ported to use the latest Remora-Core abstra
     - Clear up conflict in DMA IRQs between SPI and Ethernet comms modules, just some simple include guarding will suffice.
     - Test out differnet clock config code, what's different between the boards?
     - Look at IRQHandle and move the DMAStreams over to unused channel/stream combos for SPIComms on F4
+    - Build the bootloader linker scripts
 
 # Wiznet W5500 connection
 - PA_5: SCK
