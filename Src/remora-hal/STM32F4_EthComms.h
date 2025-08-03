@@ -37,7 +37,7 @@ class STM32F4_EthComms : public CommsInterface {
         SPI_HandleTypeDef           spiHandle;
         DMA_HandleTypeDef           hdma_spi_tx;
         DMA_HandleTypeDef           hdma_spi_rx;          
-        DMA_HandleTypeDef   		hdma_memtomem;
+        //DMA_HandleTypeDef   		hdma_memtomem;
         //HAL_StatusTypeDef   		dmaStatus;
 
         std::string                 mosiPortAndPin; 
@@ -70,7 +70,8 @@ class STM32F4_EthComms : public CommsInterface {
         IRQn_Type					irqDMAtx;
 
         //uint8_t						interruptType;
-        //bool						newWriteData;
+        bool newWriteData;
+        bool newDataFlagged;
 
         void initSPIDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_TypeDef* DMA_TX_Stream, uint32_t DMA_channel);
 
@@ -94,6 +95,7 @@ class STM32F4_EthComms : public CommsInterface {
         uint8_t write_byte(uint8_t) override;
         void DMA_write(uint8_t*, uint16_t) override;
         void DMA_read(uint8_t*, uint16_t) override;
+        virtual void flag_new_data(void) override;
 };
 
 #endif

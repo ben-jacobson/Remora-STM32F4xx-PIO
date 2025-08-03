@@ -11,7 +11,8 @@ STM32F4_EthComms::STM32F4_EthComms(volatile rxData_t* _ptrRxData, volatile txDat
     misoPortAndPin(_misoPortAndPin),
 	clkPortAndPin(_clkPortAndPin),
     csPortAndPin(_csPortAndPin),
-    rstPortAndPin(_rstPortAndPin)
+    rstPortAndPin(_rstPortAndPin),
+    newDataFlagged(false)
 {
     ptrRxData = _ptrRxData;
 	ptrTxData = _ptrTxData;
@@ -127,24 +128,24 @@ void STM32F4_EthComms::init(void) {
         printf("Error initialising SPI\n");
     }
 
-    printf("Initialising DMA for Memory to Memory transfer\n");
+    // printf("Initialising DMA for Memory to Memory transfer\n");
 
-    hdma_memtomem.Instance 					= DMA1_Stream2;       // F4 doesn't have a nice clean mem2mem so will manually use DMA1,2 which is available
-    hdma_memtomem.Init.Channel 				= DMA_CHANNEL_0;       // aparently not needed for mem2mem so using an unused channel
-    hdma_memtomem.Init.Direction 			= DMA_MEMORY_TO_MEMORY;
-    hdma_memtomem.Init.PeriphInc 			= DMA_PINC_ENABLE;
-    hdma_memtomem.Init.MemInc 				= DMA_MINC_ENABLE;
-    hdma_memtomem.Init.PeriphDataAlignment 	= DMA_PDATAALIGN_BYTE;
-    hdma_memtomem.Init.MemDataAlignment 	= DMA_MDATAALIGN_BYTE;
-    hdma_memtomem.Init.Mode 				= DMA_NORMAL;
-    hdma_memtomem.Init.Priority 			= DMA_PRIORITY_LOW;
-    hdma_memtomem.Init.FIFOMode 			= DMA_FIFOMODE_ENABLE;
-    hdma_memtomem.Init.FIFOThreshold 		= DMA_FIFO_THRESHOLD_FULL;
-    hdma_memtomem.Init.MemBurst 			= DMA_MBURST_SINGLE;
-    hdma_memtomem.Init.PeriphBurst 			= DMA_PBURST_SINGLE;
+    // hdma_memtomem.Instance 					= DMA1_Stream2;       // F4 doesn't have a nice clean mem2mem so will manually use DMA1,2 which is available
+    // hdma_memtomem.Init.Channel 				= DMA_CHANNEL_0;       // aparently not needed for mem2mem so using an unused channel
+    // hdma_memtomem.Init.Direction 			= DMA_MEMORY_TO_MEMORY;
+    // hdma_memtomem.Init.PeriphInc 			= DMA_PINC_ENABLE;
+    // hdma_memtomem.Init.MemInc 				= DMA_MINC_ENABLE;
+    // hdma_memtomem.Init.PeriphDataAlignment 	= DMA_PDATAALIGN_BYTE;
+    // hdma_memtomem.Init.MemDataAlignment 	= DMA_MDATAALIGN_BYTE;
+    // hdma_memtomem.Init.Mode 				= DMA_NORMAL;
+    // hdma_memtomem.Init.Priority 			= DMA_PRIORITY_LOW;
+    // hdma_memtomem.Init.FIFOMode 			= DMA_FIFOMODE_ENABLE;
+    // hdma_memtomem.Init.FIFOThreshold 		= DMA_FIFO_THRESHOLD_FULL;
+    // hdma_memtomem.Init.MemBurst 			= DMA_MBURST_SINGLE;
+    // hdma_memtomem.Init.PeriphBurst 			= DMA_PBURST_SINGLE;
 
-    __HAL_RCC_DMA1_CLK_ENABLE();  
-    HAL_DMA_Init(&hdma_memtomem);
+    // __HAL_RCC_DMA1_CLK_ENABLE();  
+    // HAL_DMA_Init(&hdma_memtomem);
 }
 
 void STM32F4_EthComms::initSPIDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_TypeDef* DMA_TX_Stream, uint32_t DMA_channel) {
@@ -562,6 +563,30 @@ void STM32F4_EthComms::handleSPIInterrupt(void)
 void STM32F4_EthComms::tasks(void) {    
     network::EthernetTasks();
 
+    if (newDataFlagged)
+    {
+        newDataFlagged = false;
+
+        switch (ptrRxData->header)
+        {
+            case Config::pruRead:
+                // No action needed for PRU_READ.
+                dataCallback(true);
+                break;
+
+            case Config::pruWrite:
+                // Valid PRU_WRITE header, flag RX data transfer.
+                dataCallback(true);
+                newWriteData = true;
+                //RXbufferIdx = RxDMAmemoryIdx;
+                break;
+
+            default:
+                dataCallback(false);
+                break;
+        }
+    }    
+
 	// if (copyRXbuffer == true) {
 	//     uint8_t* srcBuffer = (uint8_t*)ptrRxDMABuffer->buffer[RXbufferIdx].rxBuffer;
 	//     uint8_t* destBuffer = (uint8_t*)ptrRxData->rxBuffer;
@@ -616,6 +641,11 @@ void STM32F4_EthComms::DMA_read(uint8_t *data, uint16_t len)
 {
     if (HAL_SPI_Receive_DMA(&spiHandle, data, len) == HAL_OK)
         while(spiHandle.State != HAL_SPI_STATE_READY);
+}
+
+void STM32F4_EthComms::flag_new_data(void) 
+{
+    newDataFlagged = true;
 }
 
 #endif
