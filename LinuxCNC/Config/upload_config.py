@@ -13,11 +13,11 @@ if len(sys.argv) < 2:
     exit(-1)
 
 
-# Check for a valid JSON formatted file, if ok upload to NVEM board via TFTP
+# Check for a valid JSON formatted file, if ok upload to board via TFTP
 with open(sys.argv[1], 'r') as jsonFile:
     try:
         testForValidJson = json.load(jsonFile)
-        print('Valid JSON config file, uploading to NVEM board')
+        print('Valid JSON config file, uploading...')
                 
     except ValueError:
         print('Incorrectly formatted JSON configuration file')

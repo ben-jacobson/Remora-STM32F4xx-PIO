@@ -74,17 +74,17 @@ void delay_ms(uint32_t ms) {
 }
 
 void mass_erase_flash_sector(uint32_t Sector) {
-    uint32_t error; 
+    FLASH_EraseInitTypeDef FLASH_EraseInitStruct;
+    uint32_t error = 0;
 
-    static FLASH_EraseInitTypeDef sector_to_erase = {
-        .TypeErase = FLASH_TYPEERASE_SECTORS,
-        .Banks = FLASH_BANK_1,
-        .Sector = Sector, 
-        .NbSectors = 1,
-        .VoltageRange = FLASH_VOLTAGE_RANGE_3
-    };
-
-    if (HAL_FLASHEx_Erase(&sector_to_erase, &error) != HAL_OK) {
+    __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
+    
+    FLASH_EraseInitStruct.TypeErase = FLASH_TYPEERASE_SECTORS;
+    FLASH_EraseInitStruct.Sector = Sector;
+    FLASH_EraseInitStruct.NbSectors = 1;
+    FLASH_EraseInitStruct.VoltageRange = FLASH_VOLTAGE_RANGE_3;
+    
+    if (HAL_FLASHEx_Erase(&FLASH_EraseInitStruct, &error) != HAL_OK) {
         Error_Handler();
     }
 }

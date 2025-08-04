@@ -39,19 +39,19 @@ ENTRY(Reset_Handler)
 /* Highest address of the user mode stack */
 _estack = ORIGIN(RAM) + LENGTH(RAM); /* end of "RAM" Ram type memory */
 
-_Min_Heap_Size = 0x200; /* required amount of heap */
+_Min_Heap_Size = 0x2000; /* required amount of heap, was 0x200 in original */
 _Min_Stack_Size = 0x400; /* required amount of stack */
 
 /* Memories definition */
 MEMORY
 {
   RAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = 128K
-  FLASH    (rx)    : ORIGIN = 0x8000000,   LENGTH = 384K  /* 512K - 128K */
-  NOINIT_JSON (rx)    : ORIGIN = 0x8060000,   LENGTH = 128K   /* Sector 7 */
+  FLASH    (rx)    : ORIGIN = 0x8000000,   LENGTH = 256K  /* 512K - 256K */ 
+  NOINIT_JSON (rx)    : ORIGIN = 0x8040000,   LENGTH = 256K   /* Sector 7 */ 
 }
 
 JSON_STORAGE_ADDRESS = ORIGIN(NOINIT_JSON);
-JSON_UPLOAD_ADDRESS = ORIGIN(NOINIT_JSON) + 64K;
+JSON_UPLOAD_ADDRESS = ORIGIN(NOINIT_JSON);
 
 /* Sections */
 SECTIONS

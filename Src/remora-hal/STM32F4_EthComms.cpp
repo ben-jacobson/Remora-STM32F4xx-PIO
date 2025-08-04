@@ -190,8 +190,6 @@ void STM32F4_EthComms::initSPIDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_
 
 void STM32F4_EthComms::start(void) {
     network::EthernetInit(this, csPin, rstPin);
-    network::udpServerInit();
-    //tftp_handle::IAP_tftpd_init();    
 
     // Initialize the data buffers
     // std::fill(std::begin(ptrTxData->txBuffer), std::end(ptrTxData->txBuffer), 0);
