@@ -46,8 +46,8 @@ _Min_Stack_Size = 0x400; /* required amount of stack */
 MEMORY
 {
   RAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = 128K
-  FLASH    (rx)    : ORIGIN = 0x8000000,   LENGTH = 256K  /* 512K - 256K */ 
-  NOINIT_JSON (rx)    : ORIGIN = 0x8040000,   LENGTH = 256K   /* Sector 7 */ 
+  FLASH    (rx)    : ORIGIN = 0x8000000,   LENGTH = 384K  /* 512K - 128K */ 
+  NOINIT_JSON (rx)    : ORIGIN = 0x8060000,   LENGTH = 128K   /* Sector 7 */ 
 }
 
 JSON_STORAGE_ADDRESS = ORIGIN(NOINIT_JSON);
