@@ -2,10 +2,12 @@
 #define HAL_UTILS_H
 
 #include "main.h"
+#include "remora-hal/hal_configuration.h"
 #include "pin/pin.h"
 #include "peripheralPins.h"
 #include "pinNames.h"
 #include "PinNamesTypes.h" 
+
 
 // Macro's for Remora Core, these map 1:1 in STM32, but in other platforms will require custom  calls to replace functionality. 
 #define lock_flash          HAL_FLASH_Lock
@@ -29,6 +31,7 @@ Pin* createPinFromPinMap(const std::string&, PinName, const PinMap*,
 
 void delay_ms(uint32_t);
 
+void mass_erase_config_storage(void);
 void mass_erase_flash_sector(uint32_t);
 
 

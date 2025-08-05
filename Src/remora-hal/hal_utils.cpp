@@ -21,7 +21,8 @@ SPIName getSPIPeripheralName(PinName mosi, PinName miso, PinName sclk)
     return spi_per;
 }
 
-void enableSPIClocks(SPI_TypeDef* spi_instance) {
+void enableSPIClocks(SPI_TypeDef* spi_instance) 
+{
     if (spi_instance == SPI1) __HAL_RCC_SPI1_CLK_ENABLE();
     else if (spi_instance == SPI2) __HAL_RCC_SPI2_CLK_ENABLE();
     else if (spi_instance == SPI3) __HAL_RCC_SPI3_CLK_ENABLE();
@@ -64,14 +65,23 @@ void InitDMAIRQs(SPI_TypeDef* spi_instance)
     }
 }
 
-Pin* createPinFromPinMap(const std::string& portAndPin, PinName pinName, const PinMap* map, uint32_t gpio_mode, uint32_t gpio_pull, uint32_t gpio_speed) { 
+Pin* createPinFromPinMap(const std::string& portAndPin, PinName pinName, const PinMap* map, uint32_t gpio_mode, uint32_t gpio_pull, uint32_t gpio_speed) 
+{ 
     uint32_t function = STM_PIN_AFNUM(pinmap_function(pinName, map));
     return new Pin(portAndPin, gpio_mode, gpio_pull, gpio_speed, function);
 }
 
-void delay_ms(uint32_t ms) {
+void delay_ms(uint32_t ms) 
+{
     HAL_Delay(ms);
 }
+
+
+void mass_erase_config_storage(void) 
+{
+    mass_erase_flash_sector(HAL_Config::JSON_Sector);
+}
+
 
 void mass_erase_flash_sector(uint32_t Sector) {
     FLASH_EraseInitTypeDef FLASH_EraseInitStruct;
