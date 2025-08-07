@@ -7,18 +7,14 @@ Port or Remora for STM32F4xx family, ported to use the latest Remora-Core abstra
         - Wiznet and LWIP integrated
         - Connects to the network
         - Using the Remora-Eth-3.0 LinuxCNC component, able to switch the PRU in and out of eStop modes.
+        - TFTP is listening for config uploads
     - Todos:
-        - Set up FTP client for JSON config loading
         - See if we can make use of the Wiznet INT output somehow
-        - Work with the team on an idea for Remora to trigger an interrupt 
+        - Work with the team on an idea for Remora to trigger an interrupt to close the loop on lost packet detection
         - Test for checking around lost packets
 - JSON config loading - in progress:
     - Current status:
-        - Able to detect empty config and load default blinky. Blinky module working
-    - Todos:
-        - Set up the linker script to allocate memory for the config
-        - Once FTP is set up, hook up the functions for loading config into memory and resetting PRU
-        - Once config loading is complete, upload our test config and run some tests for stepgen, digital in and digital out
+        - Seems to be working now, but a bug found in module loading is preventing us from testing it more thoroughly
 - SPI Comms - in progress:
     - Current status:
         - Ported in and builds, not yet tested
