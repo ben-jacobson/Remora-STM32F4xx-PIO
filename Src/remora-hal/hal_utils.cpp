@@ -76,12 +76,15 @@ void delay_ms(uint32_t ms)
     HAL_Delay(ms);
 }
 
-
 void mass_erase_config_storage(void) 
 {
-    mass_erase_flash_sector(HAL_Config::JSON_Sector);
+    mass_erase_flash_sector(HAL_Config::JSON_Config_Storage_Sector);
 }
 
+void mass_erase_upload_storage(void) 
+{
+    mass_erase_flash_sector(HAL_Config::JSON_Config_Upload_Sector);
+}
 
 void mass_erase_flash_sector(uint32_t Sector) {
     FLASH_EraseInitTypeDef FLASH_EraseInitStruct;

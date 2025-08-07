@@ -48,23 +48,39 @@ extern "C" {
     }
 }
 
+void BL_reset_IRQ_tables(void) 
+{
+    // Some additional init before hal_init to re-init the IRQ tables to take the booloater into effect.
+    extern uint8_t _isr_vector_start;
+    HAL_RCC_DeInit();
+    HAL_DeInit();
+    __disable_irq();
+
+    SysTick->CTRL = 0;      // Stop SysTick
+    SysTick->VAL  = 0;
+
+    for (int i = 0; i < 8; i++) {     // Disable and clear all interrupts
+        NVIC->ICER[i] = 0xFFFFFFFF;
+        NVIC->ICPR[i] = 0xFFFFFFFF;
+    }
+
+    SCB->VTOR = (uint32_t)&_isr_vector_start;     // Relocate vector table
+
+    __DSB(); 
+    __ISB();
+
+    __enable_irq();    
+}
+
 int main(void)
  {
-    #ifdef HAS_BOOTLOADER
-        HAL_RCC_DeInit();
-        HAL_DeInit();
-        extern uint8_t _FLASH_VectorTable;
-        __disable_irq();
-        SCB->VTOR = (uint32_t)&_FLASH_VectorTable;
-        __DSB();
-        __enable_irq();
-    #endif
+    //BL_reset_IRQ_tables();  // TODO - put back in to enable bootloader, some more debugging required.
 
     HAL_Init();
     SystemClock_Config();
     MX_UART_Init(); // todo, create some abstraction to handle this and allow selection via platformio.ini
 
-    HAL_Delay(1000); 
+    HAL_Delay(2000); 
     printf("Initialising Remora...\n");
 
     std::unique_ptr<CommsInterface> comms;

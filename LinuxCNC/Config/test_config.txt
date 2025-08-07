@@ -84,6 +84,6 @@
             "Pin": "PA_10",
             "Mode": "Output",        
             "Data Bit": 1
-        },
+        }
     ]
 }
