@@ -40,36 +40,6 @@ extern "C" {
     DMA_STREAM_IRQ_HANDLER(1, 4, DMA1_Stream4_IRQn) 
     DMA_STREAM_IRQ_HANDLER(1, 5, DMA1_Stream5_IRQn) 
 
-    // void DMA2_Stream0_IRQHandler(void) // SPI 1 RX
-    // {
-    //     Interrupt::InvokeHandler(DMA2_Stream0_IRQn);
-    // }
-
-    // void DMA1_Stream3_IRQHandler(void)
-    // {
-    //     Interrupt::InvokeHandler(DMA1_Stream3_IRQn);
-    // }
-
-    // void DMA1_Stream0_IRQHandler(void)
-    // {
-    //     Interrupt::InvokeHandler(DMA1_Stream0_IRQn);
-    // }
-
-    // void DMA2_Stream3_IRQHandler(void) // SPI 1 TX
-    // {  
-    //     Interrupt::InvokeHandler(DMA2_Stream3_IRQn); 
-    // }
-
-    // void DMA1_Stream4_IRQHandler(void)
-    // { 
-    //     Interrupt::InvokeHandler(DMA1_Stream4_IRQn);
-    // }
-
-    // void DMA1_Stream5_IRQHandler(void)
-    // {  
-    //     Interrupt::InvokeHandler(DMA1_Stream5_IRQn); 
-    // }
-
     // macro for automatically creating the SPI IRQ handlers, e.g SPI1_IRQHandler()
     #define SPI_IRQ_HANDLER(SPI_IRQ_FUNCTION_NAME, SPI_IRQ_NUM) \
     void SPI_IRQ_FUNCTION_NAME(void) {                          \
@@ -78,36 +48,21 @@ extern "C" {
 
     SPI_IRQ_HANDLER(SPI1_IRQHandler, SPI1_IRQn)
     SPI_IRQ_HANDLER(SPI2_IRQHandler, SPI2_IRQn)
-    SPI_IRQ_HANDLER(SPI3_IRQHandler, SPI3_IRQn)
-
-    // void SPI1_IRQHandler(void)
-    // {
-    //     Interrupt::InvokeHandler(SPI1_IRQn); 
-    // }
-
-    // void SPI2_IRQHandler(void)
-    // {
-    //     Interrupt::InvokeHandler(SPI2_IRQn); 
-    // }
-
-    // void SPI3_IRQHandler(void)
-    // {
-    //     Interrupt::InvokeHandler(SPI3_IRQn); 
-    // }    
+    SPI_IRQ_HANDLER(SPI3_IRQHandler, SPI3_IRQn)  
 
     #endif
 
     void TIM2_IRQHandler() {
         if (TIM2->SR & TIM_SR_UIF) {
             TIM2->SR &= ~TIM_SR_UIF;
-            Interrupt::InvokeHandler(TIM2_IRQn);
+            Interrupt::InvokeHandler(TIM2_IRQn);               
         }
     }
 
     void TIM3_IRQHandler() {
         if (TIM3->SR & TIM_SR_UIF) {
             TIM3->SR &= ~TIM_SR_UIF;
-            Interrupt::InvokeHandler(TIM3_IRQn);
+            Interrupt::InvokeHandler(TIM3_IRQn);            
         }
     }
 

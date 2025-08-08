@@ -8,8 +8,6 @@
 #include "../remora-core/thread/pruTimer.h"
 
 #define TIM_PSC 1
-#define APB1CLK SystemCoreClock/2
-#define APB2CLK SystemCoreClock/2
 
 class TimerInterrupt;
 class pruThread;

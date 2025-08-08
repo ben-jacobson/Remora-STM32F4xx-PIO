@@ -6,60 +6,60 @@
             "Type": "Stepgen",
             "Comment": "X - Joint 0 step generator",
             "Joint Number": 0,
-            "Enable Pin": "PC_10",
-            "Step Pin": "PC_11",
-            "Direction Pin": "PC_12"
-        },
-        {
-            "Thread": "Base",
-            "Type": "Stepgen",
-            "Comment": "Y - Joint 1 step generator",
-            "Joint Number": 1,
-            "Enable Pin": "PC_10",            
-            "Step Pin": "PC_13",
-            "Direction Pin": "PC_14"
-        },
-        {
-            "Thread": "Base",
-            "Type": "Stepgen",
-            "Comment": "Z - Joint 2 step generator",
-            "Joint Number": 2,
-            "Enable Pin": "PC_10",            
+            "Enable Pin": "PA_0",
             "Step Pin": "PA_1",
             "Direction Pin": "PA_4"
         },
         {
             "Thread": "Base",
             "Type": "Stepgen",
+            "Comment": "Y - Joint 1 step generator",
+            "Joint Number": 1,
+            "Enable Pin": "PA_8",            
+            "Step Pin": "PA_9",
+            "Direction Pin": "PA_10"
+        },
+        {
+            "Thread": "Base",
+            "Type": "Stepgen",
+            "Comment": "Z - Joint 2 step generator",
+            "Joint Number": 2,
+            "Enable Pin": "PA_11",            
+            "Step Pin": "PA_12",
+            "Direction Pin": "PA_15"
+        },
+        {
+            "Thread": "Base",
+            "Type": "Stepgen",
             "Comment": "A - Joint 3 step generator",
             "Joint Number": 3,
-            "Enable Pin": "PC_10",            
-            "Step Pin": "PC_0",
-            "Direction Pin": "PC_1"
+            "Enable Pin": "PB_0",            
+            "Step Pin": "PB_1",
+            "Direction Pin": "PB_2"
         },
         {
             "Thread": "Base",
             "Type": "Stepgen",
             "Comment": "B - Joint 4 step generator",
             "Joint Number": 4,
-            "Enable Pin": "PC_10",            
-            "Step Pin": "PC_2",
-            "Direction Pin": "PC_3"
+            "Enable Pin": "PB_3",            
+            "Step Pin": "PB_4",
+            "Direction Pin": "PB_8"
         },
         {
             "Thread": "Base",
             "Type": "Stepgen",
             "Comment": "C - Joint 5 step generator",
             "Joint Number": 5,
-            "Enable Pin": "PC_10",            
-            "Step Pin": "PB_3",
-            "Direction Pin": "PB_4"
+            "Enable Pin": "PB_9",            
+            "Step Pin": "PB_10",
+            "Direction Pin": "PB_12"
         },  
         {
             "Thread": "Servo",
             "Type": "Digital Pin",
             "Comment": "Input 0",
-            "Pin": "PC_9",
+            "Pin": "PB_13",
             "Mode": "Input",
             "Modifier": "Pull Up",
             "Data Bit": 0,
@@ -69,7 +69,7 @@
             "Thread": "Servo",
             "Type": "Digital Pin",
             "Comment": "Input 1",
-            "Pin": "PC_8",
+            "Pin": "PB_14",
             "Mode": "Input",
             "Modifier": "Pull Up",            
             "Data Bit": 1,
@@ -79,7 +79,7 @@
             "Thread": "Servo",
             "Type": "Digital Pin",
             "Comment": "Output 0",
-            "Pin": "PA_0",
+            "Pin": "PB_15",
             "Mode": "Output",          
             "Data Bit": 0
         },
@@ -87,7 +87,7 @@
             "Thread": "Servo",
             "Type": "Digital Pin",
             "Comment": "Output 1",
-            "Pin": "PA_10",
+            "Pin": "PC_0",
             "Mode": "Output",        
             "Data Bit": 1
         }

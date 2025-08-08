@@ -82,7 +82,7 @@ int main(void)
 
     HAL_Delay(2000); 
     printf("Initialising Remora...\n");
-
+    
     std::unique_ptr<CommsInterface> comms;
     std::shared_ptr<CommsHandler> commsHandler;
 

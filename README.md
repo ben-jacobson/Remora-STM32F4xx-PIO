@@ -7,14 +7,14 @@ Port or Remora for STM32F4xx family, ported to use the latest Remora-Core abstra
         - Wiznet and LWIP integrated
         - Connects to the network
         - Using the Remora-Eth-3.0 LinuxCNC component, able to switch the PRU in and out of eStop modes.
-        - TFTP is listening for config uploads
+        - TFTP is listening and will process config uploads
     - Todos:
         - See if we can make use of the Wiznet INT output somehow
         - Work with the team on an idea for Remora to trigger an interrupt to close the loop on lost packet detection
         - Test for checking around lost packets
 - JSON config loading - in progress:
     - Current status:
-        - Seems to be working now, but a bug found in module loading is preventing us from testing it more thoroughly
+        - Seems to be working now, something else I need to debug with timers to be addressed before I can test this. 
 - SPI Comms - in progress:
     - Current status:
         - Ported in and builds, not yet tested

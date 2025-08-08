@@ -16,35 +16,34 @@ STM32F4_timer::STM32F4_timer(TIM_TypeDef* _timer, IRQn_Type _irq, uint32_t _freq
 
 void STM32F4_timer::configTimer()
 {
-	uint32_t TIM_CLK;
+    uint32_t TIM_CLK;
 	
 	if (timer == TIM2)
     {
         printf("Power on Timer 2\n\r");
         __HAL_RCC_TIM2_CLK_ENABLE();
-        TIM_CLK = APB1CLK;
+        TIM_CLK = SystemCoreClock;
     }
     else if (timer == TIM3)
     {
         printf("Power on Timer 3\n\r");
         __HAL_RCC_TIM3_CLK_ENABLE();
-        TIM_CLK = APB1CLK;
+        TIM_CLK = SystemCoreClock;
     }
     else if (timer == TIM4)
     {
         printf("Power on Timer 4\n\r");
         __HAL_RCC_TIM4_CLK_ENABLE();
-        TIM_CLK = APB1CLK;
+        TIM_CLK = SystemCoreClock;
     }
 
     //Note: timer update frequency = TIM_CLK/(TIM_PSC+1)/(TIM_ARR + 1)
-
     timer->CR2 &= 0;                                            // UG used as trigg output
     timer->PSC = TIM_PSC-1;                                     // prescaler
     timer->ARR = ((TIM_CLK / TIM_PSC / frequency) - 1);   		// period
     timer->EGR = TIM_EGR_UG;                                    // reinit the counter
     timer->DIER = TIM_DIER_UIE;                                 // enable update interrupts
-	
+
 	NVIC_SetPriority(irq, irqPriority);
 }
 
