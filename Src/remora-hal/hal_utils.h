@@ -2,7 +2,7 @@
 #define HAL_UTILS_H
 
 #include "main.h"
-#include "remora-hal/hal_configuration.h"
+#include "remora-hal/platform_configuration.h"
 #include "pin/pin.h"
 #include "peripheralPins.h"
 #include "pinNames.h"
