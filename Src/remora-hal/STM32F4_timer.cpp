@@ -16,25 +16,22 @@ STM32F4_timer::STM32F4_timer(TIM_TypeDef* _timer, IRQn_Type _irq, uint32_t _freq
 
 void STM32F4_timer::configTimer()
 {
-    uint32_t TIM_CLK;
+    uint32_t TIM_CLK = SystemCoreClock / 2;
 	
 	if (timer == TIM2)
     {
         printf("Power on Timer 2\n\r");
         __HAL_RCC_TIM2_CLK_ENABLE();
-        TIM_CLK = SystemCoreClock;
     }
     else if (timer == TIM3)
     {
         printf("Power on Timer 3\n\r");
         __HAL_RCC_TIM3_CLK_ENABLE();
-        TIM_CLK = SystemCoreClock;
     }
     else if (timer == TIM4)
     {
         printf("Power on Timer 4\n\r");
         __HAL_RCC_TIM4_CLK_ENABLE();
-        TIM_CLK = SystemCoreClock;
     }
 
     //Note: timer update frequency = TIM_CLK/(TIM_PSC+1)/(TIM_ARR + 1)

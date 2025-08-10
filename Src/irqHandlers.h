@@ -5,6 +5,15 @@
 #include "stm32f4xx_hal.h"
 #include "remora-hal/STM32F4_EthComms.h"
 
+//#define THREAD_DEBUG
+
+#ifdef THREAD_DEBUG
+extern Pin* thread_debug;
+
+//#define BASE_THREAD_DEBUG
+#define SERVO_THREAD_DEBUG
+#endif
+
 extern "C" {
 
     void EXTI4_IRQHandler() {
@@ -55,14 +64,24 @@ extern "C" {
     void TIM2_IRQHandler() {
         if (TIM2->SR & TIM_SR_UIF) {
             TIM2->SR &= ~TIM_SR_UIF;
-            Interrupt::InvokeHandler(TIM2_IRQn);               
+            Interrupt::InvokeHandler(TIM2_IRQn);       
+            
+            #ifdef SERVO_THREAD_DEBUG
+                thread_debug->set(true);  // a bit crude, but your oscilloscope should be able to used this to confirm the real time thread signal.
+                thread_debug->set(false);                
+            #endif
         }
     }
 
     void TIM3_IRQHandler() {
         if (TIM3->SR & TIM_SR_UIF) {
             TIM3->SR &= ~TIM_SR_UIF;
-            Interrupt::InvokeHandler(TIM3_IRQn);            
+            Interrupt::InvokeHandler(TIM3_IRQn);           
+            
+            #ifdef BASE_THREAD_DEBUG
+                thread_debug->set(true); 
+                thread_debug->set(false);                    
+            #endif            
         }
     }
 
