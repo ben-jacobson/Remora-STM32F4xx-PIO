@@ -5,8 +5,7 @@ loadrt [KINS]KINEMATICS
 loadrt [EMCMOT]EMCMOT base_period_nsec=[EMCMOT]BASE_PERIOD servo_period_nsec=[EMCMOT]SERVO_PERIOD num_joints=[KINS]JOINTS
 
 # load the Remora real-time component
-
-	loadrt remora-eth-3.0
+	loadrt remora-eth-3.0 PRU_base_freq=40000
 
 
 # estop and SPI comms enable and feedback
@@ -14,7 +13,6 @@ loadrt [EMCMOT]EMCMOT base_period_nsec=[EMCMOT]BASE_PERIOD servo_period_nsec=[EM
 	net user-enable-out		<= iocontrol.0.user-enable-out		=> remora.enable
 	net user-request-enable <= iocontrol.0.user-request-enable	=> remora.reset
 	net remora-status 		<= remora.status 				=> iocontrol.0.emc-enable-in
-
 
 # add the remora and motion functions to threads
 
@@ -24,41 +22,44 @@ loadrt [EMCMOT]EMCMOT base_period_nsec=[EMCMOT]BASE_PERIOD servo_period_nsec=[EM
 	addf remora.update-freq 	servo-thread
 	addf remora.write 			servo-thread
 
-
 # joint 0 setup (X axis)
 
 	setp remora.joint.0.scale 		[JOINT_0]SCALE
 	setp remora.joint.0.maxaccel 	[JOINT_0]STEPGEN_MAXACCEL
-	setp remora.joint.0.pgain		300
-	setp remora.joint.0.ff1gain			.2
+	setp remora.joint.0.pgain		[JOINT_0]P_GAIN
+	setp remora.joint.0.ff1gain	[JOINT_0]FF1_GAIN
+	setp remora.joint.0.deadband 	[JOINT_0]DEADBAND
+	
 
-	net j0pos-cmd 		joint.0.motor-pos-cmd 	=> remora.joint.0.pos-cmd
-	net j0pos-fb 		remora.joint.0.pos-fb 	=> joint.0.motor-pos-fb
-	net j0enable 		joint.0.amp-enable-out 	=> remora.joint.0.enable
-
+	net j0pos-cmd 	 <=	joint.0.motor-pos-cmd 	=> remora.joint.0.pos-cmd
+	net j0pos-fb 	 <= remora.joint.0.pos-fb 	=> joint.0.motor-pos-fb
+	net j0enable     <= joint.0.amp-enable-out  => remora.joint.0.enable	
 
 # joint 1 setup (Y axis)
 
 	setp remora.joint.1.scale 		[JOINT_1]SCALE
 	setp remora.joint.1.maxaccel 	[JOINT_1]STEPGEN_MAXACCEL
-	setp remora.joint.1.pgain		300
-	setp remora.joint.1.ff1gain			.2
+	setp remora.joint.1.pgain		[JOINT_1]P_GAIN
+	setp remora.joint.1.ff1gain	[JOINT_1]FF1_GAIN
+	setp remora.joint.1.deadband 	[JOINT_1]DEADBAND
+	
 
-	net j1pos-cmd 		joint.1.motor-pos-cmd 	=> remora.joint.1.pos-cmd
-	net j1pos-fb 		remora.joint.1.pos-fb 	=> joint.1.motor-pos-fb
-	net j1enable 		joint.1.amp-enable-out 	=> remora.joint.1.enable
-
+	net j1pos-cmd 	 <=	joint.1.motor-pos-cmd 	=> remora.joint.1.pos-cmd
+	net j1pos-fb 	 <=	remora.joint.1.pos-fb 	=> joint.1.motor-pos-fb
+	net j1enable     <= joint.1.amp-enable-out  => remora.joint.1.enable		
 
 # joint 2 setup (Z axis)
 
 	setp remora.joint.2.scale 		[JOINT_2]SCALE
 	setp remora.joint.2.maxaccel 	[JOINT_2]STEPGEN_MAXACCEL
-	setp remora.joint.2.pgain		300
-	setp remora.joint.2.ff1gain			.2
+	setp remora.joint.2.pgain		[JOINT_2]P_GAIN
+	setp remora.joint.2.ff1gain	[JOINT_2]FF1_GAIN
+	setp remora.joint.2.deadband 	[JOINT_2]DEADBAND
+	
 
-	net j2pos-cmd 		joint.2.motor-pos-cmd 	=> remora.joint.2.pos-cmd
-	net j2pos-fb 		remora.joint.2.pos-fb 	=> joint.2.motor-pos-fb
-	net j2enable 		joint.2.amp-enable-out 	=> remora.joint.2.enable
+	net j2pos-cmd 	 <=	joint.2.motor-pos-cmd 	=> remora.joint.2.pos-cmd
+	net j2pos-fb 	 <=	remora.joint.2.pos-fb 	=> joint.2.motor-pos-fb
+	net j2enable     <= joint.2.amp-enable-out  => remora.joint.2.enable		
 
 # end-stops and inputs
 
@@ -102,5 +103,3 @@ loadrt [EMCMOT]EMCMOT base_period_nsec=[EMCMOT]BASE_PERIOD servo_period_nsec=[EM
 	addf abs.3 servo-thread
 	net test-second-pwm-period-us abs.3.in
 	net test-second-pwm-period abs.3.out => remora.SP.3
-	
-
