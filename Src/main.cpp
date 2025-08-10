@@ -40,6 +40,11 @@ UART_HandleTypeDef uart_handle;
 void SystemClock_Config(void);
 static void MX_UART_Init(void);
 
+//#define THREAD_DEBUG
+#ifdef THREAD_DEBUG
+Pin* thread_debug = nullptr;
+#endif
+
 // re-target printf to defined UART by redeclaring weak function in syscalls.c
 extern "C" {
     int _write(int file, char *ptr, int len) {
@@ -47,12 +52,6 @@ extern "C" {
         return len;
     }
 }
-
-//#define THREAD_DEBUG
-
-#ifdef THREAD_DEBUG
-Pin* thread_debug = nullptr;
-#endif
 
 void BL_reset_IRQ_tables(void) 
 {

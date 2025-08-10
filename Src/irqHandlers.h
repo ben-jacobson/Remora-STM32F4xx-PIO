@@ -6,12 +6,10 @@
 #include "remora-hal/STM32F4_EthComms.h"
 
 //#define THREAD_DEBUG
-
 #ifdef THREAD_DEBUG
 extern Pin* thread_debug;
-
-//#define BASE_THREAD_DEBUG
-#define SERVO_THREAD_DEBUG
+#define BASE_THREAD_DEBUG
+//#define SERVO_THREAD_DEBUG
 #endif
 
 extern "C" {
