@@ -1,5 +1,10 @@
 #include "hal_utils.h"
 
+#ifndef ETH_CTRL
+const uint8_t _ls_json_upload_sector = 0; // clear compiler errors when linker script isn't used.
+const uint8_t _ls_json_storage_sector = 0;     
+#endif
+
 SPIName getSPIPeripheralName(PinName mosi, PinName miso, PinName sclk)        
 {
     SPIName spi_mosi = (SPIName)pinmap_peripheral(mosi, PinMap_SPI_MOSI);

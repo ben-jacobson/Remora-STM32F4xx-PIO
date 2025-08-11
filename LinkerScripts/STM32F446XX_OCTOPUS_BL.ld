@@ -43,29 +43,33 @@ _Min_Heap_Size = 0x2000; /* required amount of heap */
 _Min_Stack_Size = 0x400; /* required amount of stack */
 
 /* Flash sizes */
-_FLASH_TOTAL = 512K;
-_FLASH_RESERVED = 64K;    /* Sectors 0, 1 and 2 reserved for Bootloader, and 2x JSON config storage areas*/
-_FLASH_AVAILABLE = _FLASH_TOTAL - _FLASH_RESERVED;
+_FLASH_TOTAL_SIZE = 512K;
+_FLASH_BOOTLOADER_SIZE = 32K;    /* Sector 0 and 1 reserved for Bootloader, technically just 16k is used and the other half is unused */
+_FLASH_JSON_UPLOAD_SIZE = 128K;
+_FLASH_JSON_STORAGE_SIZE = 128K;
+_PGM_FLASH_AVAILABLE = _FLASH_TOTAL_SIZE - _FLASH_BOOTLOADER_SIZE - _FLASH_JSON_UPLOAD_SIZE - _FLASH_JSON_STORAGE_SIZE;
 
 /* Memories definition */
 MEMORY
 {
   RAM    (xrw)        : ORIGIN = 0x20000000,    LENGTH = 128K
-  FLASH_BOOT (rx)     : ORIGIN = 0x08000000,    LENGTH = 32K    /* Sector 0 and 1 for bootloader + vectors */
-  JSON_UPLOAD  (rx)   : ORIGIN = 0x08008000,    LENGTH = 16K    /* Sector 2 for JSON_UPLOAD */
-  JSON_STORAGE (rx)   : ORIGIN = 0x0800C000,    LENGTH = 16K    /* Sector 3 for JSON_STORAGE */  
-  FLASH_PGM    (rx)   : ORIGIN = 0x08010000,    LENGTH = _FLASH_AVAILABLE
+  FLASH_BOOT    (rx)    : ORIGIN = 0x8000000,   LENGTH = _FLASH_BOOTLOADER_SIZE  
+  FLASH_PGM     (rx)    : ORIGIN = 0x8008000,   LENGTH = _PGM_FLASH_AVAILABLE
+  JSON_UPLOAD  (rx)   : ORIGIN = 0x08004000,    LENGTH = _FLASH_JSON_UPLOAD_SIZE    
+  JSON_STORAGE (rx)   : ORIGIN = 0x08008000,    LENGTH = _FLASH_JSON_STORAGE_SIZE    
+
 }
 
-/* JSON config locations for this build target */
+_FLASH_VectorTable = ORIGIN(FLASH_PGM);
+
 _ls_json_upload_start = ORIGIN(JSON_UPLOAD);
 _ls_json_upload_end   = ORIGIN(JSON_UPLOAD) + LENGTH(JSON_UPLOAD);
 
 _ls_json_storage_start = ORIGIN(JSON_STORAGE);
 _ls_json_storage_end   = ORIGIN(JSON_STORAGE) + LENGTH(JSON_STORAGE);
 
-_ls_json_upload_sector  = 2;  /* 2U = FLASH_SECTOR_2 */
-_ls_json_storage_sector = 3;  /* 3U = FLASH_SECTOR_3 */
+_ls_json_upload_sector  = 6;  /* 6U = FLASH_SECTOR_6 */
+_ls_json_storage_sector = 7;  /* 7U = FLASH_SECTOR_7 */
 
 /* Sections */
 SECTIONS
@@ -74,7 +78,7 @@ SECTIONS
   .isr_vector :
   {
     . = ALIGN(4);
-    _isr_vector_start = .;    
+    _isr_vector_start = .;
     KEEP(*(.isr_vector)) /* Startup code */
     . = ALIGN(4);
   } >FLASH_BOOT 

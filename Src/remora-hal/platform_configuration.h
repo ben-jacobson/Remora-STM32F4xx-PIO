@@ -11,8 +11,6 @@ The bootloader location, program start location, flash memory locations can all 
 This code below pulls this in from the linker script nomimated in Platform IO to ensure Remora behaves correctly.
 
 Please see the linker script and the platformio.ini file for more information about your specific build target. 
-
-As far as I'm aware, you won't need to define these in build targets that don't use these addresses anywhere. For example you won't need JSON storage for SPICommms builds.
 */
 
 extern "C" {
