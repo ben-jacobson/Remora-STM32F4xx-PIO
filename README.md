@@ -35,6 +35,7 @@ Port or Remora for STM32F4xx family, ported to use the latest Remora-Core abstra
     - Encoder modules yet to be ported.
     - Linker scripts to be built for a range of F4xx builds
 - Adhoc todos: 
+    - Relook at the note inside the configuration.h file, it references outdated syntax for how the file is to be built. 
     - ADC - move MSP init code into class
     - Clear up conflict in DMA IRQs between SPI and Ethernet comms modules, just some simple include guarding will suffice.
     - Test out differnet clock config code, what's different between the boards?

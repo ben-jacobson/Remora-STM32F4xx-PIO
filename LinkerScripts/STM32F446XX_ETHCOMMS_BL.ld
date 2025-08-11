@@ -57,6 +57,16 @@ MEMORY
   FLASH_PGM    (rx)   : ORIGIN = 0x08010000,    LENGTH = _FLASH_AVAILABLE
 }
 
+/* JSON config locations for this build target */
+_ls_json_upload_start = ORIGIN(JSON_UPLOAD);
+_ls_json_upload_end   = ORIGIN(JSON_UPLOAD) + LENGTH(JSON_UPLOAD);
+
+_ls_json_storage_start = ORIGIN(JSON_STORAGE);
+_ls_json_storage_end   = ORIGIN(JSON_STORAGE) + LENGTH(JSON_STORAGE);
+
+_ls_json_upload_sector  = 2;  /* 2U = FLASH_SECTOR_2 */
+_ls_json_storage_sector = 3;  /* 3U = FLASH_SECTOR_3 */
+
 /* Sections */
 SECTIONS
 {

@@ -5,19 +5,34 @@
 
 #include <cstdint>
 
-// these support F401xx, F411xx and F446xx
+/*
+There are numerous build targets within the F4 family supported by this codebase.
+The bootloader location, program start location, flash memory locations can all be configured to work with the target via the linkerscript.
+This code below pulls this in from the linker script nomimated in Platform IO to ensure Remora behaves correctly.
+
+Please see the linker script and the platformio.ini file for more information about your specific build target. 
+
+As far as I'm aware, you won't need to define these in build targets that don't use these addresses anywhere. For example you won't need JSON storage for SPICommms builds.
+*/
+
+extern "C" {
+    extern const uint8_t _ls_json_upload_start;
+    extern const uint8_t _ls_json_upload_end;
+    extern const uint8_t _ls_json_storage_start;
+    extern const uint8_t _ls_json_storage_end;
+    extern const uint8_t _ls_json_upload_sector;
+    extern const uint8_t _ls_json_storage_sector;     
+}
+
 namespace Platform_Config {
-    //__attribute__((section(".json_upload"))) const uint8_t json_upload_area[16384]; // note that these addresses can also be accessed this way, but the code would require significant refactoring to use this so commented out for now. 
-    //__attribute__((section(".json_storage"))) const uint8_t json_storage_area[16384];
+    const std::uintptr_t JSON_upload_start_address  = reinterpret_cast<std::uintptr_t>(&_ls_json_upload_start);
+    const std::uintptr_t JSON_upload_end_address    = reinterpret_cast<std::uintptr_t>(&_ls_json_upload_end);
 
-    constexpr std::uintptr_t JSON_upload_start_address            = 0x08008000; // upload area is second half of storage
-    constexpr std::uintptr_t JSON_upload_end_address            = JSON_upload_start_address + (16 * 1024); 
+    const std::uintptr_t JSON_storage_start_address = reinterpret_cast<std::uintptr_t>(&_ls_json_storage_start);
+    const std::uintptr_t JSON_storage_end_address   = reinterpret_cast<std::uintptr_t>(&_ls_json_storage_end);
 
-    constexpr std::uintptr_t JSON_storage_start_address           = 0x0800C000;
-    constexpr std::uintptr_t JSON_storage_end_address           = JSON_storage_start_address + (16 * 1024);
-
-    constexpr uint32_t JSON_Config_Upload_Sector                          = FLASH_SECTOR_2;  // 16K in flash
-    constexpr uint32_t JSON_Config_Storage_Sector                          = FLASH_SECTOR_3;  // 16K in flash
+    const uint32_t JSON_Config_Upload_Sector        = static_cast<uint8_t>(reinterpret_cast<uintptr_t>(&_ls_json_upload_sector));      // this is a bit finnicky beacuse the linker scripts store numeric addresses only, not values
+    const uint32_t JSON_Config_Storage_Sector       = static_cast<uint8_t>(reinterpret_cast<uintptr_t>(&_ls_json_storage_sector));     // also the need for 32 bit integer here to store a value from 0-8 is deliberate....
 }
 
 #endif
