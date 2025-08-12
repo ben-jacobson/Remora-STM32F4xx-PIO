@@ -2,6 +2,8 @@
 
 volatile DMA_RxBuffer_t rxDMABuffer;
 
+static void MultiBufferDMAErrorCallback(DMA_HandleTypeDef *hdma);
+
 STM32F4_SPIComms::STM32F4_SPIComms(volatile rxData_t* _ptrRxData, volatile txData_t* _ptrTxData, std::string _mosiPortAndPin, std::string _misoPortAndPin, std::string _clkPortAndPin, std::string _csPortAndPin) :
 	ptrRxData(_ptrRxData),
 	ptrTxData(_ptrTxData),
@@ -284,27 +286,27 @@ HAL_StatusTypeDef STM32F4_SPIComms::startMultiBufferDMASPI(uint8_t *pTxBuffer0, 
     }
 
     // Configure Tx DMA with Multi-Buffer 
-    hdma_spi_tx.XferHalfCpltCallback = NULL;
-    hdma_spi_tx.XferCpltCallback     = NULL;
-    hdma_spi_tx.XferErrorCallback    = NULL;
+    hdma_spi_tx.XferHalfCpltCallback = [](DMA_HandleTypeDef *hdma) {};  // The code this was ported from had these set to Nulls, however the F4 implementation of HAL_DMAEx_MultiBufferStart_IT errors out on that, 
+    hdma_spi_tx.XferCpltCallback     = [](DMA_HandleTypeDef *hdma) {};  // seeing as there wasn't any intention to do anything, have swapped these for some anonymous functions. 
+    hdma_spi_tx.XferErrorCallback    = MultiBufferDMAErrorCallback;
 
-    if (HAL_OK != HAL_DMAEx_MultiBufferStart_IT(&hdma_spi_tx,
-                                                (uint32_t)pTxBuffer0,
-                                                (uint32_t)&spiHandle.Instance->DR,    // was RXDR on H7,
-                                                (uint32_t)pTxBuffer1,
-                                                spiHandle.TxXferCount))
+    if (HAL_DMAEx_MultiBufferStart_IT(&hdma_spi_tx,
+                                    (uint32_t)pTxBuffer0,
+                                    (uint32_t)&spiHandle.Instance->DR,    // RXDR isn't avaialable on F4
+                                    (uint32_t)pTxBuffer1,
+                                    spiHandle.TxXferCount) != HAL_OK)
     {
         __HAL_UNLOCK(&spiHandle);
         return HAL_ERROR;
     }
 
     // Configure Rx DMA with Multi-Buffer 
-    hdma_spi_rx.XferHalfCpltCallback = NULL;
-    hdma_spi_rx.XferCpltCallback     = NULL;
-    hdma_spi_rx.XferErrorCallback    = NULL;
+    hdma_spi_rx.XferHalfCpltCallback = [](DMA_HandleTypeDef *hdma) {}; 
+    hdma_spi_rx.XferCpltCallback     = [](DMA_HandleTypeDef *hdma) {}; 
+    hdma_spi_rx.XferErrorCallback    = MultiBufferDMAErrorCallback; 
 
     if (HAL_OK != HAL_DMAEx_MultiBufferStart_IT(&hdma_spi_rx,
-                                                (uint32_t)&spiHandle.Instance->DR,    // was RXDR on H7
+                                                (uint32_t)&spiHandle.Instance->DR,    // RXDR isn't avaialable on F4
                                                 (uint32_t)pRxBuffer0,
                                                 (uint32_t)pRxBuffer1,
                                                 spiHandle.RxXferCount))
@@ -564,4 +566,9 @@ void STM32F4_SPIComms::tasks() {
 	    HAL_DMA_Abort(&hdma_memtomem);
 		copyRXbuffer = false;
     }
+}
+
+static void MultiBufferDMAErrorCallback(DMA_HandleTypeDef *hdma)
+{
+    Error_Handler();  // Stop execution or handle gracefully
 }
