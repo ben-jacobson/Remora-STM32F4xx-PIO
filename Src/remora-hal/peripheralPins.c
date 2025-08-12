@@ -449,7 +449,7 @@ uint32_t pinmap_function(PinName pin, const PinMap *map)
     }
     function = pinmap_find_function(pin, map);
     if ((uint32_t)NC == function) { // no mapping available
-        printf("pinmap not found for function");
+        printf("pinmap not found for function\n");
     }
     return function;
 }
