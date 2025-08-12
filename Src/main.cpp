@@ -36,9 +36,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "remora-hal/STM32F4_timer.h"
 
 UART_HandleTypeDef uart_handle;
+SD_HandleTypeDef hsd;
 
 void SystemClock_Config(void);
 static void MX_UART_Init(void);
+static void MX_SDIO_SD_Init(void);
 
 //#define THREAD_DEBUG
 #ifdef THREAD_DEBUG
@@ -67,7 +69,12 @@ int main(void)
   
     HAL_Init();
     SystemClock_Config();
-    MX_UART_Init(); // todo, create some abstraction to handle this and allow selection via platformio.ini
+    MX_UART_Init(); 
+
+    #ifdef SPI_CTRL
+    MX_SDIO_SD_Init(); 
+    MX_FATFS_Init(); 
+    #endif   
 
     HAL_Delay(2000); 
     printf("Initialising Remora...\n");
@@ -172,6 +179,34 @@ static void MX_UART_Init(void)
     {
         Error_Handler();
     }
+}
+
+/**
+  * @brief SDIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SDIO_SD_Init(void)
+{
+
+  /* USER CODE BEGIN SDIO_Init 0 */
+
+  /* USER CODE END SDIO_Init 0 */
+
+  /* USER CODE BEGIN SDIO_Init 1 */
+
+  /* USER CODE END SDIO_Init 1 */
+  hsd.Instance = SDIO;
+  hsd.Init.ClockEdge = SDIO_CLOCK_EDGE_RISING;
+  hsd.Init.ClockBypass = SDIO_CLOCK_BYPASS_DISABLE;
+  hsd.Init.ClockPowerSave = SDIO_CLOCK_POWER_SAVE_DISABLE;
+  hsd.Init.BusWide = SDIO_BUS_WIDE_4B;
+  hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_DISABLE;
+  hsd.Init.ClockDiv = 0;
+  /* USER CODE BEGIN SDIO_Init 2 */
+
+  /* USER CODE END SDIO_Init 2 */
+
 }
 
 /**
