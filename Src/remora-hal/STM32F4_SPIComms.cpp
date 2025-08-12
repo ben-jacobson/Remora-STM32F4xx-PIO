@@ -10,20 +10,34 @@ STM32F4_SPIComms::STM32F4_SPIComms(volatile rxData_t* _ptrRxData, volatile txDat
 	clkPortAndPin(_clkPortAndPin),
     csPortAndPin(_csPortAndPin)
 {
-    ptrRxDMABuffer = &rxDMABuffer;
-
-    irqNss = SPI_CS_IRQ;
-    irqDMAtx = DMA1_Stream0_IRQn;
-    irqDMArx = DMA1_Stream1_IRQn;
-
     mosiPinName = portAndPinToPinName(mosiPortAndPin.c_str());
     misoPinName = portAndPinToPinName(misoPortAndPin.c_str());
     clkPinName = portAndPinToPinName(clkPortAndPin.c_str());
     csPinName = portAndPinToPinName(csPortAndPin.c_str());
 
     spiHandle.Instance = (SPI_TypeDef* )getSPIPeripheralName(mosiPinName, misoPinName, clkPinName);
-}
 
+    ptrRxDMABuffer = &rxDMABuffer;
+
+    irqNss = SPI_CS_IRQ;
+
+    if (spiHandle.Instance == SPI1)
+    {    
+        irqDMArx = DMA2_Stream0_IRQn;
+        irqDMAtx = DMA2_Stream3_IRQn;
+    }
+    else if (spiHandle.Instance == SPI2) 
+    {
+        irqDMArx = DMA1_Stream3_IRQn;
+        irqDMAtx = DMA1_Stream4_IRQn;
+    } 
+    else if (spiHandle.Instance == SPI3) 
+    {
+        irqDMArx = DMA1_Stream0_IRQn;
+        irqDMAtx = DMA1_Stream5_IRQn;
+    } 
+
+}
 
 STM32F4_SPIComms::~STM32F4_SPIComms() {
 }

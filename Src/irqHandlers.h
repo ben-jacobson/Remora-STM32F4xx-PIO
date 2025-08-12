@@ -21,19 +21,6 @@ extern "C" {
         }
     }
 
-    #ifdef SPI_CTRL // these need to be remapped - the F4 isn't as flexible as the H7 and has fixed streams available for different SPI buses. We have this set up in the ETHComms, but they don't link back to the DMA IRQs
-    void DMA1_Stream0_IRQHandler() {  
-        Interrupt::InvokeHandler(DMA1_Stream0_IRQn);
-    }
-
-    void DMA1_Stream1_IRQHandler() {
-        Interrupt::InvokeHandler(DMA1_Stream1_IRQn);
-    }
-    #endif
-
-
-    #ifdef ETH_CTRL
-
     // macro for automatically creating the DMA Stream IRQ handlers, e.g DMA2_Stream0_IRQHandler()
     #define DMA_STREAM_IRQ_HANDLER(DMA_num, DMA_stream, IRQ_n)      \
     void DMA##DMA_num##_Stream##DMA_stream##_IRQHandler(void) {     \
@@ -41,11 +28,12 @@ extern "C" {
     }
 
     DMA_STREAM_IRQ_HANDLER(2, 0, DMA2_Stream0_IRQn) // SPI 1 RX
-    DMA_STREAM_IRQ_HANDLER(1, 3, DMA1_Stream3_IRQn) 
-    DMA_STREAM_IRQ_HANDLER(1, 0, DMA1_Stream0_IRQn) 
+    DMA_STREAM_IRQ_HANDLER(1, 3, DMA1_Stream3_IRQn) // SPI 2 RX
+    DMA_STREAM_IRQ_HANDLER(1, 0, DMA1_Stream0_IRQn) // SPI 3 RX
+    
     DMA_STREAM_IRQ_HANDLER(2, 3, DMA2_Stream3_IRQn) // SPI 1 TX
-    DMA_STREAM_IRQ_HANDLER(1, 4, DMA1_Stream4_IRQn) 
-    DMA_STREAM_IRQ_HANDLER(1, 5, DMA1_Stream5_IRQn) 
+    DMA_STREAM_IRQ_HANDLER(1, 4, DMA1_Stream4_IRQn) // SPI 2 TX
+    DMA_STREAM_IRQ_HANDLER(1, 5, DMA1_Stream5_IRQn) // SPI 3 TX
 
     // macro for automatically creating the SPI IRQ handlers, e.g SPI1_IRQHandler()
     #define SPI_IRQ_HANDLER(SPI_IRQ_FUNCTION_NAME, SPI_IRQ_NUM) \
@@ -56,8 +44,6 @@ extern "C" {
     SPI_IRQ_HANDLER(SPI1_IRQHandler, SPI1_IRQn)
     SPI_IRQ_HANDLER(SPI2_IRQHandler, SPI2_IRQn)
     SPI_IRQ_HANDLER(SPI3_IRQHandler, SPI3_IRQn)  
-
-    #endif
 
     void TIM2_IRQHandler() {
         if (TIM2->SR & TIM_SR_UIF) {
