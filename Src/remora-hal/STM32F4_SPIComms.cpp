@@ -17,43 +17,87 @@ STM32F4_SPIComms::STM32F4_SPIComms(volatile rxData_t* _ptrRxData, volatile txDat
     clkPinName = portAndPinToPinName(clkPortAndPin.c_str());
     csPinName = portAndPinToPinName(csPortAndPin.c_str());
 
-    spiHandle.Instance = (SPI_TypeDef* )getSPIPeripheralName(mosiPinName, misoPinName, clkPinName);
-
     ptrRxDMABuffer = &rxDMABuffer;
-
-    irqNss = SPI_CS_IRQ;
-
-    if (spiHandle.Instance == SPI1)
-    {    
-        irqDMArx = DMA2_Stream0_IRQn;
-        irqDMAtx = DMA2_Stream3_IRQn;
-    }
-    else if (spiHandle.Instance == SPI2) 
-    {
-        irqDMArx = DMA1_Stream3_IRQn;
-        irqDMAtx = DMA1_Stream4_IRQn;
-    } 
-    else if (spiHandle.Instance == SPI3) 
-    {
-        irqDMArx = DMA1_Stream0_IRQn;
-        irqDMAtx = DMA1_Stream5_IRQn;
-    } 
-
 }
 
 STM32F4_SPIComms::~STM32F4_SPIComms() {
 }
 
 void STM32F4_SPIComms::init() {
+    printf("SPIComms Init\n");
+
+    spiHandle.Instance = (SPI_TypeDef* )getSPIPeripheralName(mosiPinName, misoPinName, clkPinName);
+
+    InitDMAIRQs(spiHandle.Instance);    // set up the IRQs for DMA triggering
+    enableSPIClocks(spiHandle.Instance);
+
     // Configure the NSS (chip select) pin as interrupt
     csPin = new Pin(csPortAndPin, GPIO_MODE_IT_RISING, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW, 0);
-    delete csPin;
 
+    printf("initialising SPI pins\n");
     // Create alternate function SPI pins
     mosiPin = createPinFromPinMap(mosiPortAndPin, mosiPinName, PinMap_SPI_MOSI);
     misoPin = createPinFromPinMap(misoPortAndPin, misoPinName, PinMap_SPI_MISO);
     clkPin  = createPinFromPinMap(clkPortAndPin,  clkPinName,  PinMap_SPI_SCLK);
     csPin   = createPinFromPinMap(csPortAndPin,   csPinName,   PinMap_SPI_SSEL);
+
+    printf("Setting up SPI and DMA\n");
+
+    irqNss = SPI_CS_IRQ;
+
+    if (spiHandle.Instance == SPI1)
+    {
+        printf("Initialising SPI1 DMA\n");
+        initSPIDMA(DMA2_Stream0, DMA2_Stream3, DMA_CHANNEL_3);
+        irqDMArx = DMA2_Stream0_IRQn;
+        irqDMAtx = DMA2_Stream3_IRQn;            
+    }
+    else if (spiHandle.Instance == SPI2)
+    {
+        printf("Initialising SPI2 DMA\n");   
+        initSPIDMA(DMA1_Stream3, DMA1_Stream4, DMA_CHANNEL_0);
+        irqDMArx = DMA1_Stream3_IRQn;
+        irqDMAtx = DMA1_Stream4_IRQn;             
+    }
+    else if (spiHandle.Instance == SPI3)
+    {
+        printf("Initialising SPI3 DMA\n");
+        initSPIDMA(DMA1_Stream0, DMA1_Stream5, DMA_CHANNEL_0);
+        irqDMArx = DMA1_Stream0_IRQn;
+        irqDMAtx = DMA1_Stream5_IRQn;            
+    }
+    else
+    {
+        printf("Unknown SPI instance, please configure in your PlatformIO SPI1-3\n");
+        return;
+    }
+
+    // Register the NSS (slave select) interrupt
+    NssInterrupt = new ModuleInterrupt<STM32F4_SPIComms>(
+        irqNss,
+        this,
+        &STM32F4_SPIComms::handleNssInterrupt
+    );
+    HAL_NVIC_SetPriority(irqNss, Config::spiNssIrqPriority, 0);
+    HAL_NVIC_EnableIRQ(irqNss);
+
+    // Register the DMA Rx interrupt
+    dmaRxInterrupt = new ModuleInterrupt<STM32F4_SPIComms>(
+        irqDMArx,
+        this,
+        &STM32F4_SPIComms::handleRxInterrupt
+    );
+    HAL_NVIC_SetPriority(irqDMArx, Config::spiDmaRxIrqPriority, 0);
+    HAL_NVIC_EnableIRQ(irqDMArx);
+
+    // Register the DMA Tx interrupt
+    dmaTxInterrupt = new ModuleInterrupt<STM32F4_SPIComms>(
+        irqDMAtx,
+        this,
+        &STM32F4_SPIComms::handleTxInterrupt
+    );
+    HAL_NVIC_SetPriority(irqDMAtx, Config::spiDmaTxIrqPriority, 0); // TX needs higher priority than RX
+    HAL_NVIC_EnableIRQ(irqDMAtx);
 
     spiHandle.Init.Mode           			= SPI_MODE_SLAVE;
     spiHandle.Init.Direction      			= SPI_DIRECTION_2LINES;
@@ -66,33 +110,18 @@ void STM32F4_SPIComms::init() {
     spiHandle.Init.TIMode         			= SPI_TIMODE_DISABLE;
     spiHandle.Init.CRCCalculation 			= SPI_CRCCALCULATION_DISABLE;
     spiHandle.Init.CRCPolynomial  			= 10; // was 0x0;
-
-    printf("Initialising SPI slave\n");
+    
     HAL_SPI_Init(&this->spiHandle);
-    enableSPIClocks(spiHandle.Instance);
-
-    if (spiHandle.Instance == SPI1)
+    if (HAL_SPI_Init(&this->spiHandle) != HAL_OK) 
     {
-        printf("Initialising SPI1 DMA\n");
-        initSPIDMA(DMA2_Stream0, DMA2_Stream3, DMA_CHANNEL_3);
-    }
-    else if (spiHandle.Instance == SPI2)
-    {
-        printf("Initialising SPI2 DMA\n");
-        initSPIDMA(DMA1_Stream3, DMA1_Stream4, DMA_CHANNEL_0);
-    }
-    else if (spiHandle.Instance == SPI3)
-    {
-        printf("Initialising SPI3 DMA\n");
-        initSPIDMA(DMA1_Stream0, DMA1_Stream5, DMA_CHANNEL_0);
-    }
-    else
-    {
-        printf("Unknown SPI instance, please configure in your PlatformIO SPI1-3\n");
-        return;
+        printf("Error initialising SPI\n");
     }
 
     printf("Initialising DMA for Memory to Memory transfer\n");
+
+    /* TODO!!
+        Need to wire up an IRQ response for the mem 2 mem
+    */
 
     hdma_memtomem.Instance 					= DMA1_Stream2;       // F4 doesn't have a nice clean mem2mem so will manually use DMA1
     hdma_memtomem.Init.Channel 				= DMA_CHANNEL_0;       // aparently not needed for mem2mem but using an unused one anyway. 
@@ -109,7 +138,10 @@ void STM32F4_SPIComms::init() {
     hdma_memtomem.Init.PeriphBurst 			= DMA_PBURST_SINGLE;
 
     __HAL_RCC_DMA1_CLK_ENABLE();  
-    HAL_DMA_Init(&hdma_memtomem);
+    if (HAL_DMA_Init(&hdma_memtomem) != HAL_OK) 
+    {
+        printf("Error initialising SPI mem to mem\n");
+    }
 }
 
 void STM32F4_SPIComms::initSPIDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_TypeDef* DMA_TX_Stream, uint32_t DMA_channel) {
@@ -153,32 +185,6 @@ void STM32F4_SPIComms::initSPIDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_
 }
 
 void STM32F4_SPIComms::start() {
-    // Register the NSS (slave select) interrupt
-    NssInterrupt = new ModuleInterrupt<STM32F4_SPIComms>(
-        irqNss,
-        this,
-        &STM32F4_SPIComms::handleNssInterrupt
-    );
-    HAL_NVIC_SetPriority(irqNss, Config::spiNssIrqPriority, 0);
-    HAL_NVIC_EnableIRQ(irqNss);
-
-    // Register the DMA Rx interrupt
-    dmaRxInterrupt = new ModuleInterrupt<STM32F4_SPIComms>(
-        irqDMArx,
-        this,
-        &STM32F4_SPIComms::handleRxInterrupt
-    );
-    HAL_NVIC_SetPriority(irqDMArx, Config::spiDmaRxIrqPriority, 0);
-    HAL_NVIC_EnableIRQ(irqDMArx);
-
-    // Register the DMA Tx interrupt
-    dmaTxInterrupt = new ModuleInterrupt<STM32F4_SPIComms>(
-        irqDMAtx,
-        this,
-        &STM32F4_SPIComms::handleTxInterrupt
-    );
-    HAL_NVIC_SetPriority(irqDMAtx, Config::spiDmaTxIrqPriority, 0); // TX needs higher priority than RX
-    HAL_NVIC_EnableIRQ(irqDMAtx);
 
     // Initialize the data buffers
     std::fill(std::begin(ptrTxData->txBuffer), std::end(ptrTxData->txBuffer), 0);
