@@ -1,4 +1,4 @@
 [submodule "Src/remora-core"]
 	path = Src/remora-core
 	url = https://github.com/ben-jacobson/remora-core
-    branch = main
+    branch = SPI_test

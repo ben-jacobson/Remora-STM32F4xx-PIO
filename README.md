@@ -14,14 +14,14 @@ Port or Remora for STM32F4xx family, ported to use the latest Remora-Core abstra
         - Test for checking around lost packets
 - JSON config loading - in progress:
     - Current status:
-        - Seems to be working now, something else I need to debug with timers to be addressed before I can test this. 
+        - Working - No known issues 
 - SPI Comms - in progress:
     - Current status:
-        - Ported in and builds, not yet tested
+        - Sign of life, but not fully tested (I managed to get it working on an RPI2 which is not the recommended spec, I could toggle estop on and off, but the device couldn't handle running a test program)
     - Todos:
-        - Find a LinuxCNC image for RPI3 as this is all we have on hand. 
-        - Full testing required on SPIComms ported in from H7
-        - Some refactoring to use new introduced interface features and hal_utils. 
+        - Buy or borrow an RPI4
+        - Buy an SD card module for testing native FATFS reading. 
+        - Full test required for new code introduced prior to mounting the file system 
         - Refactoring of Mbed code used for handling DMA interrupts. See if we can replace with a set of idiomatic STM HAL DMA handlers
 - Uart3 support - in progress: 
     - Current status:
@@ -29,18 +29,20 @@ Port or Remora for STM32F4xx family, ported to use the latest Remora-Core abstra
     - Todos:
         - Refactor so that this is handled by a class. Perhaps use the comms interface? 
 - Modules - in progress:
-    - Blinky - working
+    - Blinky: Working - no known issues
     - Stepgen, digital IO, Analog Ins - to be tested
-    - Hardware PWM yet to be ported in from deprecated F4 code base
-    - Encoder modules yet to be ported.
-    - Linker scripts to be built for a range of F4xx builds
+    - Hardware PWM  to be ported in from deprecated F4 code base
+    - Encoder modules to be ported in.
+    - Linker scripts to be built for a more extensive range of F4xx builds
 - Adhoc todos: 
+    - Do we need to wrap up the SDIO implementation like we will for UART? unsure how configurable this needs to be across the family. 
     - Relook at the note inside the configuration.h file, it references outdated syntax for how the file is to be built. 
     - ADC - move MSP init code into class
     - Clear up conflict in DMA IRQs between SPI and Ethernet comms modules, just some simple include guarding will suffice.
     - Test out differnet clock config code, what's different between the boards?
     - Look at IRQHandle and move the DMAStreams over to unused channel/stream combos for SPIComms on F4
     - Build the bootloader linker scripts
+    - Alter EthComms component to use same payloads as SPI. 
 
 # Wiznet W5500 connection
 - PA_5: SCK
@@ -61,8 +63,8 @@ Example config.txt files can be found in the LinuxCNC_Configs folder.
 Software PWM is not yet supported and may not ever be. Please use Hardware PWM for the time being, the amount of flexibility offered by the hardware may override the need for Software PWM. 
 
 # Boards
-- Nucleo F446RE : In development
-- Nucleo F446ZE : In development
+- Nucleo F446RE: In development
+- Nucleo F446ZE: In development
 
 ------------------------------------------
 
