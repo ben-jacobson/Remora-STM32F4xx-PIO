@@ -119,10 +119,6 @@ void STM32F4_SPIComms::init() {
 
     printf("Initialising DMA for Memory to Memory transfer\n");
 
-    /* TODO!!
-        Need to wire up an IRQ response for the mem 2 mem
-    */
-
     hdma_memtomem.Instance 					= DMA1_Stream2;       // F4 doesn't have a nice clean mem2mem so will manually use DMA1
     hdma_memtomem.Init.Channel 				= DMA_CHANNEL_0;       // aparently not needed for mem2mem but using an unused one anyway. 
     hdma_memtomem.Init.Direction 			= DMA_MEMORY_TO_MEMORY;

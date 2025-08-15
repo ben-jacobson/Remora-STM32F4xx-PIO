@@ -9,15 +9,13 @@ Port or Remora for STM32F4xx family, ported to use the latest Remora-Core abstra
         - Using the Remora-Eth-3.0 LinuxCNC component, able to switch the PRU in and out of eStop modes.
         - TFTP is listening and will process config uploads
     - Todos:
-        - See if we can make use of the Wiznet INT output somehow
-        - Work with the team on an idea for Remora to trigger an interrupt to close the loop on lost packet detection
-        - Test for checking around lost packets
+        - Improve testing around lost packet checks
 - JSON config loading - in progress:
     - Current status:
         - Working - No known issues 
 - SPI Comms - in progress:
     - Current status:
-        - Sign of life, but not fully tested (I managed to get it working on an RPI2 which is not the recommended spec, I could toggle estop on and off, but the device couldn't handle running a test program)
+        - Sign of life, but not fully tested - currently working with an RPI2 which isn't supported. Can toggle estop in and out which is promising.
     - Todos:
         - Buy or borrow an RPI4
         - Buy an SD card module for testing native FATFS reading. 
