@@ -1,4 +1,5 @@
 [submodule "Src/remora-core"]
 	path = Src/remora-core
 	url = https://github.com/ben-jacobson/remora-core
-    branch = SPI_test
+    branch = PWM_module
+

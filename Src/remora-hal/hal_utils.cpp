@@ -5,6 +5,11 @@ const uint8_t _ls_json_upload_sector = 0; // clear compiler errors when linker s
 const uint8_t _ls_json_storage_sector = 0;     
 #endif
 
+PWMName getPWMName(PinName pwm_pin)        
+{
+    return (PWMName)pinmap_peripheral(pwm_pin, PinMap_PWM);
+}
+
 SPIName getSPIPeripheralName(PinName mosi, PinName miso, PinName sclk)        
 {
     SPIName spi_mosi = (SPIName)pinmap_peripheral(mosi, PinMap_SPI_MOSI);
@@ -71,6 +76,12 @@ void InitDMAIRQs(SPI_TypeDef* spi_instance)
 }
 
 Pin* createPinFromPinMap(const std::string& portAndPin, PinName pinName, const PinMap* map, uint32_t gpio_mode, uint32_t gpio_pull, uint32_t gpio_speed) 
+{ 
+    uint32_t function = STM_PIN_AFNUM(pinmap_function(pinName, map));
+    return new Pin(portAndPin, gpio_mode, gpio_pull, gpio_speed, function);
+}
+
+Pin* createPinFromPinMapAlt(const std::string& portAndPin, PinName pinName, const PinMap* map, uint32_t gpio_mode, uint32_t gpio_pull, uint32_t gpio_speed) 
 { 
     uint32_t function = STM_PIN_AFNUM(pinmap_function(pinName, map));
     return new Pin(portAndPin, gpio_mode, gpio_pull, gpio_speed, function);

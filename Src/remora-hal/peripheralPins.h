@@ -155,6 +155,7 @@ extern const PinMap PinMap_SPI_MOSI[];
 extern const PinMap PinMap_SPI_MISO[];
 extern const PinMap PinMap_SPI_SCLK[];
 extern const PinMap PinMap_SPI_SSEL[];
+extern const PinMap PinMap_PWM[];
 
 uint32_t pinmap_peripheral(PinName pin, const PinMap *map);
 uint32_t pinmap_function(PinName pin, const PinMap *map);

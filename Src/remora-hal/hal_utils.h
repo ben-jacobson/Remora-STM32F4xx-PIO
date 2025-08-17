@@ -20,6 +20,7 @@
 #define write_to_flash_word(addr, data)       HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD,       addr, data)
 #define write_to_flash_doubleword(addr, data) HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, addr, data)
 
+PWMName getPWMName(PinName);
 SPIName getSPIPeripheralName(PinName, PinName, PinName);
 void enableSPIClocks(SPI_TypeDef *);
 void InitDMAIRQs(SPI_TypeDef *);

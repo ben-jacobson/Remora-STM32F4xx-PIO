@@ -90,6 +90,17 @@
             "Pin": "PC_0",
             "Mode": "Output",        
             "Data Bit": 1
-        }
+        },
+        {
+            "Thread": "Servo",
+            "Type": "PWM",
+            "Comment": "PWM2",
+            "SP[i]": 3,
+            "PWM Pin": "PC_6",
+            "PWM Max": 192,
+            "Hardware PWM": "True",
+            "Variable Freq": "False",
+            "Period us": 1000
+        }        
     ]
 }

@@ -32,6 +32,7 @@ Port or Remora for STM32F4xx family, ported to use the latest Remora-Core abstra
     - Hardware PWM  to be ported in from deprecated F4 code base
     - Encoder modules to be ported in.
     - Linker scripts to be built for a more extensive range of F4xx builds
+    - Software PWM to be ported in
 - Adhoc todos: 
     - Do we need to wrap up the SDIO implementation like we will for UART? unsure how configurable this needs to be across the family. 
     - Relook at the note inside the configuration.h file, it references outdated syntax for how the file is to be built. 
@@ -57,9 +58,36 @@ Port or Remora for STM32F4xx family, ported to use the latest Remora-Core abstra
 Please refer to the Remora documentation to configure GPIO to perform various functions like stepgen, digital IO and PWM: https://remora-docs.readthedocs.io/en/latest/configuration/configuration.html
 Example config.txt files can be found in the LinuxCNC_Configs folder. 
 
-# Software PWM
-Software PWM is not yet supported and may not ever be. Please use Hardware PWM for the time being, the amount of flexibility offered by the hardware may override the need for Software PWM. 
+# Hardware PWM
+Hardware PWM is available on a wide variety of pins depending on your hardware target. When setting up your config.txt file, you must choose a PWM enabled pin from the list provided. Specific STM32 Timers and Channels will been allocated by the driver behind the scenes. Some important details about this: 
+- PWM pins can be set to variable or fixed period. Configuration documentation can be found here https://remora-docs.readthedocs.io/en/latest/configuration/Setup-Config-File.html#pwm
+- You may set up more than one PWM pin on the same timer (TIMx) per the table of available pins, however the period will be shared across all channels and defined by the last pin you set in your config.txt. PWM pins on the same timer but different channel will not share duty cycle, only the period. 
+- If you don't specify a fixed period in your config.txt, or if your LinuxCNC intialises this as zero, the default will become 200us
+- Without a linuxCNC config controlling a set point variable, the PWM will automatically starts as soon as you press the eStop. You will need to configure LinuxCNC to stop and start on the conditions you want. For example when using it as a 0-10v Spindle control. HAL config can be found here: https://remora-docs.readthedocs.io/en/latest/software/hal-examples.html#pwm-to-0-10v-spindle-control-simple
+- How many PWM pins available will be limited by your remora-eth-3.0 component, which defaults to 6. You can raise this limit by changing both remora-eth-3.h file and configuration.h file, but be careful that it fits within the data allocated for RX packets. You will need 1 variable for each fixed period PWM pin, or 2 for variable duty PWM.
+- All PWM timers are either 16 or 32 bits wide depending on which TIMx is used. Either is more than enough for very fine control over duty cycle.
+- Be very careful not to clash with other peripherals such as SPI or UART, this will result in undefined behaviour. 
 
+PWM compatible pins for this build target are:
+| GPIO | Timer | Channel | Tested |
+| ----------- | ----------- |  -----------  |  -----------  |
+| PA_8 | TIM1 | CH1 | Not yet | 
+| PA_9 | TIM1 | CH2 | Not yet |
+| PA_10 | TIM1 | CH3 | Not yet |
+| PA_11 | TIM1 | CH4 | Not yet |
+| PB_6 | TIM4 | CH1 | Not yet | 
+| PB_7 | TIM4 | CH2 | Not yet |
+| PB_8 | TIM4 | CH3 | Not yet |
+| PB_9 | TIM4 | CH4 | Not yet |
+| PA_1  | TIM5 | CH2 | Not yet |
+| PA_2 | TIM5 | CH3 | Not yet |
+| PA_3 | TIM5 | CH4 | Not yet |
+| PC_6 | TIM8 | CH1 | Not yet |
+| PC_7 | TIM8 | CH2 | Not yet |
+| PC_9 | TIM8 | CH4 | Not yet |
+| PB_14 | TIM12 | CH1 | Not yet |
+| PB_15 | TIM12 | CH2 | Not yet |
+ 
 # Boards
 - Nucleo F446RE: In development
 - Nucleo F446ZE: In development
