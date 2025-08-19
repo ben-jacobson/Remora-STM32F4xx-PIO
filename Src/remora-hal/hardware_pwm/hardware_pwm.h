@@ -32,11 +32,9 @@ class HardwarePWM
         std::string pwm_pin_str;			     
         PinName pwm_pin_name;
         Pin* pwm_pin;
-        PWMName pwm_name;
 
         TIM_HandleTypeDef pwm_tim_handler;
         uint32_t pwm_tim_channel_used; 
-        //PWM_Enabled_Pin *configured_pin;
 
         uint32_t timer_clk_hz;
 

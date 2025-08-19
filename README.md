@@ -68,26 +68,40 @@ Hardware PWM is available on a wide variety of pins depending on your hardware t
 - All PWM timers are either 16 or 32 bits wide depending on which TIMx is used. Either is more than enough for very fine control over duty cycle.
 - Be very careful not to clash with other peripherals such as SPI or UART, this will result in undefined behaviour. 
 
-PWM compatible pins for this build target are:
-| GPIO | Timer | Channel | Tested |
-| ----------- | ----------- |  -----------  |  -----------  |
-| PA_8 | TIM1 | CH1 | Not yet | 
-| PA_9 | TIM1 | CH2 | Not yet |
-| PA_10 | TIM1 | CH3 | Not yet |
-| PA_11 | TIM1 | CH4 | Not yet |
-| PB_6 | TIM4 | CH1 | Not yet | 
-| PB_7 | TIM4 | CH2 | Not yet |
-| PB_8 | TIM4 | CH3 | Not yet |
-| PB_9 | TIM4 | CH4 | Not yet |
-| PA_1  | TIM5 | CH2 | Not yet |
-| PA_2 | TIM5 | CH3 | Not yet |
-| PA_3 | TIM5 | CH4 | Not yet |
-| PC_6 | TIM8 | CH1 | Not yet |
-| PC_7 | TIM8 | CH2 | Not yet |
-| PC_9 | TIM8 | CH4 | Not yet |
-| PB_14 | TIM12 | CH1 | Not yet |
-| PB_15 | TIM12 | CH2 | Not yet |
+PWM compatible pins for the F446ZE target are:
+| Pin   | Timer | Channel | Notes                    | Tested?    |
+|-------|-------|---------|--------------------------|------------|
+| PA_8  | TIM1  | CH1     |                          | Not Tested |
+| PA_9  | TIM1  | CH2     |                          | Not Tested |
+| PA_10 | TIM1  | CH3     |                          | Not Tested |
+| PA_11 | TIM1  | CH4     |                          | Not Tested |
+| PB_0  | TIM1  | CH2N    |                          | Not Tested |
+| PB_1  | TIM1  | CH3N    |                          | Not Tested |
+| PB_6  | TIM4  | CH1     | Possible conflict SPI_CS | Not Tested |
+| PB_7  | TIM4  | CH2     |                          | Working    |
+| PB_13 | TIM1  | CH1N    |                          | Not Tested |
+| PB_14 | TIM1  | CH2N    |                          | Not Tested |
+| PB_15 | TIM1  | CH3N    |                          | Not Tested |
+| PD_12 | TIM4  | CH1     |                          | Not Tested |
+| PD_13 | TIM4  | CH2     |                          | Not Tested |
+| PD_14 | TIM4  | CH3     |                          | Not Tested |
+| PD_15 | TIM4  | CH4     |                          | Not Tested |
+| PE_5  | TIM9  | CH1     |                          | Not Tested |
+| PE_6  | TIM9  | CH2     |                          | Not Tested |
+| PE_8  | TIM1  | CH1N    |                          | Not Tested |
+| PE_9  | TIM1  | CH1     |                          | Not Tested |
+| PE_10 | TIM1  | CH2N    |                          | Not Tested |
+| PE_11 | TIM1  | CH2     |                          | Not Tested |
+| PE_12 | TIM1  | CH3N    |                          | Not Tested |
+| PE_13 | TIM1  | CH3     |                          | Not Tested |
+| PE_14 | TIM1  | CH4     |                          | Not Tested |
+| PF_6  | TIM10 | CH1     |                          | Not Tested |
+| PF_7  | TIM11 | CH1     |                          | Not Tested |
+| PF_8  | TIM13 | CH1     |                          | Not Tested |
+| PF_9  | TIM14 | CH1     |                          | Not Tested |
  
+Any pin that is also available on the F446RE will work too.
+
 # Boards
 - Nucleo F446RE: In development
 - Nucleo F446ZE: In development
@@ -116,3 +130,6 @@ https://remora-docs.readthedocs.io/en/latest/firmware/ethernet-config.html
 Board will not start until ethernet connection is established. 
 
 Credits to Scotta and Cakeslob and others that worked on Remora. Additional credit to Expatria Technologies and Terje IO. 
+
+# Known issues
+- See status for info first, other specific bugs to be recorded here as we go.

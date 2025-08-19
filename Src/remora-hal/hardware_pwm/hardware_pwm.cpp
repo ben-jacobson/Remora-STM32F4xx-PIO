@@ -29,22 +29,19 @@ HardwarePWM::HardwarePWM(int _initial_period_us, int _initial_pulsewidth_us, std
 
     if (pwm_function != (uint32_t)NC)
     {
-        pwm_pin = createPinFromPinMap(pwm_pin_str, pwm_pin_name, PinMap_PWM);
-        pwm_name = getPWMName(pwm_pin_name);
-
-        setTimerAndChannelInstance(pwm_function);
+        setTimerAndChannelInstance(pwm_function); // sets pwm_tim_handler.Instance and the channel from the pinmap
 
         if (pwm_tim_handler.Instance == TIM2 ||     // TODO - refactor once the configured timers are visible in the configuration.h file
-            pwm_tim_handler.Instance == TIM3 ||
-            pwm_tim_handler.Instance == TIM4) 
+            pwm_tim_handler.Instance == TIM3) 
         {
-            printf("Warning: Timer instance clashes with one of the timers used for Remora BASE, SERVO or SERIAL, this may cause unexpected results");
+            printf("Warning: Timer instance clashes with one of the timers used for Remora BASE or SERVO threads, this crash the PRU");
         }
 
-        // Initialise the timer, channel and pin clocks.
-        initialise_timers();
-        initialise_pwm_channels();    
+        // Initialise the pin clocks, timer, channel and pin
         initialise_pwm_pin_clocks();
+        initialise_timers();
+        initialise_pwm_channels();  
+        pwm_pin = createPinFromPinMap(pwm_pin_str, pwm_pin_name, PinMap_PWM, GPIO_MODE_AF_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);  // reenable after test
 
         // check that initialisation worked.
         if (HAL_TIM_PWM_Start(&pwm_tim_handler, pwm_tim_channel_used) != HAL_OK) 
@@ -52,6 +49,7 @@ HardwarePWM::HardwarePWM(int _initial_period_us, int _initial_pulsewidth_us, std
             Error_Handler();
         }  
 
+        // set up default values. 
         change_period(_initial_period_us);
         change_pulsewidth(_initial_pulsewidth_us);
 
@@ -66,26 +64,36 @@ HardwarePWM::HardwarePWM(int _initial_period_us, int _initial_pulsewidth_us, std
 
 void HardwarePWM::setTimerAndChannelInstance(uint32_t pwm_pinmap_function)
 {
-    // cast the mbed style timer to STM style timer
-    pwm_tim_handler.Instance = (TIM_TypeDef *)pwm_name; 
+    // Cast the peripheral pin style timer to STM style timer
+    pwm_tim_handler.Instance = ((TIM_TypeDef *)getPWMName(pwm_pin_name));
 
     // reverse the stored encoding of the function to derive the channel used
-    switch (((pwm_pinmap_function) >> STM_PIN_CHAN_SHIFT) & STM_PIN_CHAN_MASK) 
+    uint32_t pin_function_timer_channel = ((pwm_pinmap_function) >> STM_PIN_CHAN_SHIFT) & STM_PIN_CHAN_MASK;
+
+    switch (pin_function_timer_channel) 
     {
-        case 1: pwm_tim_channel_used = TIM_CHANNEL_1;   break;        
-        case 2: pwm_tim_channel_used = TIM_CHANNEL_2;   break;
-        case 3: pwm_tim_channel_used = TIM_CHANNEL_3;   break;
-        case 4: pwm_tim_channel_used = TIM_CHANNEL_4;   break;
+        case 1: 
+            pwm_tim_channel_used = TIM_CHANNEL_1;   
+            break;        
+        case 2: 
+            pwm_tim_channel_used = TIM_CHANNEL_2;   
+            break;
+        case 3: 
+            pwm_tim_channel_used = TIM_CHANNEL_3;   
+            break;
+        case 4: 
+            pwm_tim_channel_used = TIM_CHANNEL_4;   
+            break;
     }
 }
 
 void HardwarePWM::initialise_timers(void) 
 {
-    // note that pwm_tim_handler.Instance and pwm_tim_channel_used are set in constructor.  
+    // note that pwm_tim_handler.Instance and pwm_tim_channel_used are set prior to calling this in constructor.  
     timer_clk_hz = get_timer_clk_freq(pwm_tim_handler.Instance); 
-    pwm_tim_handler.Init.Prescaler = (timer_clk_hz / 1000000) - 1;
+    pwm_tim_handler.Init.Prescaler = 0;
     pwm_tim_handler.Init.CounterMode = TIM_COUNTERMODE_UP;
-    pwm_tim_handler.Init.Period = 0; // start with 0us period, we'll initialise right after 
+    pwm_tim_handler.Init.Period = 0xffff; 
     pwm_tim_handler.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
     pwm_tim_handler.Init.RepetitionCounter = 0;
     pwm_tim_handler.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
@@ -117,8 +125,8 @@ void HardwarePWM::initialise_timers(void)
 
 void HardwarePWM::initialise_pwm_channels(void) 
 {
-    sConfigOC.OCMode = TIM_OCMODE_PWM1; // compare mode, output is active high. Probably doesn't make much difference. unsure if this needs to change for other TIM's used 
-    sConfigOC.Pulse = 0; 
+    sConfigOC.OCMode = TIM_OCMODE_PWM1;
+    sConfigOC.Pulse = pwm_tim_handler.Init.Period * 0.5; // gives this an inital value for sanity checking, will be overwritten on startup. 
     sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
     sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
     sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
@@ -146,39 +154,68 @@ void HardwarePWM::initialise_pwm_channels(void)
 
 void HardwarePWM::initialise_pwm_pin_clocks(void) 
 {
-    if (pwm_tim_handler.Instance == TIM1) __HAL_RCC_TIM1_CLK_ENABLE();
-    else if (pwm_tim_handler.Instance == TIM2) __HAL_RCC_TIM2_CLK_ENABLE();
-    else if (pwm_tim_handler.Instance == TIM3) __HAL_RCC_TIM3_CLK_ENABLE();
-    else if (pwm_tim_handler.Instance == TIM4) __HAL_RCC_TIM4_CLK_ENABLE();
-    else if (pwm_tim_handler.Instance == TIM5) __HAL_RCC_TIM5_CLK_ENABLE();
-    else if (pwm_tim_handler.Instance == TIM6) __HAL_RCC_TIM6_CLK_ENABLE();
-    else if (pwm_tim_handler.Instance == TIM7) __HAL_RCC_TIM7_CLK_ENABLE();
-    else if (pwm_tim_handler.Instance == TIM8) __HAL_RCC_TIM8_CLK_ENABLE();
-    else if (pwm_tim_handler.Instance == TIM9) __HAL_RCC_TIM9_CLK_ENABLE();
-    else if (pwm_tim_handler.Instance == TIM10) __HAL_RCC_TIM10_CLK_ENABLE();
-    else if (pwm_tim_handler.Instance == TIM11) __HAL_RCC_TIM11_CLK_ENABLE();
-    else if (pwm_tim_handler.Instance == TIM12) __HAL_RCC_TIM12_CLK_ENABLE();
-    else if (pwm_tim_handler.Instance == TIM13) __HAL_RCC_TIM13_CLK_ENABLE();
-    else if (pwm_tim_handler.Instance == TIM14) __HAL_RCC_TIM14_CLK_ENABLE();
-    else printf("incorrect timer selected, please refer to documentation.\n");        
+    if (pwm_tim_handler.Instance == TIM1) 
+        __HAL_RCC_TIM1_CLK_ENABLE();
+    else if (pwm_tim_handler.Instance == TIM2) 
+        __HAL_RCC_TIM2_CLK_ENABLE();
+    else if (pwm_tim_handler.Instance == TIM3) 
+        __HAL_RCC_TIM3_CLK_ENABLE();
+    else if (pwm_tim_handler.Instance == TIM4) 
+        __HAL_RCC_TIM4_CLK_ENABLE();
+    else if (pwm_tim_handler.Instance == TIM5) 
+        __HAL_RCC_TIM5_CLK_ENABLE();
+    else if (pwm_tim_handler.Instance == TIM6) 
+        __HAL_RCC_TIM6_CLK_ENABLE();
+    else if (pwm_tim_handler.Instance == TIM7) 
+        __HAL_RCC_TIM7_CLK_ENABLE();
+    else if (pwm_tim_handler.Instance == TIM8) 
+        __HAL_RCC_TIM8_CLK_ENABLE();
+    else if (pwm_tim_handler.Instance == TIM9) 
+        __HAL_RCC_TIM9_CLK_ENABLE();
+    else if (pwm_tim_handler.Instance == TIM10) 
+        __HAL_RCC_TIM10_CLK_ENABLE();
+    else if (pwm_tim_handler.Instance == TIM11) 
+        __HAL_RCC_TIM11_CLK_ENABLE();
+    else if (pwm_tim_handler.Instance == TIM12) 
+        __HAL_RCC_TIM12_CLK_ENABLE();
+    else if (pwm_tim_handler.Instance == TIM13) 
+        __HAL_RCC_TIM13_CLK_ENABLE();
+    else if (pwm_tim_handler.Instance == TIM14) 
+        __HAL_RCC_TIM14_CLK_ENABLE();
+    else 
+        printf("incorrect timer selected, please refer to documentation.\n");        
 }
 
 HardwarePWM::~HardwarePWM(void) 
 {
-    if (pwm_tim_handler.Instance == TIM1)  __HAL_RCC_TIM1_CLK_DISABLE();
-    if (pwm_tim_handler.Instance == TIM2)  __HAL_RCC_TIM2_CLK_DISABLE();
-    if (pwm_tim_handler.Instance == TIM3)  __HAL_RCC_TIM3_CLK_DISABLE();
-    if (pwm_tim_handler.Instance == TIM4)  __HAL_RCC_TIM4_CLK_DISABLE();
-    if (pwm_tim_handler.Instance == TIM5)  __HAL_RCC_TIM5_CLK_DISABLE();
-    if (pwm_tim_handler.Instance == TIM6)  __HAL_RCC_TIM6_CLK_DISABLE();
-    if (pwm_tim_handler.Instance == TIM7)  __HAL_RCC_TIM7_CLK_DISABLE();
-    if (pwm_tim_handler.Instance == TIM8)  __HAL_RCC_TIM8_CLK_DISABLE();
-    if (pwm_tim_handler.Instance == TIM9)  __HAL_RCC_TIM9_CLK_DISABLE();
-    if (pwm_tim_handler.Instance == TIM10) __HAL_RCC_TIM10_CLK_DISABLE();
-    if (pwm_tim_handler.Instance == TIM11) __HAL_RCC_TIM11_CLK_DISABLE();
-    if (pwm_tim_handler.Instance == TIM12) __HAL_RCC_TIM12_CLK_DISABLE();
-    if (pwm_tim_handler.Instance == TIM13) __HAL_RCC_TIM13_CLK_DISABLE();
-    if (pwm_tim_handler.Instance == TIM14) __HAL_RCC_TIM14_CLK_DISABLE();       
+    if (pwm_tim_handler.Instance == TIM1)  
+        __HAL_RCC_TIM1_CLK_DISABLE();
+    if (pwm_tim_handler.Instance == TIM2)  
+        __HAL_RCC_TIM2_CLK_DISABLE();
+    if (pwm_tim_handler.Instance == TIM3)  
+        __HAL_RCC_TIM3_CLK_DISABLE();
+    if (pwm_tim_handler.Instance == TIM4)  
+        __HAL_RCC_TIM4_CLK_DISABLE();
+    if (pwm_tim_handler.Instance == TIM5)  
+        __HAL_RCC_TIM5_CLK_DISABLE();
+    if (pwm_tim_handler.Instance == TIM6)  
+        __HAL_RCC_TIM6_CLK_DISABLE();
+    if (pwm_tim_handler.Instance == TIM7)  
+        __HAL_RCC_TIM7_CLK_DISABLE();
+    if (pwm_tim_handler.Instance == TIM8)  
+        __HAL_RCC_TIM8_CLK_DISABLE();
+    if (pwm_tim_handler.Instance == TIM9)  
+        __HAL_RCC_TIM9_CLK_DISABLE();
+    if (pwm_tim_handler.Instance == TIM10) 
+        __HAL_RCC_TIM10_CLK_DISABLE();
+    if (pwm_tim_handler.Instance == TIM11) 
+        __HAL_RCC_TIM11_CLK_DISABLE();
+    if (pwm_tim_handler.Instance == TIM12) 
+        __HAL_RCC_TIM12_CLK_DISABLE();
+    if (pwm_tim_handler.Instance == TIM13) 
+        __HAL_RCC_TIM13_CLK_DISABLE();
+    if (pwm_tim_handler.Instance == TIM14) 
+        __HAL_RCC_TIM14_CLK_DISABLE();       
 }
 
 void HardwarePWM::change_period(int new_period_us)
@@ -202,7 +239,7 @@ void HardwarePWM::change_period(int new_period_us)
         __HAL_TIM_SET_COMPARE(&pwm_tim_handler, pwm_tim_channel_used, period_ticks - 1);
     }
 
-    //pwm_tim_handler.Instance.EGR |= TIM_EGR_UG;  // trigger an update event. Possibly not needed, the timer should reset at the end of ARR count.. 
+    pwm_tim_handler.Instance->EGR |= TIM_EGR_UG; // trigger reload.
 
     // re-enable
     __HAL_TIM_ENABLE(&pwm_tim_handler); 

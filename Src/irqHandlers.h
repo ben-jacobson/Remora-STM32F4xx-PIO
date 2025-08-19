@@ -69,12 +69,12 @@ extern "C" {
         }
     }
 
-    void TIM4_IRQHandler() {
-        if (TIM4->SR & TIM_SR_UIF) {
-            TIM4->SR &= ~TIM_SR_UIF;
-            Interrupt::InvokeHandler(TIM4_IRQn);
-        }
-    }
+    // void TIM4_IRQHandler() { // SerialThread is disabled in this build. 
+    //     if (TIM4->SR & TIM_SR_UIF) {
+    //         TIM4->SR &= ~TIM_SR_UIF;
+    //         Interrupt::InvokeHandler(TIM4_IRQn);
+    //     }
+    // }
 
 } // extern "C"
 

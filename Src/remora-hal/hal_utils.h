@@ -32,10 +32,8 @@ Pin* createPinFromPinMap(const std::string&, PinName, const PinMap*,
 
 void delay_ms(uint32_t);
 
-//uint32_t get_sector_from_address(uint32_t);
 void mass_erase_config_storage(void);
 void mass_erase_upload_storage(void);
-//void flash_fill(uint32_t, uint32_t, uint32_t);
 void mass_erase_flash_sector(uint32_t);
 
 #endif
