@@ -56,7 +56,7 @@ extern "C" {
 }
 
 int main(void)
-  {
+{
     #ifdef HAS_BOOTLOADER
         HAL_RCC_DeInit();
         HAL_DeInit();

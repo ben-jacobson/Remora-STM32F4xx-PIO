@@ -27,8 +27,8 @@ typedef enum {
 
 class STM32F4_SPIComms : public CommsInterface {
 private:
-    volatile rxData_t*  		ptrRxData;
-    volatile txData_t*  		ptrTxData;
+    //volatile rxData_t*  		ptrRxData;
+    //volatile txData_t*  		ptrTxData;
     volatile DMA_RxBuffer_t* 	ptrRxDMABuffer;
 
     SPI_TypeDef*        		spiType;

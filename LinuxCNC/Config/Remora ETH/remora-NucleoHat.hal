@@ -77,7 +77,7 @@ loadrt [EMCMOT]EMCMOT base_period_nsec=[EMCMOT]BASE_PERIOD servo_period_nsec=[EM
 	#net OUT1 	remora.output.01 	#=> 
 	#net OUT2 	remora.output.02 	#=> 
 	
-#spindle DAC 0-10V control
+# spindle DAC 0-10V control
 	loadrt abs count=4
 	addf abs.0 servo-thread
 
@@ -87,19 +87,14 @@ loadrt [EMCMOT]EMCMOT base_period_nsec=[EMCMOT]BASE_PERIOD servo_period_nsec=[EM
 	setp scale.0.gain 1 #this will make m3 s100 give 100% output and m3 s1 1%
 	net spindle-speed-scale spindle.0.speed-out => scale.0.in
 	net spindle-speed-abs scale.0.out => abs.0.in
-	net spindle-speed-DAC abs.0.out  => remora.SP.0
-	
-# test variable PWM period for spindle DAC
+	net spindle-speed-DAC abs.0.out  => remora.SP.0		# duty cycle
+# Variable PWM period for spindle DAC
 	addf abs.1 servo-thread
 	net spindle-dac-period-us abs.1.in
-	net spindle-dac-period abs.1.out => remora.SP.1	
+	net spindle-dac-period abs.1.out => remora.SP.1		# variable period
 	
-# test variable duty cycle for second PWM
+# test fixed duty cycle for second PWM
 	addf abs.2 servo-thread
 	net test-second-pwm-duty-percent abs.2.in
 	net test-second-pwm-duty abs.2.out => remora.SP.2
 	
-# test variable period for second PWM
-	addf abs.3 servo-thread
-	net test-second-pwm-period-us abs.3.in
-	net test-second-pwm-period abs.3.out => remora.SP.3

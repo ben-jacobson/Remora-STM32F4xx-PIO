@@ -5,13 +5,14 @@ volatile DMA_RxBuffer_t rxDMABuffer;
 static void MultiBufferDMAErrorCallback(DMA_HandleTypeDef *hdma);
 
 STM32F4_SPIComms::STM32F4_SPIComms(volatile rxData_t* _ptrRxData, volatile txData_t* _ptrTxData, std::string _mosiPortAndPin, std::string _misoPortAndPin, std::string _clkPortAndPin, std::string _csPortAndPin) :
-	ptrRxData(_ptrRxData),
-	ptrTxData(_ptrTxData),
     mosiPortAndPin(_mosiPortAndPin),
     misoPortAndPin(_misoPortAndPin),
 	clkPortAndPin(_clkPortAndPin),
     csPortAndPin(_csPortAndPin)
 {
+    ptrRxData = _ptrRxData;
+	ptrTxData = _ptrTxData;
+
     mosiPinName = portAndPinToPinName(mosiPortAndPin.c_str());
     misoPinName = portAndPinToPinName(misoPortAndPin.c_str());
     clkPinName = portAndPinToPinName(clkPortAndPin.c_str());
@@ -256,9 +257,8 @@ HAL_StatusTypeDef STM32F4_SPIComms::startMultiBufferDMASPI(uint8_t *pTxBuffer0, 
     
     */
 
-
     // Set Full-Duplex mode 
-    // SPI_2LINES(&spiHandle); // we have ensured 2lines is configured in init()
+    CLEAR_BIT(spiHandle.Instance->CR1, SPI_CR1_BIDIMODE); // to replace SPI_2LINES(&spiHandle); 
 
     // Reset the Tx/Rx DMA bits 
     CLEAR_BIT(spiHandle.Instance->CR2, SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN); //    was  CLEAR_BIT(spiHandle.Instance->CFG1, SPI_CFG1_TXDMAEN | SPI_CFG1_RXDMAEN);
@@ -290,6 +290,7 @@ HAL_StatusTypeDef STM32F4_SPIComms::startMultiBufferDMASPI(uint8_t *pTxBuffer0, 
     // Configure Tx DMA with Multi-Buffer 
     hdma_spi_tx.XferHalfCpltCallback = [](DMA_HandleTypeDef *hdma) {};  // The code this was ported from had these set to Nulls, however the F4 implementation of HAL_DMAEx_MultiBufferStart_IT errors out on that, 
     hdma_spi_tx.XferCpltCallback     = [](DMA_HandleTypeDef *hdma) {};  // seeing as there wasn't any intention to do anything, have swapped these for some anonymous functions. 
+    hdma_spi_tx.XferM1CpltCallback   = [](DMA_HandleTypeDef *hdma) {};
     hdma_spi_tx.XferErrorCallback    = MultiBufferDMAErrorCallback;
 
     if (HAL_DMAEx_MultiBufferStart_IT(&hdma_spi_tx,
@@ -305,6 +306,7 @@ HAL_StatusTypeDef STM32F4_SPIComms::startMultiBufferDMASPI(uint8_t *pTxBuffer0, 
     // Configure Rx DMA with Multi-Buffer 
     hdma_spi_rx.XferHalfCpltCallback = [](DMA_HandleTypeDef *hdma) {}; 
     hdma_spi_rx.XferCpltCallback     = [](DMA_HandleTypeDef *hdma) {}; 
+    hdma_spi_rx.XferM1CpltCallback   = [](DMA_HandleTypeDef *hdma) {}; 
     hdma_spi_rx.XferErrorCallback    = MultiBufferDMAErrorCallback; 
 
     if (HAL_OK != HAL_DMAEx_MultiBufferStart_IT(&hdma_spi_rx,
@@ -318,15 +320,15 @@ HAL_StatusTypeDef STM32F4_SPIComms::startMultiBufferDMASPI(uint8_t *pTxBuffer0, 
         return HAL_ERROR;
     }
 
-    // Configure SPI TSIZE for full transfer or circular mode 
-    /*if (hdma_spi_rx.Init.Mode == DMA_CIRCULAR || hdma_spi_tx.Init.Mode == DMA_CIRCULAR) // disabled this for now, have ensured circular mode is set up in init()
-    {
-        MODIFY_REG(spiHandle.Instance->CR2, SPI_CR2_TSIZE, 0UL);
-    }
-    else
-    {
-        MODIFY_REG(spiHandle.Instance->CR2, SPI_CR2_TSIZE, Size);
-    }*/
+    // Configure SPI TSIZE for full transfer or circular mode  
+    // if (hdma_spi_rx.Init.Mode == DMA_CIRCULAR || hdma_spi_tx.Init.Mode == DMA_CIRCULAR)
+    // {
+    //     MODIFY_REG(spiHandle.Instance->CR2, SPI_CR2_TSIZE, 0UL); // doesn't seem to be any F4 equivalent for SPI_CR2_TSize. Wondering if this works without? 
+    // }
+    // else
+    // {
+    //     MODIFY_REG(spiHandle.Instance->CR2, SPI_CR2_TSIZE, Size);
+    // }
 
     // Enable Tx and Rx DMA Requests 
     SET_BIT(spiHandle.Instance->CR2, SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN); // was SET_BIT(spiHandle.Instance->CFG1, SPI_CFG1_TXDMAEN | SPI_CFG1_RXDMAEN);
