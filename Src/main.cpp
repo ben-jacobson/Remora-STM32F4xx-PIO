@@ -85,7 +85,8 @@ int main(void)
     #endif
 
     std::unique_ptr<CommsInterface> comms;
-    std::shared_ptr<CommsHandler> commsHandler;
+    //std::shared_ptr<CommsHandler> commsHandler;
+    //commsHandler = std::make_shared<CommsHandler>();
 
     #ifdef ETH_CTRL
         #ifndef WIZ_RST
@@ -96,7 +97,7 @@ int main(void)
         comms = std::make_unique<STM32F4_SPIComms>(&rxData, &txData, SPI_MOSI, SPI_MISO, SPI_CLK, SPI_CS);
     #endif
 
-    commsHandler = std::make_shared<CommsHandler>();
+  	auto commsHandler = std::make_shared<CommsHandler>();
     commsHandler->setInterface(std::move(comms));
 
     auto baseTimer = std::make_unique<STM32F4_timer>(TIM3, TIM3_IRQn, Config::pruBaseFreq, nullptr, Config::baseThreadIrqPriority);

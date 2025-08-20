@@ -369,113 +369,112 @@ int STM32F4_SPIComms::handleDMAInterrupt(DMA_HandleTypeDef *hdma)
         (hdma->Instance == DMA1_Stream5) ||  // SPI3 TX (DMA1 Stream5)
         (hdma->Instance == DMA1_Stream0))    // SPI3 RX (DMA1 Stream0)  // doesn't seem that we use this for mem2mem, so worth looking at later.
     {
-    // Transfer Error Interrupt management **************************************
-    if ((tmpisr_dma & (DMA_FLAG_TEIF0_4 << (hdma->StreamIndex & 0x1FU))) != 0U)
-    {
-      if(__HAL_DMA_GET_IT_SOURCE(hdma, DMA_IT_TE) != 0U)
-      {
-        // Disable the transfer error interrupt 
-        ((DMA_Stream_TypeDef   *)hdma->Instance)->CR  &= ~(DMA_IT_TE);
-
-        // Clear the transfer error flag 
-        regs_dma->IFCR = DMA_FLAG_TEIF0_4 << (hdma->StreamIndex & 0x1FU);
-
-        // Update error code 
-        hdma->ErrorCode |= HAL_DMA_ERROR_TE;
-        interrupt =  DMA_OTHER;
-      }
-    }
-    // FIFO Error Interrupt management *****************************************
-    if ((tmpisr_dma & (DMA_FLAG_FEIF0_4 << (hdma->StreamIndex & 0x1FU))) != 0U)
-    {
-      if(__HAL_DMA_GET_IT_SOURCE(hdma, DMA_IT_FE) != 0U)
-      {
-        // Clear the FIFO error flag 
-        regs_dma->IFCR = DMA_FLAG_FEIF0_4 << (hdma->StreamIndex & 0x1FU);
-
-        // Update error code 
-        hdma->ErrorCode |= HAL_DMA_ERROR_FE;
-        interrupt =  DMA_OTHER;
-      }
-    }
-    // Direct Mode Error Interrupt management **********************************
-    if ((tmpisr_dma & (DMA_FLAG_DMEIF0_4 << (hdma->StreamIndex & 0x1FU))) != 0U)
-    {
-      if(__HAL_DMA_GET_IT_SOURCE(hdma, DMA_IT_DME) != 0U)
-      {
-        // Clear the direct mode error flag 
-        regs_dma->IFCR = DMA_FLAG_DMEIF0_4 << (hdma->StreamIndex & 0x1FU);
-
-        // Update error code 
-        hdma->ErrorCode |= HAL_DMA_ERROR_DME;
-        interrupt =  DMA_OTHER;
-      }
-    }
-    // Half Transfer Complete Interrupt management *****************************
-    if ((tmpisr_dma & (DMA_FLAG_HTIF0_4 << (hdma->StreamIndex & 0x1FU))) != 0U)
-    {
-      if(__HAL_DMA_GET_IT_SOURCE(hdma, DMA_IT_HT) != 0U)
-      {
-        // Clear the half transfer complete flag 
-        regs_dma->IFCR = DMA_FLAG_HTIF0_4 << (hdma->StreamIndex & 0x1FU);
-
-        // Disable the half transfer interrupt if the DMA mode is not CIRCULAR 
-        if((((DMA_Stream_TypeDef   *)hdma->Instance)->CR & DMA_SxCR_CIRC) == 0U)
+        // Transfer Error Interrupt management **************************************
+        if ((tmpisr_dma & (DMA_FLAG_TEIF0_4 << (hdma->StreamIndex & 0x1FU))) != 0U)
         {
-          // Disable the half transfer interrupt 
-          ((DMA_Stream_TypeDef   *)hdma->Instance)->CR  &= ~(DMA_IT_HT);
+            if(__HAL_DMA_GET_IT_SOURCE(hdma, DMA_IT_TE) != 0U)
+            {
+                // Disable the transfer error interrupt 
+                ((DMA_Stream_TypeDef   *)hdma->Instance)->CR  &= ~(DMA_IT_TE);
+
+                // Clear the transfer error flag 
+                regs_dma->IFCR = DMA_FLAG_TEIF0_4 << (hdma->StreamIndex & 0x1FU);
+
+                // Update error code 
+                hdma->ErrorCode |= HAL_DMA_ERROR_TE;
+                interrupt =  DMA_OTHER;
+            }
         }
-
-      }
-      interrupt = DMA_HALF_TRANSFER;
-    }
-    // Transfer Complete Interrupt management **********************************
-    if ((tmpisr_dma & (DMA_FLAG_TCIF0_4 << (hdma->StreamIndex & 0x1FU))) != 0U)
-    {
-      if(__HAL_DMA_GET_IT_SOURCE(hdma, DMA_IT_TC) != 0U)
-      {
-        // Clear the transfer complete flag 
-        regs_dma->IFCR = DMA_FLAG_TCIF0_4 << (hdma->StreamIndex & 0x1FU);
-
-        if(HAL_DMA_STATE_ABORT == hdma->State)
+        // FIFO Error Interrupt management *****************************************
+        if ((tmpisr_dma & (DMA_FLAG_FEIF0_4 << (hdma->StreamIndex & 0x1FU))) != 0U)
         {
-          // Disable all the transfer interrupts 
-          ((DMA_Stream_TypeDef   *)hdma->Instance)->CR  &= ~(DMA_IT_TC | DMA_IT_TE | DMA_IT_DME);
-          ((DMA_Stream_TypeDef   *)hdma->Instance)->FCR &= ~(DMA_IT_FE);
+            if(__HAL_DMA_GET_IT_SOURCE(hdma, DMA_IT_FE) != 0U)
+            {
+                // Clear the FIFO error flag 
+                regs_dma->IFCR = DMA_FLAG_FEIF0_4 << (hdma->StreamIndex & 0x1FU);
 
-          if((hdma->XferHalfCpltCallback != NULL) || (hdma->XferM1HalfCpltCallback != NULL))
-          {
-            ((DMA_Stream_TypeDef   *)hdma->Instance)->CR  &= ~(DMA_IT_HT);
-          }
-
-          // Clear all interrupt flags at correct offset within the register 
-          regs_dma->IFCR = 0x3FUL << (hdma->StreamIndex & 0x1FU);
-
-          // Change the DMA state 
-          hdma->State = HAL_DMA_STATE_READY;
-
-          // Process Unlocked 
-          __HAL_UNLOCK(hdma);
-
-          interrupt = DMA_TRANSFER_COMPLETE;
+                // Update error code 
+                hdma->ErrorCode |= HAL_DMA_ERROR_FE;
+                interrupt =  DMA_OTHER;
+            }
         }
-
-        if((((DMA_Stream_TypeDef   *)hdma->Instance)->CR & DMA_SxCR_CIRC) == 0U)
+        // Direct Mode Error Interrupt management **********************************
+        if ((tmpisr_dma & (DMA_FLAG_DMEIF0_4 << (hdma->StreamIndex & 0x1FU))) != 0U)
         {
-          // Disable the transfer complete interrupt 
-          ((DMA_Stream_TypeDef   *)hdma->Instance)->CR  &= ~(DMA_IT_TC);
+            if(__HAL_DMA_GET_IT_SOURCE(hdma, DMA_IT_DME) != 0U)
+            {
+                // Clear the direct mode error flag 
+                regs_dma->IFCR = DMA_FLAG_DMEIF0_4 << (hdma->StreamIndex & 0x1FU);
 
-          // Change the DMA state 
-          hdma->State = HAL_DMA_STATE_READY;
-
-          // Process Unlocked 
-          __HAL_UNLOCK(hdma);
+                // Update error code 
+                hdma->ErrorCode |= HAL_DMA_ERROR_DME;
+                interrupt =  DMA_OTHER;
+            }
         }
-        interrupt =  2;
-      }
-    }
-  }
+        // Half Transfer Complete Interrupt management *****************************
+        if ((tmpisr_dma & (DMA_FLAG_HTIF0_4 << (hdma->StreamIndex & 0x1FU))) != 0U)
+        {
+            if(__HAL_DMA_GET_IT_SOURCE(hdma, DMA_IT_HT) != 0U)
+            {
+                // Clear the half transfer complete flag 
+                regs_dma->IFCR = DMA_FLAG_HTIF0_4 << (hdma->StreamIndex & 0x1FU);
 
+                // Disable the half transfer interrupt if the DMA mode is not CIRCULAR 
+                if((((DMA_Stream_TypeDef   *)hdma->Instance)->CR & DMA_SxCR_CIRC) == 0U)
+                {
+                    // Disable the half transfer interrupt 
+                    ((DMA_Stream_TypeDef   *)hdma->Instance)->CR  &= ~(DMA_IT_HT);
+                }
+
+            }
+            interrupt = DMA_HALF_TRANSFER;
+        }
+        // Transfer Complete Interrupt management **********************************
+        if ((tmpisr_dma & (DMA_FLAG_TCIF0_4 << (hdma->StreamIndex & 0x1FU))) != 0U)
+        {
+            if(__HAL_DMA_GET_IT_SOURCE(hdma, DMA_IT_TC) != 0U)
+            {
+                // Clear the transfer complete flag 
+                regs_dma->IFCR = DMA_FLAG_TCIF0_4 << (hdma->StreamIndex & 0x1FU);
+
+                if(HAL_DMA_STATE_ABORT == hdma->State)
+                {
+                    // Disable all the transfer interrupts 
+                    ((DMA_Stream_TypeDef   *)hdma->Instance)->CR  &= ~(DMA_IT_TC | DMA_IT_TE | DMA_IT_DME);
+                    ((DMA_Stream_TypeDef   *)hdma->Instance)->FCR &= ~(DMA_IT_FE);
+
+                    if((hdma->XferHalfCpltCallback != NULL) || (hdma->XferM1HalfCpltCallback != NULL))
+                    {
+                        ((DMA_Stream_TypeDef   *)hdma->Instance)->CR  &= ~(DMA_IT_HT);
+                    }
+
+                    // Clear all interrupt flags at correct offset within the register 
+                    regs_dma->IFCR = 0x3FUL << (hdma->StreamIndex & 0x1FU);
+
+                    // Change the DMA state 
+                    hdma->State = HAL_DMA_STATE_READY;
+
+                    // Process Unlocked 
+                    __HAL_UNLOCK(hdma);
+
+                    interrupt = DMA_TRANSFER_COMPLETE;
+                }
+
+                if((((DMA_Stream_TypeDef   *)hdma->Instance)->CR & DMA_SxCR_CIRC) == 0U)
+                {
+                    // Disable the transfer complete interrupt 
+                    ((DMA_Stream_TypeDef   *)hdma->Instance)->CR  &= ~(DMA_IT_TC);
+
+                    // Change the DMA state 
+                    hdma->State = HAL_DMA_STATE_READY;
+
+                    // Process Unlocked 
+                    __HAL_UNLOCK(hdma);
+                }
+                interrupt =  2;
+            }
+        }
+    }
   return interrupt;
 }
 
