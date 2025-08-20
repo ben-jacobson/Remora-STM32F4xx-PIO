@@ -10,9 +10,7 @@
 
 #define SPIBUFSIZE			64 			//(4+4*JOINTS+4*COMMANDS+1) //(MAX_MSG*4) //20  SPI buffer size ......FIFO buffer size is 64 bytes?
 
-#define PRU_DATA			0x64617400 	// "dat_" SPI payload
-#define HEADER_MASK 		0xFFFFFF00  // Mask to compare only the "dat_" part
-#define STATUS_MASK 		0x000000FF  // Mask to extract status byte
+#define PRU_DATA			0x64617461 	// "data" SPI payload
 #define PRU_READ          	0x72656164  // "read" SPI payload
 #define PRU_WRITE         	0x77726974  // "writ" SPI payload
 #define PRU_ESTOP           0x65737470  // "estp" SPI payload

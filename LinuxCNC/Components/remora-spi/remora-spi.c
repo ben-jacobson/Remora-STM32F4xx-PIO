@@ -21,7 +21,7 @@
 
 
 #include "rtapi.h"		/* RTAPI realtime OS API */
-#include "rtapi_app.h"	/* RTAPI realtime module decls */
+#include "rtapi_app.h"		/* RTAPI realtime module decls */
 #include "hal.h"		/* HAL public API decls */
 
 #include <math.h>
@@ -50,7 +50,6 @@
 #include "dtcboards.h"
 
 #include "remora.h"
-#include "remoraStatus.h"
 
 #define MODNAME "remora-spi"
 #define PREFIX "remora"
@@ -66,7 +65,6 @@ MODULE_LICENSE("GPL v3");
 ************************************************************************/
 
 typedef struct {
-	uint8_t			remoraStatus;
 	hal_bit_t		*SPIenable;
 	hal_bit_t		*SPIreset;
 	hal_bit_t		*PRUreset;
@@ -190,6 +188,8 @@ RTAPI_MP_INT(SPI_freq, "SPI frequency");
 static int reset_gpio_pin = 25;				// RPI GPIO pin number used to force watchdog reset of the PRU 
 
 
+
+
 /***********************************************************************
 *                  LOCAL FUNCTION DECLARATIONS                         *
 ************************************************************************/
@@ -201,7 +201,6 @@ static void update_freq(void *arg, long period);
 static void spi_write();
 static void spi_read();
 static void spi_transfer();
-static void checkRemoraStatus(uint8_t status);
 static CONTROL parse_ctrl_type(const char *ctrl);
 
 /***********************************************************************
@@ -221,6 +220,26 @@ int rtapi_app_main(void)
 			return -1;
 		}
     }
+
+	
+	// check to see PRU chip type has been set at the command line
+	/*
+	if (!strcmp(chip_type, "LPC") || !strcmp(chip_type, "lpc"))
+	{
+		rtapi_print_msg(RTAPI_MSG_INFO,"PRU: Chip type set to LPC\n");
+		chip = LPC;
+	}
+	else if (!strcmp(chip_type, "STM") || !strcmp(chip_type, "stm"))
+	{
+		rtapi_print_msg(RTAPI_MSG_INFO,"PRU: Chip type set to STM\n");
+		chip = STM;
+	}
+	else
+	{
+		rtapi_print_msg(RTAPI_MSG_ERR, "ERROR: PRU chip type (must be 'LPC' or 'STM')\n");
+		return -1;
+	}
+	*/
 	
 	// check to see if the PRU base frequency has been set at the command line
 	if (PRU_base_freq != -1)
@@ -502,7 +521,7 @@ int rt_peripheral_init(void)
                 rtapi_print_msg(RTAPI_MSG_ERR, "Raspberry Pi 3 or 4, using BCM2835 driver\n");
                 bcm = true;
                 break;    // Found our supported board
-            } else if(!strcmp(dtcs[i], DTC_RPI_MODEL_5B) || !strcmp(dtcs, DTC_RPI_MODEL_5CM)) {
+            } else if(!strcmp(dtcs[i], DTC_RPI_MODEL_5B) || !strcmp(dtcs[i], DTC_RPI_MODEL_5CM)) {
                 rtapi_print_msg(RTAPI_MSG_ERR, "Raspberry Pi 5, using rp1 driver\n");
                 rp1 = true;
                 break;    // Found our supported board
@@ -1012,6 +1031,9 @@ void spi_read()
 	// Data header
 	txData.header = PRU_READ;
 	
+	// update the PRUreset output
+	// TODO: fix this up to include RP1
+	
 	if (*(data->PRUreset))
 	{ 
 		if (bcm == true)
@@ -1038,25 +1060,18 @@ void spi_read()
 	
 	if (*(data->SPIenable))
 	{
-		if (*(data->SPIreset) && !(data->SPIresetOld)) data->remoraStatus = 0x00;
-
 		if( (*(data->SPIreset) && !(data->SPIresetOld)) || *(data->SPIstatus) )
 		{
 			// reset rising edge detected, try SPI transfer and reset OR PRU running
-
+			
 			// Transfer to and from the PRU
 			spi_transfer();
 
-			switch (rxData.header & HEADER_MASK)		// only process valid SPI payloads. This rejects bad payloads
+			switch (rxData.header)		// only process valid SPI payloads. This rejects bad payloads
 			{
 				case PRU_DATA:
-					// we have received a GOOD payload from the PRU			
+					// we have received a GOOD payload from the PRU
 					*(data->SPIstatus) = 1;
-					
-					// Extract,store and check the controller board status
-					uint8_t remoraStatus = rxData.header & STATUS_MASK;
-					
-					checkRemoraStatus(remoraStatus);
 
 					for (i = 0; i < JOINTS; i++)
 					{
@@ -1198,62 +1213,6 @@ void spi_transfer()
 	{
 		rp1spi_transfer(0, txData.txBuffer, rxData.rxBuffer, SPIBUFSIZE);
 	}
-}
-
-void checkRemoraStatus(uint8_t status)
-{
-	if (status == data->remoraStatus) return;	// status has not changed
-	
-	data->remoraStatus = status; // store the updated status
-	
-    if (status == 0) return;  // No error
-
-    const char* sourceStr = "Unknown Source";
-    const char* codeStr = "Unknown Error";
-
-    int fatal = status & 0x80;
-    uint8_t source = status & 0x70;
-    uint8_t code   = status & 0x0F;
-
-    switch (source)
-    {
-        case REMORA_SOURCE_CORE:
-            sourceStr = "CORE";
-            if (code == REMORA_CORE_ERROR) codeStr = "Core error";
-            break;
-
-        case REMORA_SOURCE_JSON_CONFIG:
-            sourceStr = "JSON Config";
-            switch (code)
-            {
-                case REMORA_SD_MOUNT_FAILED: codeStr = "SD mount failed"; break;
-                case REMORA_CONFIG_FILE_OPEN_FAILED: codeStr = "Config file open failed"; break;
-                case REMORA_CONFIG_FILE_READ_FAILED: codeStr = "Config file read failed"; break;
-                case REMORA_CONFIG_INVALID_INPUT: codeStr = "Invalid config input"; break;
-                case REMORA_CONFIG_NO_MEMORY: codeStr = "Config out of memory"; break;
-                case REMORA_CONFIG_PARSE_FAILED: codeStr = "Config parse failed"; break;
-            }
-            break;
-
-        case REMORA_SOURCE_MODULE:
-            sourceStr = "Module Loader";
-            if (code == REMORA_MODULE_CREATE_FAILED) codeStr = "Module creation failed";
-            break;
-
-        case REMORA_SOURCE_TMC_DRIVER:
-            sourceStr = "TMC Driver";
-            if (code == REMORA_TMC_DRIVER_ERROR) codeStr = "TMC driver error";
-            break;
-    }
-
-    if (fatal)
-    {
-        rtapi_print_msg(RTAPI_MSG_ERR, "Remora FATAL ERROR [%s]: %s (status=0x%02X)\n", sourceStr, codeStr, status);
-    }
-    else
-    {
-        rtapi_print_msg(RTAPI_MSG_ERR, "Remora ERROR [%s]: %s (status=0x%02X)\n", sourceStr, codeStr, status);
-    }
 }
 
 static CONTROL parse_ctrl_type(const char *ctrl)
