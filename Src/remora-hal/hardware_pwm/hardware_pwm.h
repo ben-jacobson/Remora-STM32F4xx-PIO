@@ -20,6 +20,7 @@ private:
         uint32_t pwm_tim_channel_used; 
 
         uint32_t timer_clk_hz;
+        bool inverted_pwm = false;
 
         void setTimerAndChannelInstance(uint32_t);
         void initialise_timers(void);
@@ -30,7 +31,7 @@ public:
         uint32_t pulsewidth_us, period_us;
         float period_percent;   
         static HardwarePWM* head;   // see comment in change_pulsewidth function
-        HardwarePWM* next;              
+        HardwarePWM* prev;              
 
         HardwarePWM(uint32_t, float, std::string);
                 ~HardwarePWM(void);			        

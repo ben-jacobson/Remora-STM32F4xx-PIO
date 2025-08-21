@@ -75,7 +75,7 @@ uint32_t get_timer_clk_freq(TIM_TypeDef* TIMx)
 HardwarePWM::HardwarePWM(uint32_t _initial_period_us, float _initial_pulsewidth_percent, std::string _pwm_pin_str):
 	pwm_pin_str(_pwm_pin_str)
 {
-    this->next = HardwarePWM::head; // see comment in change duty cycle function. 
+    this->prev = HardwarePWM::head; // see comment in change duty cycle function. 
     HardwarePWM::head = this;
 
     pwm_pin_name = portAndPinToPinName(pwm_pin_str.c_str());   
@@ -98,7 +98,15 @@ HardwarePWM::HardwarePWM(uint32_t _initial_period_us, float _initial_pulsewidth_
         pwm_pin = createPinFromPinMap(pwm_pin_str, pwm_pin_name, PinMap_PWM, GPIO_MODE_AF_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW);  // reenable after test
 
         // check that initialisation worked.
-        if (HAL_TIM_PWM_Start(ptr_tim_handler, pwm_tim_channel_used) != HAL_OK) 
+        HAL_StatusTypeDef PWM_Start_result; 
+
+        // start the PWM or use the alternate start function for TIMx_CHyN pins
+        if (!inverted_pwm)
+            PWM_Start_result = HAL_TIM_PWM_Start(ptr_tim_handler, pwm_tim_channel_used); 
+        else
+            PWM_Start_result = HAL_TIMEx_PWMN_Start(ptr_tim_handler, pwm_tim_channel_used);         
+
+        if (PWM_Start_result != HAL_OK)
         {
             Error_Handler();
         }  
@@ -149,6 +157,9 @@ void HardwarePWM::setTimerAndChannelInstance(uint32_t pwm_pinmap_function)
             pwm_tim_channel_used = TIM_CHANNEL_4;   
             break;
     }
+
+    // check for Inverted output, e.g TIMx_CHyN , in which case a different start function is used to init the PWM. 
+    inverted_pwm = ((((pwm_pinmap_function) >> STM_PIN_INV_SHIFT) & STM_PIN_INV_MASK) == 1) ? true : false;
 }
 
 void HardwarePWM::initialise_timers(void) 
@@ -290,7 +301,7 @@ HardwarePWM::~HardwarePWM(void)
 void HardwarePWM::change_period(uint32_t new_period_us)
 {
     // update all period_us of all using the same timer. 
-    for (HardwarePWM* node = head; node != nullptr; node = node->next) 
+    for (HardwarePWM* node = head; node != nullptr; node = node->prev) 
     {
         if (node->ptr_tim_handler && node->ptr_tim_handler->Instance == this->ptr_tim_handler->Instance) // only want to update handles sharing the same TIMx
         {
@@ -328,7 +339,7 @@ void HardwarePWM::change_pulsewidth(float new_pulsewidth_percent)
 {
     period_percent = new_pulsewidth_percent;
 
-    for (HardwarePWM* node = head; node != nullptr; node = node->next) 
+    for (HardwarePWM* node = head; node != nullptr; node = node->prev) 
     {
         if (node->ptr_tim_handler && node->ptr_tim_handler->Instance == this->ptr_tim_handler->Instance) // only want to update handles sharing the same TIMx
         {
@@ -345,7 +356,6 @@ void HardwarePWM::change_pulsewidth(float new_pulsewidth_percent)
             {
                 pulse_ticks = node->ptr_tim_handler->Init.Period;
             }
-
             __HAL_TIM_SET_COMPARE(node->ptr_tim_handler, node->pwm_tim_channel_used, pulse_ticks); // to try, this probably only needs to be run once?
         }
     }
