@@ -85,8 +85,6 @@ int main(void)
     #endif
 
     std::unique_ptr<CommsInterface> comms;
-    //std::shared_ptr<CommsHandler> commsHandler;
-    //commsHandler = std::make_shared<CommsHandler>();
 
     #ifdef ETH_CTRL
         #ifndef WIZ_RST
@@ -102,7 +100,7 @@ int main(void)
 
     auto baseTimer = std::make_unique<STM32F4_timer>(TIM3, TIM3_IRQn, Config::pruBaseFreq, nullptr, Config::baseThreadIrqPriority);
     auto servoTimer = std::make_unique<STM32F4_timer>(TIM2, TIM2_IRQn, Config::pruServoFreq, nullptr, Config::servoThreadIrqPriority);
-    //auto serialTimer = std::make_unique<STM32F4_timer>(TIM4, TIM4_IRQn, Config::pruSerialFreq, nullptr, Config::serialThreadIrqPriority);
+    //auto serialTimer = std::make_unique<STM32F4_timer>(TIM4, TIM4_IRQn, Config::pruSerialFreq, nullptr, Config::serialThreadIrqPriority); // Disabled in this build
 
     Remora* remora = new Remora(
             commsHandler,
