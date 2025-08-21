@@ -43,6 +43,17 @@ Port or Remora for STM32F4xx family, ported to use the latest Remora-Core abstra
     - Build the bootloader linker scripts
     - Alter EthComms component to use same payloads as SPI. 
 
+# Build instructions
+- In a new directory:
+    - git clone https://github.com/ben-jacobson/Remora-STM32F4xx-PIO .
+- Move to the src/remora-core directory
+    - cd src/remora-core
+    - git clone https://github.com/ben-jacobson/remora-core .
+- Various in-dev features are available in branches for this repo
+    - git checkout *[feature_branch]*
+- Use Platform IO to build the target you want 
+    - Or if you want to use the debugger to step through code, set *default_envs* in platformio.ini to the build target of your choice 
+
 # Wiznet W5500 connection
 - PA_5: SCK
 - PA_6: MISO
