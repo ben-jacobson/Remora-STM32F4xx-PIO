@@ -96,7 +96,7 @@
             "Type": "PWM",
             "Comment":                      "PWM0",
             "SP[i]":                        0,
-            "PWM Pin":                      "PA_9",
+            "PWM Pin":                      "PA_8",
             "Hardware PWM":                 "True",
             "Variable Freq":                "True",
             "Period SP[i]":                 1,
@@ -107,10 +107,11 @@
             "Type": "PWM",
             "Comment":                      "PWM1",
             "SP[i]":                        2,
-            "PWM Pin":                      "PB_1",
+            "PWM Pin":                      "PA_9",
             "PWM Max":                      192,
             "Hardware PWM":                 "True",
             "Variable Freq":                "False",
+            "Period SP[i]":                 3,            
             "Period us":                    800
         }                   
     ]

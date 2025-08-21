@@ -59,14 +59,14 @@ Please refer to the Remora documentation to configure GPIO to perform various fu
 Example config.txt files can be found in the LinuxCNC_Configs folder. 
 
 # Hardware PWM
-Hardware PWM is available on a wide variety of pins depending on your hardware target. When setting up your config.txt file, you must choose a PWM enabled pin from the list provided. Specific STM32 Timers and Channels will been allocated by the driver behind the scenes. Some important details about this: 
-- PWM pins can be set to variable or fixed period. Configuration documentation can be found here https://remora-docs.readthedocs.io/en/latest/configuration/Setup-Config-File.html#pwm
+Hardware PWM is available on a wide variety of pins depending on your hardware target. When setting up your config.txt file, you must choose a PWM enabled pin from the list provided. Specific STM32 Timers and Channels will been allocated by the driver automatically. Some important details about this: 
+- PWM pins can be set to variable or fixed period. Config.txt documentation can be found here https://remora-docs.readthedocs.io/en/latest/configuration/Setup-Config-File.html#pwm
 - You may set up more than one PWM pin on the same timer (TIMx) as each pin is assigned a different channel, however sharing TIMx's has some interesting nuances you must be aware of:
-    - The period setting is shared across that TIMx so configuring it or changing it will effect all four channels. Any PWM pins on that TIMx will be effected with whatever period you set in config.txt or if you vary the period at run time. 
-    - Due to above, setting some PWM pins on the same TIMx with variable period and others with fixed period defeats its own purpose. Changes to any variable period will change all channels on that TIMx. Do note that we've been careful to force recalculation of the duty cycle on period change so this may not cause a problem. It will depend on your application. 
-    - Note that some of the channels below are marked with an N at the end. These are inverted copies of their non-N counterparts. They can be used individually or paired up which is great for driving differential signals. As an example, if you configure a PWM channel on PA_9 (TIM1_CH2) and PB_0 (TIM1_CH2N), PB_0 will mirror PA_9 with flipped polarity. Note that when used in pairing mode, the duty cycle is locked to the non-N pin meaning you won't be able to alter the duty cycle of any N pins independantly and you must alter the duty cycle of the non-N pin to control it. Variable period works fine for these and they stay in sync.
-- If you don't specify a fixed period in your config.txt, or if your LinuxCNC intialises this as zero, the default will become 200us
-- Without a linuxCNC config controlling a set point variable, the PWM will automatically starts as soon as you press the eStop. You will need to configure LinuxCNC to stop and start on the conditions you want. For example when using it as a 0-10v Spindle control. HAL config can be found here: https://remora-docs.readthedocs.io/en/latest/software/hal-examples.html#pwm-to-0-10v-spindle-control-simple
+    - The period setting is shared across that TIMx so changing any of these will effect all four channels. Since set point variables are persistent between sessions, the initial period setting will not be clearly defined unless you set them yourself in LinuxCNC.  
+    - Due to above, setting some PWM pins on the same TIMx with variable period and others with fixed period somewhat defeats its own purpose. The PRU will ignore changes to the fixed pin but changes to any variable period will change all channels on that TIMx whether they are variable or not. Do note that we've been careful to force recalculation of the duty cycle on period change so this may become an immediate problem unless you have a fixed period in your used case.
+    - Note that some of the channels below are marked with an N at the end. These can be configured individually like a normal PWM pin or can be paired up as inverted copies of their non-N counterparts. This is great for driving differential signals, e.g. if you configure output on PA_9 (TIM1_CH2) and PB_0 (TIM1_CH2N), PB_0 will mirror PA_9 with flipped polarity. Note that when used in pairing mode, the duty cycle is locked to the non-N pin meaning you won't be able to alter the duty cycle of any N pins independantly, you must alter the duty cycle of the non-N pin for control. Variable period works fine for these and they stay in sync.
+- If you don't specify a fixed period in your config.txt, or if your LinuxCNC intialises this as zero, the default will become 200us unless overwritten by the set point variable in LinuxCNC
+- Without a linuxCNC config controlling duty cycle via set point variable, the PWM will automatically starts as soon as you come out of eStop which could be dangerous. You will need to configure LinuxCNC to stop and start on the conditions you want. For example, please take caution to initialise zero pulse width for 0-10v Spindle control. HAL config can be found here: https://remora-docs.readthedocs.io/en/latest/software/hal-examples.html#pwm-to-0-10v-spindle-control-simple
 - How many PWM pins available will be limited by your remora-eth-3.0 component, which defaults to 6. You can raise this limit by changing both remora-eth-3.h file and configuration.h file, but be careful that it fits within the data allocated for RX packets. You will need 1 variable for each fixed period PWM pin, or 2 for variable duty PWM.
 - All PWM timers are either 16 or 32 bits wide depending on which TIMx is used. Either is more than enough for very fine control over duty cycle.
 - Be very careful not to clash with other peripherals such as SPI or UART, this will result in undefined behaviour. 
@@ -80,11 +80,11 @@ PWM compatible pins for smaller F446xx target are:
 | PA_11 | TIM1  | CH4     |                          | Working     |
 | PB_0  | TIM1  | CH2N    | Inverted PA_9            | Working     |
 | PB_1  | TIM1  | CH3N    | Inverted PA_10           | Working     |
-| PB_6  | TIM4  | CH1     | Possible conflict SPI_CS | Not Tested  |
+| PB_6  | TIM4  | CH1     |                          | Working     |
 | PB_7  | TIM4  | CH2     |                          | Working     |
-| PB_13 | TIM1  | CH1N    | Inverted PA_8            | Not Tested  |
-| PB_14 | TIM1  | CH2N    | Inverted PA_9            | Not Tested  |
-| PB_15 | TIM1  | CH3N    | Inverted PA_10           | Not Tested  |
+| PB_13 | TIM1  | CH1N    | Inverted PA_8            | Working     |
+| PB_14 | TIM1  | CH2N    | Inverted PA_9            | Working     |
+| PB_15 | TIM1  | CH3N    | Inverted PA_10           | Working     |
 
 Additional pins for larger F4 boards like the F446ZE
 | Pin   | Timer | Channel | Notes                    | Tested?     |
@@ -95,11 +95,11 @@ Additional pins for larger F4 boards like the F446ZE
 | PD_15 | TIM4  | CH4     |                          | Not Tested  |
 | PE_5  | TIM9  | CH1     |                          | Not Tested  |
 | PE_6  | TIM9  | CH2     |                          | Not Tested  |
-| PE_8  | TIM1  | CH1N    |                          | Not Tested  |
+| PE_8  | TIM1  | CH1N    | Inverted PE_9            | Not Tested  |
 | PE_9  | TIM1  | CH1     |                          | Not Tested  |
-| PE_10 | TIM1  | CH2N    |                          | Not Tested  |
+| PE_10 | TIM1  | CH2N    | Inverted PE_11           | Not Tested  |
 | PE_11 | TIM1  | CH2     |                          | Not Tested  |
-| PE_12 | TIM1  | CH3N    |                          | Not Tested  |
+| PE_12 | TIM1  | CH3N    | Inverted PE_13           | Not Tested  |
 | PE_13 | TIM1  | CH3     |                          | Not Tested  |
 | PE_14 | TIM1  | CH4     |                          | Not Tested  |
 | PF_6  | TIM10 | CH1     |                          | Not Tested  |
