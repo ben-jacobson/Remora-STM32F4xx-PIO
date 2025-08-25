@@ -12,6 +12,9 @@ extern Pin* thread_debug;
 //#define SERVO_THREAD_DEBUG
 #endif
 
+constexpr uint8_t SDIO_DMA_CHANNEL = 4;
+constexpr uint8_t SPI1_DMA_CHANNEL = 3;
+
 extern SD_HandleTypeDef hsd;
 extern DMA_HandleTypeDef hdma_sdio_rx;
 extern DMA_HandleTypeDef hdma_sdio_tx;
@@ -85,12 +88,21 @@ extern "C" {
         HAL_SD_IRQHandler(&hsd);
     }
 
-    void DMA2_Stream3_IRQHandler(void)      // this is going to clash with SPI bus handler. Can we redefine? Or maybe call something different depending on the channel used?
+    void DMA2_Stream3_IRQHandler(void)      // Special dual handler for handling clash between DMA use for SDIO TX and SPI RX. SDIO only needs to use the interrupt to read the file one time, after that it belongs to SPI1 if that's in use. 
     {
-        HAL_DMA_IRQHandler(&hdma_sdio_rx);
+        uint8_t ch = (DMA2_Stream3->CR & DMA_SxCR_CHSEL) >> DMA_SxCR_CHSEL_Pos;
+
+        if (ch == SDIO_DMA_CHANNEL) {  // Call HAL for SDIO if this DMA is still active
+            HAL_DMA_IRQHandler(&hdma_sdio_rx);
+        }
+        else if (ch == SPI1_DMA_CHANNEL) { // Otherwise, this DMA IRQ has been requested by the SPI bus. 
+            Interrupt::InvokeHandler(DMA2_Stream3_IRQn);
+        }
+
+        DMA2->HIFCR = DMA_LIFCR_CTCIF3; // clear  flag
     }
 
-    void DMA2_Stream6_IRQHandler(void)
+    void DMA2_Stream6_IRQHandler(void)  // SDIO TX DMA IRQ
     {
         HAL_DMA_IRQHandler(&hdma_sdio_tx);
     }
