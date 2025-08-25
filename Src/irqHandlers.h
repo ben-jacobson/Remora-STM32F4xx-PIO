@@ -12,6 +12,10 @@ extern Pin* thread_debug;
 //#define SERVO_THREAD_DEBUG
 #endif
 
+extern SD_HandleTypeDef hsd;
+extern DMA_HandleTypeDef hdma_sdio_rx;
+extern DMA_HandleTypeDef hdma_sdio_tx;
+
 extern "C" {
 
     void EXTI4_IRQHandler() {
@@ -31,7 +35,7 @@ extern "C" {
     DMA_STREAM_IRQ_HANDLER(1, 3, DMA1_Stream3_IRQn) // SPI 2 RX
     DMA_STREAM_IRQ_HANDLER(1, 0, DMA1_Stream0_IRQn) // SPI 3 RX
     
-    DMA_STREAM_IRQ_HANDLER(2, 3, DMA2_Stream3_IRQn) // SPI 1 TX
+    // DMA_STREAM_IRQ_HANDLER(2, 3, DMA2_Stream3_IRQn) // SPI 1 TX
     DMA_STREAM_IRQ_HANDLER(1, 4, DMA1_Stream4_IRQn) // SPI 2 TX
     DMA_STREAM_IRQ_HANDLER(1, 5, DMA1_Stream5_IRQn) // SPI 3 TX
 
@@ -76,6 +80,20 @@ extern "C" {
     //     }
     // }
 
+    void SDIO_IRQHandler(void)
+    {
+        HAL_SD_IRQHandler(&hsd);
+    }
+
+    void DMA2_Stream3_IRQHandler(void)      // this is going to clash with SPI bus handler. Can we redefine? Or maybe call something different depending on the channel used?
+    {
+        HAL_DMA_IRQHandler(&hdma_sdio_rx);
+    }
+
+    void DMA2_Stream6_IRQHandler(void)
+    {
+        HAL_DMA_IRQHandler(&hdma_sdio_tx);
+    }
 } // extern "C"
 
 #endif // IRQ_HANDLERS_H

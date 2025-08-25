@@ -40,20 +40,34 @@ ENTRY(Reset_Handler)
 _estack = ORIGIN(RAM) + LENGTH(RAM); /* end of "RAM" Ram type memory */
 
 _Min_Heap_Size = 0x2000; /* required amount of heap */
-_Min_Stack_Size = 0x800; /* additional stack required for SDIO */
+_Min_Stack_Size = 0x400; /* required amount of stack */
 
 /* Flash sizes */
 _FLASH_TOTAL_SIZE = 512K;
 _FLASH_BOOT_SIZE = 16K;  
-_PGM_FLASH_AVAILABLE_SIZE = _FLASH_TOTAL_SIZE - _FLASH_BOOT_SIZE;
+_FLASH_JSON_UPLOAD_SIZE = 16K;
+_FLASH_JSON_STORAGE_SIZE = 16K;
+_PGM_FLASH_AVAILABLE_SIZE = _FLASH_TOTAL_SIZE - _FLASH_BOOT_SIZE - _FLASH_JSON_UPLOAD_SIZE - _FLASH_JSON_STORAGE_SIZE;
 
 /* Memories definition */
 MEMORY
 {
   RAM    (xrw)        : ORIGIN = 0x20000000,    LENGTH = 128K
-  FLASH_BOOT (rx)     : ORIGIN = 0x08000000,    LENGTH = _FLASH_BOOT_SIZE         /* Sector 0 for reset and ISR vectors, debugger *//  
-  FLASH_PGM    (rx)   : ORIGIN = 0x08004000,    LENGTH = _PGM_FLASH_AVAILABLE_SIZE
+  FLASH_BOOT (rx)     : ORIGIN = 0x08000000,    LENGTH = _FLASH_BOOT_SIZE         /* Sector 0 for reset and ISR vectors, debugger */
+  JSON_UPLOAD  (rx)   : ORIGIN = 0x08004000,    LENGTH = _FLASH_JSON_UPLOAD_SIZE      /* Sector 1 for JSON_UPLOAD */
+  JSON_STORAGE (rx)   : ORIGIN = 0x08008000,    LENGTH = _FLASH_JSON_STORAGE_SIZE     /* Sector 2 for JSON_STORAGE */  
+  FLASH_PGM    (rx)   : ORIGIN = 0x0800C000,    LENGTH = _PGM_FLASH_AVAILABLE_SIZE
 }
+
+/* JSON config locations for this build target */
+_ls_json_upload_start = ORIGIN(JSON_UPLOAD);
+_ls_json_upload_end   = ORIGIN(JSON_UPLOAD) + LENGTH(JSON_UPLOAD);
+
+_ls_json_storage_start = ORIGIN(JSON_STORAGE);
+_ls_json_storage_end   = ORIGIN(JSON_STORAGE) + LENGTH(JSON_STORAGE);
+
+_ls_json_upload_sector  = 1;  /* 1U = FLASH_SECTOR_1 */
+_ls_json_storage_sector = 2;  /* 2U = FLASH_SECTOR_2 */
 
 /* Sections */
 SECTIONS
@@ -66,6 +80,23 @@ SECTIONS
     KEEP(*(.isr_vector)) /* Startup code */
     . = ALIGN(4);
   } >FLASH_BOOT 
+
+  /* 2x JSON storage areas, one for uploading new flash, the other for persistent storage */  
+  .json_upload (NOLOAD) :
+  {
+      . = ALIGN(4);
+      KEEP(*(.json_upload))
+      KEEP(*(.json_upload.*))
+      . = ALIGN(4);
+  } >JSON_UPLOAD
+
+  .json_storage (NOLOAD) :
+  {
+      . = ALIGN(4);
+      KEEP(*(.json_storage))
+      KEEP(*(.json_storage.*))
+      . = ALIGN(4);
+  } >JSON_STORAGE
 
   /* The program code and other data into "FLASH" Rom type memory */
   .text :

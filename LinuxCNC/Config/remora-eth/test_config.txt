@@ -1,5 +1,5 @@
 {
-    "Board": "NUCLEOF446RE Hat",
+    "Board": "NUCLEOF446xx Hat",
     "Modules": [
         {
             "Thread": "Base",

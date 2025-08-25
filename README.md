@@ -41,12 +41,18 @@ Port or Remora for STM32F4xx family, ported to use the latest Remora-Core abstra
 - Use Platform IO to build the target you want 
     - Or if you want to use the debugger to step through code, set *default_envs* in platformio.ini to the build target of your choice 
 
-# Wiznet W5500 connections
-- PA_5: SCK
-- PA_6: MISO
-- PA_7: MOSI
+# For communication via Wiznet W5500 module
+- SCK: PA_5
+- MISO: PA_6
+- MOSI: PA_7
 - WIZ_RST: configured in Platformio.ini. Default = PB_5
-- SPI_CS: configured in Platformio.ini. Default = PB_6
+- SPI_CS: configured in Platformio.ini. Default = PA_4
+
+# For communication via Raspberry Pi SPI
+- SCK: PA_5
+- MISO: PA_6
+- MOSI: PA_7
+- SPI_CS: configured in Platformio.ini. Default = PA_4
 
 # UART connections
 - UART_TX: 
@@ -55,6 +61,15 @@ Port or Remora for STM32F4xx family, ported to use the latest Remora-Core abstra
 - UART_RX:   - Firmware doesn't make use of RX, but left for completeness and future expansion
     - F446RE: PA_3
     - F446ZE: PD_9
+
+# SD card reader connections (Tested on STM32F446ZE only)
+- Note that DMA Init in main.cpp, the new clock configuration and new DMA handlers could cause a clash between SDIO and SPI1 peripherals.
+- SDIO_D0: PC_8
+- SDIO_D1: PC_9   
+- SDIO_D2: PC_10  
+- SDIO_D3: PC_11  
+- SDIO_CLK: PC_12  
+- SDIO_CMD: PD_2  
 
 # Allocation of Step Generators, IO and PWM
 Please refer to the Remora documentation to configure GPIO to perform various functions like stepgen, digital IO and PWM: https://remora-docs.readthedocs.io/en/latest/configuration/configuration.html
