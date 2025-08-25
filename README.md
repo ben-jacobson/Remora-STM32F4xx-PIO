@@ -8,6 +8,7 @@ Port or Remora for STM32F4xx family, ported to use the latest Remora-Core abstra
     - Current status:
         - Sign of life, but not fully tested - Can toggle estop in and out on an Rpi5
         - Experiencing some bugs in the DMA multi buffer handling code, more platform specific work required
+        - Note that the code for branching the SPI TX DMA hasn't been observed as working until we resolve the DMA multi buffer code above
     - Todos:
         - Integrate an SD card module for testing native FATFS reading. 
         - Full test required for new code introduced prior to mounting the file system 
