@@ -8,7 +8,7 @@
             "Joint Number": 0,
             "Enable Pin": "PA_0",
             "Step Pin": "PA_1",
-            "Direction Pin": "PA_4"
+            "Direction Pin": "PC_2"
         },
         {
             "Thread": "Base",

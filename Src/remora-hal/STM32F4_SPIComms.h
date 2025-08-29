@@ -12,13 +12,6 @@
 #include "../remora-core/modules/moduleInterrupt.h"
 #include "hal_utils.h"
 
-typedef struct
-{
-  __IO uint32_t ISR;   //!< DMA interrupt status register 
-  __IO uint32_t Reserved0;
-  __IO uint32_t IFCR;  //!< DMA interrupt flag clear register 
-} DMA_Base_Registers;
-
 typedef enum {
     DMA_HALF_TRANSFER = 1,   // Half-transfer completed
     DMA_TRANSFER_COMPLETE = 2, // Full transfer completed
@@ -27,8 +20,6 @@ typedef enum {
 
 class STM32F4_SPIComms : public CommsInterface {
 private:
-    //volatile rxData_t*  		ptrRxData;
-    //volatile txData_t*  		ptrTxData;
     volatile DMA_RxBuffer_t* 	ptrRxDMABuffer;
 
     SPI_TypeDef*        		spiType;
@@ -53,10 +44,10 @@ private:
     Pin*                        clkPin;
     Pin*                        csPin;
 
-    uint8_t						RxDMAmemoryIdx;
     uint8_t						RXbufferIdx;
     bool						copyRXbuffer;
 
+    ModuleInterrupt<STM32F4_SPIComms>*	spiInterrupt; 
 	ModuleInterrupt<STM32F4_SPIComms>*	NssInterrupt;
     ModuleInterrupt<STM32F4_SPIComms>*	dmaTxInterrupt;
 	ModuleInterrupt<STM32F4_SPIComms>*	dmaRxInterrupt;
@@ -65,20 +56,18 @@ private:
 	IRQn_Type					irqDMArx;
 	IRQn_Type					irqDMAtx;
 
-    uint8_t						interruptType;
     bool						newWriteData;
 
     void initSPIDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_TypeDef* DMA_TX_Stream, uint32_t DMA_channel);
 
-	HAL_StatusTypeDef startMultiBufferDMASPI(uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint16_t);
-	int getActiveDMAmemory(DMA_HandleTypeDef*);
-
-	int handleDMAInterrupt(DMA_HandleTypeDef *);
+    HAL_StatusTypeDef startMultiBufferDMASPI(uint8_t*, uint8_t*, uint8_t*, uint16_t);
 	void handleRxInterrupt(void);
 	void handleTxInterrupt(void);
 	void handleNssInterrupt(void);
 
 public:
+    static uint8_t RxDMAmemoryIdx;
+
     STM32F4_SPIComms(volatile rxData_t*, volatile txData_t*, std::string, std::string, std::string, std::string);
 	virtual ~STM32F4_SPIComms();
 
