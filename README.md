@@ -156,6 +156,6 @@ Credits to Scotta and Cakeslob and others that worked on Remora. Additional cred
 
 # Known issues
 - See status for info first, other specific bugs to be recorded here as we go.
-- In SPI comms interface, the EXTI4 is not configurable 100%, for example the handler in irqHandler.h is still reading it as GPIO_4, changing this will break the comms interface.
+- In SPI comms interface, the EXTI4 is not configurable, for example the handler in irqHandler.h is still reading it as GPIO_4, changing this may break the comms interface. Used of EXT4 other SPI2/3 is untested.
 - Noticed that STMHal makes heavy use of lock objects, not sure if keeping generic HAL Handlers in each class is going to work long term. See the Hardware PWM HAL code for more info, they needed to be broken out as global objects so that the class can allocate shared resources. This issue may also creep up later with shared SPI and other handlers later on down the track
 - Lost packet detection in the W5500 Networking drivers only checks if new packets are loaded before handed over to the PRU. This works for now but could be improved later with a status check of Remora. 
