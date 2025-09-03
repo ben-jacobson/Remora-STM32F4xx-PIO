@@ -6,30 +6,23 @@ Port or Remora for STM32F4xx family, ported to use the latest Remora-Core abstra
 - JSON config loading - Working - no known issues
 - SPI Comms - in progress:
     - Current status:
-        - Sign of life, but not fully tested - Can toggle estop in and out on an Rpi5
-        - Experiencing some bugs in the DMA multi buffer handling code, more platform specific work required
-        - Note that the code for branching the SPI TX DMA hasn't been observed as working until we resolve the DMA multi buffer code above
-    - Todos:
-        - Integrate an SD card module for testing native FATFS reading. 
-        - Full test required for new code introduced prior to mounting the file system 
-        - Refactoring of Mbed code used for handling DMA interrupts. See if we can replace with a set of idiomatic STM HAL DMA handlers
+        - Able to toggle estop in and out on an Rpi5. Needs more testing to see if stepgen and IO work as intended at full speed
 - UART support - Working on both UART2 and UART3 peripherals, can be set in PlatformIO.ini for your build target. 
+- SDIO - Working - Tested on F446ZE, able to load config from micro SD card. No known issues.
 - Modules - in progress:
-    - Blinky: Working - no known issues
-    - Stepgen: Working - no known issues 
-    - Digital IO: Working - no known issues
-    - Analog Ins: Ported in but untested
-    - Hardware PWM: Working - no known issues
-    - Software PWM: to be ported in
-    - Encoder module: To be ported in
+    - Blinky: Working - no known issues.
+    - Stepgen: Working - no known issues.
+    - Digital IO: Working - no known issues.
+    - Analog Ins: Ported yet to be tested.
+    - Hardware PWM: Working - no known issues.
+    - Software PWM: to be ported in a future revision.
+    - QEI and Software encoder modules: to be ported in a future revision.
 - Linker scripts
-    - F446RE - Working - no known issues
-    - F446ZE - Working - no known issues
-    - Octopus - Built but untested, proof of concept for build target support and integration of Bootloader only 
+    - F446RE - Working - no known issues.
+    - F446ZE - Working - no known issues.
+    - Octopus - Built but untested, proof of concept for build target support and integration of Bootloader only.
 - Adhoc todos: 
-    - Basic SDIO implementation for SD card reading
-    - Full suite of tests for SPI interface
-    - ADC - build a class based handler from MSP init code to enable choices of analog inputs
+    - ADC - build a class based handler from MSP init code to enable choices of analog inputs.
 
 # Build instructions
 - In a new directory:
@@ -37,34 +30,33 @@ Port or Remora for STM32F4xx family, ported to use the latest Remora-Core abstra
 - Move to the src/remora-core directory
     - cd src/remora-core
     - git clone https://github.com/ben-jacobson/remora-core .
-- Various in-dev features are available in branches for this repo
+- Various in-dev features are available in branches for our fork of this repo
     - git checkout *[feature_branch]*
-- Use Platform IO to build the target you want 
-    - Or if you want to use the debugger to step through code, set *default_envs* in platformio.ini to the build target of your choice 
+- Use Platform IO to select the build target and build/upload/debug.
+    - If you want to use the debugger to step through code, set *default_envs* in platformio.ini to the build target of your choice 
 
 # For communication via Wiznet W5500 module
 - SCK: PA_5
 - MISO: PA_6
 - MOSI: PA_7
-- WIZ_RST: configured in Platformio.ini. Default = PB_5
-- SPI_CS: configured in Platformio.ini. Default = PA_4
+- WIZ_RST: configured in Platformio.ini. Default is PB_5
+- SPI_CS: configured in Platformio.ini. Default is PA_4
 
 # For communication via Raspberry Pi SPI
 - SCK: PA_5
 - MISO: PA_6
 - MOSI: PA_7
-- SPI_CS: configured in Platformio.ini. Default = PA_4
+- SPI_CS: configured in Platformio.ini. Default is PA_4
 
 # UART connections
 - UART_TX: 
     - F446RE: PA_2
     - F446ZE: PD_8
-- UART_RX:   - Firmware doesn't make use of RX, but left for completeness and future expansion
+- UART_RX: - Firmware doesn't make use of RX, but left for completeness and future expansion
     - F446RE: PA_3
     - F446ZE: PD_9
 
-# SD card reader connections (Tested on STM32F446ZE only)
-- Note that DMA Init in main.cpp, the new clock configuration and new DMA handlers could cause a clash between SDIO and SPI1 peripherals.
+# SD card reader connections
 - SDIO_D0: PC_8
 - SDIO_D1: PC_9   
 - SDIO_D2: PC_10  
@@ -107,27 +99,28 @@ PWM compatible pins for smaller F446xx target are:
 Additional pins for larger F4 boards like the F446ZE
 | Pin   | Timer | Channel | Notes                    | Tested?     |
 |-------|-------|---------|--------------------------|-------------|
-| PD_12 | TIM4  | CH1     |                          | Not Tested  |
-| PD_13 | TIM4  | CH2     |                          | Not Tested  |
-| PD_14 | TIM4  | CH3     |                          | Not Tested  |
-| PD_15 | TIM4  | CH4     |                          | Not Tested  |
-| PE_5  | TIM9  | CH1     |                          | Not Tested  |
-| PE_6  | TIM9  | CH2     |                          | Not Tested  |
-| PE_8  | TIM1  | CH1N    | Inverted PE_9            | Not Tested  |
-| PE_9  | TIM1  | CH1     |                          | Not Tested  |
-| PE_10 | TIM1  | CH2N    | Inverted PE_11           | Not Tested  |
-| PE_11 | TIM1  | CH2     |                          | Not Tested  |
-| PE_12 | TIM1  | CH3N    | Inverted PE_13           | Not Tested  |
-| PE_13 | TIM1  | CH3     |                          | Not Tested  |
-| PE_14 | TIM1  | CH4     |                          | Not Tested  |
-| PF_6  | TIM10 | CH1     |                          | Not Tested  |
-| PF_7  | TIM11 | CH1     |                          | Not Tested  |
-| PF_8  | TIM13 | CH1     |                          | Not Tested  |
-| PF_9  | TIM14 | CH1     |                          | Not Tested  |
+| PD_12 | TIM4  | CH1     |                          | Untested    |
+| PD_13 | TIM4  | CH2     |                          | Untested    |
+| PD_14 | TIM4  | CH3     |                          | Untested    |
+| PD_15 | TIM4  | CH4     |                          | Untested    |
+| PE_5  | TIM9  | CH1     |                          | Untested    |
+| PE_6  | TIM9  | CH2     |                          | Untested    |
+| PE_8  | TIM1  | CH1N    | Inverted PE_9            | Untested    |
+| PE_9  | TIM1  | CH1     |                          | Untested    |
+| PE_10 | TIM1  | CH2N    | Inverted PE_11           | Untested    |
+| PE_11 | TIM1  | CH2     |                          | Untested    |
+| PE_12 | TIM1  | CH3N    | Inverted PE_13           | Untested    |
+| PE_13 | TIM1  | CH3     |                          | Untested    |
+| PE_14 | TIM1  | CH4     |                          | Untested    |
+| PF_6  | TIM10 | CH1     |                          | Untested    |
+| PF_7  | TIM11 | CH1     |                          | Untested    |
+| PF_8  | TIM13 | CH1     |                          | Untested    |
+| PF_9  | TIM14 | CH1     |                          | Untested    |
  
 # Boards
 - Nucleo F446RE: In development
 - Nucleo F446ZE: In development
+- Octopus 446: Artefacts available but completely untested
 
 ------------------------------------------
 
@@ -154,8 +147,8 @@ Board will not start until ethernet connection is established.
 
 Credits to Scotta and Cakeslob and others that worked on Remora. Additional credit to Expatria Technologies and Terje IO. 
 
-# Known issues
-- See status for info first, other specific bugs to be recorded here as we go.
-- In SPI comms interface, the EXTI4 is not configurable, for example the handler in irqHandler.h is still reading it as GPIO_4, changing this may break the comms interface. Used of EXT4 other SPI2/3 is untested.
-- Noticed that STMHal makes heavy use of lock objects, not sure if keeping generic HAL Handlers in each class is going to work long term. See the Hardware PWM HAL code for more info, they needed to be broken out as global objects so that the class can allocate shared resources. This issue may also creep up later with shared SPI and other handlers later on down the track
+# Known issues and more info on implementation
+- In SPI comms interface, the EXTI4 is not configurable, for example the handler in irqHandler.h is still reading it as GPIO_4, changing this may break the comms interface. Use of EXT4 (PA_4 CS line) with other SPI2/3 is yet to be tested.
+- SDIO and SPI1 share a DMA Stream. SPIO makes use of this stream first and it is fully cleared afterward. No known issues with this but still cause issues down the track. 
+- Noticed that STMHal makes heavy use of lock objects, not sure if keeping generic HAL Handlers as class members is going to work long term. See the Hardware PWM HAL code for more info on limitations, ideally each should be broken out as global objects so that the class can allocate shared resources. This issue may also creep up later with shared SPI and other handlers later on down the track
 - Lost packet detection in the W5500 Networking drivers only checks if new packets are loaded before handed over to the PRU. This works for now but could be improved later with a status check of Remora. 
