@@ -54,8 +54,8 @@ void STM32F4_SPIComms::init() {
     spiHandle.Init.Mode           			= SPI_MODE_SLAVE;
     spiHandle.Init.Direction      			= SPI_DIRECTION_2LINES;
     spiHandle.Init.DataSize       			= SPI_DATASIZE_8BIT;
-    spiHandle.Init.CLKPolarity    			= SPI_POLARITY_LOW; 
-    spiHandle.Init.CLKPhase       			= SPI_PHASE_1EDGE;
+    spiHandle.Init.CLKPolarity    			= SPI_POLARITY_LOW;    // CPOL = 0
+    spiHandle.Init.CLKPhase       			= SPI_PHASE_1EDGE;     // CPHA = 0
     spiHandle.Init.NSS            			= SPI_NSS_HARD_INPUT; 
     spiHandle.Init.FirstBit       			= SPI_FIRSTBIT_MSB;
     spiHandle.Init.TIMode         			= SPI_TIMODE_DISABLE;
@@ -386,17 +386,27 @@ void STM32F4_SPIComms::tasks() {
     {
         // The F4 family supports double buffering on RX, but doesn't fully support double buffer on TX, for compatibility, we have set the mode to normal rather than circular
         // At this stage we need to manually re-arm our DMA transfers on the TX Line. This could be triggered at the NSS/SPI interrupt, but DMA_Abort is too time consuming for an ISR.
-        CLEAR_BIT(spiHandle.Instance->CR2, SPI_CR2_TXDMAEN);
-        HAL_DMA_Abort(&hdma_spi_tx);
+        CLEAR_BIT(spiHandle.Instance->CR2, SPI_CR2_TXDMAEN);     // Disable TX DMA request from SPI
 
-        SET_BIT(spiHandle.Instance->CR2, SPI_CR2_TXDMAEN); // temporary move
+        __HAL_DMA_DISABLE(&hdma_spi_tx);    // could also be dma_disable? 
+        while((hdma_spi_tx.Instance->CR & DMA_SxCR_EN) != 0); // Wait until hardware clears the enable bit
 
-        if (HAL_DMA_Start_IT(&hdma_spi_tx, (uint32_t)ptrTxData->txBuffer, (uint32_t)&spiHandle.Instance->DR, Config::dataBuffSize) != HAL_OK)
+        __HAL_DMA_CLEAR_FLAG(&hdma_spi_tx, __HAL_DMA_GET_TC_FLAG_INDEX(&hdma_spi_tx) | // Clear all DMA flags
+                                            __HAL_DMA_GET_HT_FLAG_INDEX(&hdma_spi_tx) |
+                                            __HAL_DMA_GET_TE_FLAG_INDEX(&hdma_spi_tx) |
+                                            __HAL_DMA_GET_DME_FLAG_INDEX(&hdma_spi_tx) | 
+                                            __HAL_DMA_GET_FE_FLAG_INDEX(&hdma_spi_tx));
+
+        //hdma_spi_tx.Instance->NDTR = Config::dataBuffSize;    // theoretically should be set by START_IT.
+
+        if (HAL_DMA_Start_IT(&hdma_spi_tx, (uint32_t)ptrTxData->txBuffer, (uint32_t)&spiHandle.Instance->DR, Config::dataBuffSize) != HAL_OK)     // Restart DMA transfer
         {
             printf("TX DMA SPI error on re-arm\n");
             __HAL_UNLOCK(&spiHandle);
             Error_Handler();
-        }                     
+        }         
+        
+        SET_BIT(spiHandle.Instance->CR2, SPI_CR2_TXDMAEN);
 
         retriggerTxDMA = false; 
     }
@@ -454,7 +464,7 @@ static void DMA_RxError_Callback(DMA_HandleTypeDef *hdma)
 
 static void DMA_TxCplt_Callback(DMA_HandleTypeDef *hdma)
 {
-    HDMATXinterruptType = DMA_TRANSFER_COMPLETE;
+    HDMATXinterruptType = DMA_TRANSFER_COMPLETE;    
     retriggerTxDMA = true;
 }
 

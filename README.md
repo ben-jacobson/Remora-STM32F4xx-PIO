@@ -13,16 +13,17 @@ Port or Remora for STM32F4xx family, ported to use the latest Remora-Core abstra
     - Blinky: Working - no known issues.
     - Stepgen: Working - no known issues.
     - Digital IO: Working - no known issues.
-    - Analog Ins: Ported yet to be tested.
+    - Analog Ins: Ported module and hardware implementation, but not yet tested.
     - Hardware PWM: Working - no known issues.
     - Software PWM: to be ported in a future revision.
     - QEI and Software encoder modules: to be ported in a future revision.
 - Linker scripts
     - F446RE - Working - no known issues.
     - F446ZE - Working - no known issues.
-    - Octopus - Built but untested, proof of concept for build target support and integration of Bootloader only.
+    - Octopus - Compiles but untested, proof of concept for build target support and integration of Bootloader only.
 - Adhoc todos: 
-    - ADC - build a class based handler from MSP init code to enable choices of analog inputs.
+    - ADC - refactor
+     the analog in to a class based handler from MSP init code to enable choices of analog inputs.
 
 # Build instructions
 - In a new directory:
