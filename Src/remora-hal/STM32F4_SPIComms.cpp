@@ -1,20 +1,22 @@
 #include "STM32F4_SPIComms.h"
 #include "stm32f4xx_ll_dma.h"
 
-volatile DMA_RxBuffer_t rxDMABuffer;
-volatile bool retriggerTxDMA = false; // todo - move into class as static member
-
-static volatile uint8_t HDMARXinterruptType = DMA_OTHER; // todo - move into class as static member
+static volatile uint8_t HDMARXinterruptType = DMA_OTHER;
 static volatile uint8_t HDMATXinterruptType = DMA_OTHER; 
+
+static void SafeResetDMAStream(DMA_HandleTypeDef *hdma);
+
 static void DMA_RxHalfCplt_Callback(DMA_HandleTypeDef *hdma);
 static void DMA_RxCplt_Callback(DMA_HandleTypeDef *hdma);
 static void DMA_RxM1Cplt_Callback(DMA_HandleTypeDef *hdma);
 static void DMA_RxError_Callback(DMA_HandleTypeDef *hdma);
 static void DMA_TxCplt_Callback(DMA_HandleTypeDef *hdma);
 static void DMA_TxError_Callback(DMA_HandleTypeDef *hdma);
-static void SafeResetDMAStream(DMA_HandleTypeDef *hdma);
 
+volatile DMA_RxBuffer_t rxDMABuffer;
 uint8_t STM32F4_SPIComms::RxDMAmemoryIdx = 0;
+
+STM32F4_SPIComms* STM32F4_SPIComms::instance = nullptr; 
 
 STM32F4_SPIComms::STM32F4_SPIComms(volatile rxData_t* _ptrRxData, volatile txData_t* _ptrTxData, std::string _mosiPortAndPin, std::string _misoPortAndPin, std::string _clkPortAndPin, std::string _csPortAndPin) :
     mosiPortAndPin(_mosiPortAndPin),
@@ -22,6 +24,8 @@ STM32F4_SPIComms::STM32F4_SPIComms(volatile rxData_t* _ptrRxData, volatile txDat
 	clkPortAndPin(_clkPortAndPin),
     csPortAndPin(_csPortAndPin)
 {
+    STM32F4_SPIComms::instance = this;  // need to access some internal functions statically from outside of the class. 
+
     ptrRxData = _ptrRxData;
 	ptrTxData = _ptrTxData;
 
@@ -35,7 +39,7 @@ STM32F4_SPIComms::STM32F4_SPIComms(volatile rxData_t* _ptrRxData, volatile txDat
 
 STM32F4_SPIComms::~STM32F4_SPIComms() 
 {
-
+    // do nothing for now. 
 }
 
 void STM32F4_SPIComms::init() {
@@ -55,7 +59,7 @@ void STM32F4_SPIComms::init() {
     spiHandle.Init.Direction      			= SPI_DIRECTION_2LINES;
     spiHandle.Init.DataSize       			= SPI_DATASIZE_8BIT;
     spiHandle.Init.CLKPolarity    			= SPI_POLARITY_LOW;    // CPOL = 0
-    spiHandle.Init.CLKPhase       			= SPI_PHASE_1EDGE;     // CPHA = 0
+    spiHandle.Init.CLKPhase       			= SPI_PHASE_1EDGE;     // CPHA = 0 . Mode 0
     spiHandle.Init.NSS            			= SPI_NSS_HARD_INPUT; 
     spiHandle.Init.FirstBit       			= SPI_FIRSTBIT_MSB;
     spiHandle.Init.TIMode         			= SPI_TIMODE_DISABLE;
@@ -68,6 +72,7 @@ void STM32F4_SPIComms::init() {
     }    
 
     printf("initialising SPI pins\n");
+
     // Create alternate function SPI pins
     mosiPin = createPinFromPinMap(mosiPortAndPin, mosiPinName, PinMap_SPI_MOSI);
     misoPin = createPinFromPinMap(misoPortAndPin, misoPinName, PinMap_SPI_MISO);
@@ -183,8 +188,7 @@ void STM32F4_SPIComms::initSPIDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_
 
     if (spiHandle.Instance == SPI1) 
     {
-        // If using SPI1 for comms, there is an IRQ shared with the SDIO data transfer, resulting in a dirty stream. 
-        // we need to nuke it before re-using it
+        // If using SPI1 for comms, there is an IRQ shared with the SDIO data transfer, resulting in a dirty stream. Nuke it before re-using it
         SafeResetDMAStream(&hdma_spi_tx);
     }
 
@@ -279,15 +283,15 @@ HAL_StatusTypeDef STM32F4_SPIComms::startMultiBufferDMASPI(uint8_t *pTxBuffer,
     spiHandle.Instance->CR2 |= SPI_CR2_TXDMAEN | SPI_CR2_RXDMAEN;
 
     // Register RX DMA callbacks 
-    hdma_spi_rx.XferCpltCallback   = DMA_RxCplt_Callback;   // Handle pRxBuffer0
+    hdma_spi_rx.XferCpltCallback   = DMA_RxCplt_Callback;                   
     hdma_spi_rx.XferHalfCpltCallback = DMA_RxHalfCplt_Callback;
-    hdma_spi_rx.XferM1CpltCallback = DMA_RxM1Cplt_Callback; // Handle pRxBuffer0
-    hdma_spi_rx.XferM1HalfCpltCallback = [](DMA_HandleTypeDef *hdma) {}; // not needed
+    hdma_spi_rx.XferM1CpltCallback = DMA_RxM1Cplt_Callback;                 
+    hdma_spi_rx.XferM1HalfCpltCallback = [](DMA_HandleTypeDef *hdma) {};    // not needed
     hdma_spi_rx.XferErrorCallback  = DMA_RxError_Callback;
 
     // Start RX DMA in double-buffer interrupt mode.
     if (HAL_DMAEx_MultiBufferStart_IT(&hdma_spi_rx,
-                                    (uint32_t)&(spiHandle.Instance->DR),   // does the RXBuffer need to be dereferenced?
+                                    (uint32_t)&(spiHandle.Instance->DR),  
                                     (uint32_t)pRxBuffer0,       
                                     (uint32_t)pRxBuffer1,      
                                     Size) != HAL_OK)
@@ -300,10 +304,10 @@ HAL_StatusTypeDef STM32F4_SPIComms::startMultiBufferDMASPI(uint8_t *pTxBuffer,
 
     // Register TX callbacks
     hdma_spi_tx.XferErrorCallback = DMA_TxError_Callback;    
-    hdma_spi_tx.XferHalfCpltCallback = [](DMA_HandleTypeDef *hdma) {}; // not needed;  
+    hdma_spi_tx.XferHalfCpltCallback = [](DMA_HandleTypeDef *hdma) {};      // not needed;  
     hdma_spi_tx.XferCpltCallback = DMA_TxCplt_Callback; 
 
-    SET_BIT(spiHandle.Instance->CR2, SPI_CR2_TXDMAEN); // temporary move
+    SET_BIT(spiHandle.Instance->CR2, SPI_CR2_TXDMAEN); // unsure if this is still needed. 
 
     // For some reason, our DMA is initialising the NDTR to some absurd value, possibly a hangover from previous SDIO use of this DMA channel. Reconfiguring.
     hdma_spi_tx.Instance->NDTR = Size;
@@ -316,7 +320,7 @@ HAL_StatusTypeDef STM32F4_SPIComms::startMultiBufferDMASPI(uint8_t *pTxBuffer,
         return HAL_ERROR;
     }
 
-    __HAL_DMA_ENABLE(&hdma_spi_tx); // see if this works to correct NDTR?
+    __HAL_DMA_ENABLE(&hdma_spi_tx); 
     
     // Enable SPI periph and error interrupt 
     __HAL_SPI_ENABLE(&spiHandle);
@@ -382,35 +386,6 @@ void STM32F4_SPIComms::handleRxInterrupt()
 
 void STM32F4_SPIComms::tasks() {
 
-    if (retriggerTxDMA) 
-    {
-        // The F4 family supports double buffering on RX, but doesn't fully support double buffer on TX, for compatibility, we have set the mode to normal rather than circular
-        // At this stage we need to manually re-arm our DMA transfers on the TX Line. This could be triggered at the NSS/SPI interrupt, but DMA_Abort is too time consuming for an ISR.
-        CLEAR_BIT(spiHandle.Instance->CR2, SPI_CR2_TXDMAEN);     // Disable TX DMA request from SPI
-
-        __HAL_DMA_DISABLE(&hdma_spi_tx);    // could also be dma_disable? 
-        while((hdma_spi_tx.Instance->CR & DMA_SxCR_EN) != 0); // Wait until hardware clears the enable bit
-
-        __HAL_DMA_CLEAR_FLAG(&hdma_spi_tx, __HAL_DMA_GET_TC_FLAG_INDEX(&hdma_spi_tx) | // Clear all DMA flags
-                                            __HAL_DMA_GET_HT_FLAG_INDEX(&hdma_spi_tx) |
-                                            __HAL_DMA_GET_TE_FLAG_INDEX(&hdma_spi_tx) |
-                                            __HAL_DMA_GET_DME_FLAG_INDEX(&hdma_spi_tx) | 
-                                            __HAL_DMA_GET_FE_FLAG_INDEX(&hdma_spi_tx));
-
-        //hdma_spi_tx.Instance->NDTR = Config::dataBuffSize;    // theoretically should be set by START_IT.
-
-        if (HAL_DMA_Start_IT(&hdma_spi_tx, (uint32_t)ptrTxData->txBuffer, (uint32_t)&spiHandle.Instance->DR, Config::dataBuffSize) != HAL_OK)     // Restart DMA transfer
-        {
-            printf("TX DMA SPI error on re-arm\n");
-            __HAL_UNLOCK(&spiHandle);
-            Error_Handler();
-        }         
-        
-        SET_BIT(spiHandle.Instance->CR2, SPI_CR2_TXDMAEN);
-
-        retriggerTxDMA = false; 
-    }
-
 	if (copyRXbuffer == true)
     {
 	    uint8_t* srcBuffer = (uint8_t*)ptrRxDMABuffer->buffer[RXbufferIdx].rxBuffer;
@@ -433,45 +408,6 @@ void STM32F4_SPIComms::tasks() {
 	    HAL_DMA_Abort(&hdma_memtomem);
 		copyRXbuffer = false;
     }
-}
-
-static void DMA_RxHalfCplt_Callback(DMA_HandleTypeDef *hdma)
-{
-    // Half Transfer complete
-    HDMARXinterruptType = DMA_HALF_TRANSFER;
-    STM32F4_SPIComms::RxDMAmemoryIdx = 0; 
-}
-
-static void DMA_RxCplt_Callback(DMA_HandleTypeDef *hdma) // pRxBuffer0 complete
-{
-    // full trasnfer complete but still in buffer 0
-    HDMARXinterruptType = DMA_TRANSFER_COMPLETE;
-    STM32F4_SPIComms::RxDMAmemoryIdx = 0;
-}
-
-static void DMA_RxM1Cplt_Callback(DMA_HandleTypeDef *hdma) // pRxBuffer1 complete
-{
-    // full transfer complete and ready to move to bufer 1
-    HDMARXinterruptType = DMA_TRANSFER_COMPLETE;
-    STM32F4_SPIComms::RxDMAmemoryIdx = 1; 
-}
-
-static void DMA_RxError_Callback(DMA_HandleTypeDef *hdma)
-{
-    HDMARXinterruptType = DMA_OTHER; 
-    Error_Handler();
-}
-
-static void DMA_TxCplt_Callback(DMA_HandleTypeDef *hdma)
-{
-    HDMATXinterruptType = DMA_TRANSFER_COMPLETE;    
-    retriggerTxDMA = true;
-}
-
-static void DMA_TxError_Callback(DMA_HandleTypeDef *hdma)
-{
-    HDMATXinterruptType = DMA_OTHER; 
-    Error_Handler();
 }
 
 static void SafeResetDMAStream(DMA_HandleTypeDef *hdma)
@@ -505,4 +441,59 @@ static void SafeResetDMAStream(DMA_HandleTypeDef *hdma)
     hdma->State = HAL_DMA_STATE_RESET;
     hdma->Lock  = HAL_UNLOCKED;
     hdma->ErrorCode = HAL_DMA_ERROR_NONE;
+}
+
+
+static void DMA_RxHalfCplt_Callback(DMA_HandleTypeDef *hdma)
+{
+    // Half Transfer complete, flip the dma memory id over. 
+    HDMARXinterruptType = DMA_HALF_TRANSFER;
+    STM32F4_SPIComms::RxDMAmemoryIdx = 0; 
+}
+
+static void DMA_RxCplt_Callback(DMA_HandleTypeDef *hdma) // pRxBuffer0 complete
+{
+    // full trasnfer complete but still in buffer 0
+    HDMARXinterruptType = DMA_TRANSFER_COMPLETE;
+    STM32F4_SPIComms::RxDMAmemoryIdx = 0;
+}
+
+static void DMA_RxM1Cplt_Callback(DMA_HandleTypeDef *hdma) // pRxBuffer1 complete
+{
+    // full transfer complete and ready to flip the dma memory id over to 1. 
+    HDMARXinterruptType = DMA_TRANSFER_COMPLETE;
+    STM32F4_SPIComms::RxDMAmemoryIdx = 1; 
+}
+
+static void DMA_RxError_Callback(DMA_HandleTypeDef *hdma)
+{
+    HDMARXinterruptType = DMA_OTHER; 
+    Error_Handler();
+}
+
+void STM32F4_SPIComms::rearm_tx_dma(void) 
+{
+    // while this might be a little on the heavy side cycle wise, this is safe to run in the ISR, there is nothing that will hang the system for any non-determinant amount of time. It just sets some flags and moves on. 
+    if (HAL_DMA_Start_IT(&hdma_spi_tx,
+                        (uint32_t)ptrTxData->txBuffer,
+                        (uint32_t)&spiHandle.Instance->DR,
+                        Config::dataBuffSize) != HAL_OK)
+    {
+        Error_Handler();
+    }
+}
+
+static void DMA_TxCplt_Callback(DMA_HandleTypeDef *hdma)
+{
+    HDMATXinterruptType = DMA_TRANSFER_COMPLETE;    
+
+    if (STM32F4_SPIComms::instance != nullptr) {
+        STM32F4_SPIComms::instance->rearm_tx_dma();
+    }    
+}
+
+static void DMA_TxError_Callback(DMA_HandleTypeDef *hdma)
+{
+    HDMATXinterruptType = DMA_OTHER; 
+    Error_Handler();
 }
