@@ -14,7 +14,18 @@ static void DMA_TxCplt_Callback(DMA_HandleTypeDef *hdma);
 static void DMA_TxError_Callback(DMA_HandleTypeDef *hdma);
 
 volatile DMA_RxBuffer_t rxDMABuffer;
-uint8_t STM32F4_SPIComms::RxDMAmemoryIdx = 0;
+volatile uint8_t STM32F4_SPIComms::RxDMAmemoryIdx = 0;
+
+// Some debugging tools
+volatile bool logDMATransfer = false; // For Debugging only
+volatile uint32_t saved_ndtr = 0;
+volatile uint32_t ndtr_on_rearm = 0;
+volatile uint8_t saved_enflag = 0;
+static void printDMAState(DMA_HandleTypeDef* hdma_tx,
+                          DMA_HandleTypeDef* hdma_rx,
+                          SPI_HandleTypeDef* hspi,
+                          const char* context); 
+
 
 STM32F4_SPIComms* STM32F4_SPIComms::instance = nullptr; 
 
@@ -386,6 +397,11 @@ void STM32F4_SPIComms::handleRxInterrupt()
 
 void STM32F4_SPIComms::tasks() {
 
+    if (logDMATransfer) {
+        printDMAState(&hdma_spi_tx, &hdma_spi_rx, &spiHandle, "TX and RX Buffer Debug");
+        logDMATransfer = false;
+    }
+
 	if (copyRXbuffer == true)
     {
 	    uint8_t* srcBuffer = (uint8_t*)ptrRxDMABuffer->buffer[RXbufferIdx].rxBuffer;
@@ -402,6 +418,7 @@ void STM32F4_SPIComms::tasks() {
 
 	    if (dmaStatus == HAL_OK) {
 	        dmaStatus = HAL_DMA_PollForTransfer(&hdma_memtomem, HAL_DMA_FULL_TRANSFER, HAL_MAX_DELAY);
+            //while (HAL_DMA_GetState(&hdma_memtomem) != HAL_DMA_STATE_READY); // allows interrupts to continue triggering while we wait for memtomem to finish transfer.
 	    }
 
 	    __enable_irq();
@@ -460,6 +477,23 @@ static void DMA_RxCplt_Callback(DMA_HandleTypeDef *hdma) // pRxBuffer0 complete
 
 static void DMA_RxM1Cplt_Callback(DMA_HandleTypeDef *hdma) // pRxBuffer1 complete
 {
+    // TEST CODE
+    // Check for potential race
+    // bool dmaStillEnabled = (hdma->Instance->CR & DMA_SxCR_EN) != 0;
+    // bool spiBusy = (STM32F4_SPIComms::instance->spiHandle.Instance->SR & SPI_SR_BSY) != 0;
+
+    // if (dmaStillEnabled || spiBusy)
+    // {
+    //     printf("WARNING: RX DMA complete, but DMA_EN=%d, SPI_BSY=%d, NDTR=%lu\n",
+    //            dmaStillEnabled ? 1 : 0,
+    //            spiBusy ? 1 : 0,
+    //            hdma->Instance->NDTR);
+
+    //     // Optionally set a flag for main loop logging
+    //     logDMATransfer = true;
+    // }
+    // END TEST CODE
+
     // full transfer complete and ready to flip the dma memory id over to 1. 
     HDMARXinterruptType = DMA_TRANSFER_COMPLETE;
     STM32F4_SPIComms::RxDMAmemoryIdx = 1; 
@@ -473,6 +507,27 @@ static void DMA_RxError_Callback(DMA_HandleTypeDef *hdma)
 
 void STM32F4_SPIComms::rearm_tx_dma(void) 
 {
+    // 
+    // TEST CODE Check if DMA stream is still enabled (transfer in progress)
+    //
+    bool dmaStillEnabled = (hdma_spi_tx.Instance->CR & DMA_SxCR_EN) != 0;
+
+    // Check if SPI peripheral is still busy transmitting
+    bool spiBusy = (spiHandle.Instance->SR & SPI_SR_BSY) != 0;
+
+    if (dmaStillEnabled || spiBusy)
+    {
+        // Report the race condition to console for debugging
+        printf("Error - TX DMA re-arm while still active DMA_EN=%d, SPI_BSY=%d\n",
+               dmaStillEnabled ? 1 : 0,
+               spiBusy ? 1 : 0);
+        // Optional: set a debug flag or capture state for later inspection
+        logDMATransfer = true;
+        ndtr_on_rearm = hdma_spi_tx.Instance->NDTR;
+        return; // skip re-arm for now to avoid corrupting TX
+    }
+    // END TEST CODE
+
     // while this might be a little on the heavy side cycle wise, this is safe to run in the ISR, there is nothing that will hang the system for any non-determinant amount of time. It just sets some flags and moves on. 
     if (HAL_DMA_Start_IT(&hdma_spi_tx,
                         (uint32_t)ptrTxData->txBuffer,
@@ -485,7 +540,9 @@ void STM32F4_SPIComms::rearm_tx_dma(void)
 
 static void DMA_TxCplt_Callback(DMA_HandleTypeDef *hdma)
 {
-    HDMATXinterruptType = DMA_TRANSFER_COMPLETE;    
+    HDMATXinterruptType = DMA_TRANSFER_COMPLETE;  
+    saved_ndtr = hdma->Instance->NDTR;  // delete me
+    saved_enflag = (hdma->Instance->CR & DMA_SxCR_EN) ? 1 : 0; // delete me
 
     if (STM32F4_SPIComms::instance != nullptr) {
         STM32F4_SPIComms::instance->rearm_tx_dma();
@@ -497,3 +554,44 @@ static void DMA_TxError_Callback(DMA_HandleTypeDef *hdma)
     HDMATXinterruptType = DMA_OTHER; 
     Error_Handler();
 }
+
+static void printDMAState(DMA_HandleTypeDef* hdma_tx,
+                          DMA_HandleTypeDef* hdma_rx,
+                          SPI_HandleTypeDef* hspi,
+                          const char* context) 
+{       
+    printf("=== %s ===\n", context);
+
+    printf("Last known NDTR on TX: %u\n", saved_ndtr);
+    printf("Last known enflag on TX: %u\n", saved_enflag);
+    printf("NDTR on rearm: %u\n", ndtr_on_rearm);
+
+    if (hdma_tx && hdma_tx->Instance) {
+        printf("TX DMA: NDTR=%lu, M0AR=0x%08lX, PAR=0x%08lX, CR=0x%08lX, FCR=0x%08lX\n",
+               (unsigned long)hdma_tx->Instance->NDTR,
+               (unsigned long)hdma_tx->Instance->M0AR,
+               (unsigned long)hdma_tx->Instance->PAR,
+               (unsigned long)hdma_tx->Instance->CR,
+               (unsigned long)hdma_tx->Instance->FCR);
+    }
+
+    if (hdma_rx && hdma_rx->Instance) {
+        printf("RX DMA: NDTR=%lu, M0AR=0x%08lX, PAR=0x%08lX, CR=0x%08lX, FCR=0x%08lX\n",
+               (unsigned long)hdma_rx->Instance->NDTR,
+               (unsigned long)hdma_rx->Instance->M0AR,
+               (unsigned long)hdma_rx->Instance->PAR,
+               (unsigned long)hdma_rx->Instance->CR,
+               (unsigned long)hdma_rx->Instance->FCR);
+    }
+
+    if (hspi && hspi->Instance) {
+        printf("SPI SR=0x%08lX, CR1=0x%08lX, CR2=0x%08lX, DR=0x%02X\n",
+               (unsigned long)hspi->Instance->SR,
+               (unsigned long)hspi->Instance->CR1,
+               (unsigned long)hspi->Instance->CR2,
+               (uint8_t)hspi->Instance->DR);
+    }
+
+    printf("=============\n");
+}
+

@@ -23,7 +23,8 @@ private:
     volatile DMA_RxBuffer_t* 	ptrRxDMABuffer;
 
     SPI_TypeDef*        		spiType;
-    SPI_HandleTypeDef   		spiHandle;
+    SPI_HandleTypeDef   		spiHandle; 
+
     DMA_HandleTypeDef   		hdma_spi_tx;
     DMA_HandleTypeDef   		hdma_spi_rx;
     DMA_HandleTypeDef   		hdma_memtomem;
@@ -67,8 +68,7 @@ private:
 
 public:
     static STM32F4_SPIComms* instance;
-
-    static uint8_t RxDMAmemoryIdx;
+    static volatile uint8_t RxDMAmemoryIdx;
 
     STM32F4_SPIComms(volatile rxData_t*, volatile txData_t*, std::string, std::string, std::string, std::string);
 	virtual ~STM32F4_SPIComms();
