@@ -8,7 +8,7 @@ Port or Remora for STM32F4xx family, ported to use the latest Remora-Core abstra
     - Current status:
         - Able to toggle estop in and out on an Rpi5. Needs more testing to see if stepgen and IO work as intended at full speed
 - UART support - Working on both UART2 and UART3 peripherals, can be set in PlatformIO.ini for your build target. 
-- SDIO - Working - Tested on F446ZE, able to load config from micro SD card. No known issues.
+- SDIO - Working - Tested on F446ZE and F446RE, able to load config from micro SD card.
 - Modules - in progress:
     - Blinky: Working - no known issues.
     - Stepgen: Working - no known issues.

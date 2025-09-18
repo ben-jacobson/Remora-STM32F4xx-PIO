@@ -5,6 +5,9 @@ const uint8_t _ls_json_upload_sector = 0; // clear compiler errors when linker s
 const uint8_t _ls_json_storage_sector = 0;     
 #endif
 
+extern DMA_HandleTypeDef hdma_sdio_rx;
+extern DMA_HandleTypeDef hdma_sdio_tx;
+
 PWMName getPWMName(PinName pwm_pin)        
 {
     return (PWMName)pinmap_peripheral(pwm_pin, PinMap_PWM);
@@ -39,34 +42,19 @@ void enableSPIClocks(SPI_TypeDef* spi_instance)
     else if (spi_instance == SPI4) __HAL_RCC_SPI4_CLK_ENABLE();
 }
 
-void InitDMAIRQs(SPI_TypeDef* spi_instance)
+void initDMAClocks(SPI_TypeDef* spi_instance)     // todo - remove entirely. 
 {
     if (spi_instance == SPI1)
     {
-        __HAL_RCC_DMA2_CLK_ENABLE();
-
-        HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
-        HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
-        HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 0, 0);
-        HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);              
+        __HAL_RCC_DMA2_CLK_ENABLE();            
     }
     else if (spi_instance == SPI2)
     {
-        __HAL_RCC_DMA1_CLK_ENABLE();
-
-        HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 0, 0);
-        HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
-        HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 0, 0);
-        HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);       
+        __HAL_RCC_DMA1_CLK_ENABLE();  
     }
     else if (spi_instance == SPI3)
     {
-        __HAL_RCC_DMA1_CLK_ENABLE();
-
-        HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
-        HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
-        HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 0, 0);
-        HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);     
+        __HAL_RCC_DMA1_CLK_ENABLE();  
     }
     else
     {
@@ -110,4 +98,27 @@ void mass_erase_flash_sector(uint32_t Sector) {
     if (HAL_FLASHEx_Erase(&FLASH_EraseInitStruct, &error) != HAL_OK) {
         Error_Handler();
     }
+}
+
+HAL_StatusTypeDef safe_reset_SDIO_DMA_stream(void)
+{
+    if (hdma_sdio_rx.Instance == NULL || hdma_sdio_tx.Instance == NULL) 
+        return HAL_ERROR; 
+
+    __HAL_RCC_SDIO_CLK_DISABLE(); // also need to disable clock
+
+    // Disable stream, wait for EN to clear then deinit
+    __HAL_DMA_DISABLE(&hdma_sdio_rx);
+    while ((hdma_sdio_rx.Instance->CR & DMA_SxCR_EN) != 0);
+    HAL_DMA_DeInit(&hdma_sdio_rx);
+
+    // and again on TX
+    __HAL_DMA_DISABLE(&hdma_sdio_tx);
+    while ((hdma_sdio_tx.Instance->CR & DMA_SxCR_EN) != 0);
+    HAL_DMA_DeInit(&hdma_sdio_tx);
+
+    // prevent accidental retriggering of this IRQ
+    HAL_NVIC_DisableIRQ(SDIO_IRQn);
+
+    return HAL_OK;
 }

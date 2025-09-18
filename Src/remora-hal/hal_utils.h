@@ -23,7 +23,7 @@
 PWMName getPWMName(PinName);
 SPIName getSPIPeripheralName(PinName, PinName, PinName);
 void enableSPIClocks(SPI_TypeDef *);
-void InitDMAIRQs(SPI_TypeDef *);
+void initDMAClocks(SPI_TypeDef *);
 
 Pin* createPinFromPinMap(const std::string&, PinName, const PinMap*,
                uint32_t = GPIO_MODE_AF_PP,
@@ -35,5 +35,7 @@ void delay_ms(uint32_t);
 void mass_erase_config_storage(void);
 void mass_erase_upload_storage(void);
 void mass_erase_flash_sector(uint32_t);
+HAL_StatusTypeDef safe_reset_SDIO_DMA_stream(void);
+
 
 #endif

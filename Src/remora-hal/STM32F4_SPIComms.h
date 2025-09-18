@@ -67,7 +67,7 @@ private:
 	void handleNssInterrupt(void);
 
 public:
-    static STM32F4_SPIComms* instance;
+    static STM32F4_SPIComms* instance;    
     static volatile uint8_t RxDMAmemoryIdx;
 
     STM32F4_SPIComms(volatile rxData_t*, volatile txData_t*, std::string, std::string, std::string, std::string);

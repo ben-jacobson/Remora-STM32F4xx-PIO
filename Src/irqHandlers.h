@@ -38,17 +38,17 @@ extern "C" {
     DMA_STREAM_IRQ_HANDLER(1, 3, DMA1_Stream3_IRQn) // SPI 2 RX
     DMA_STREAM_IRQ_HANDLER(1, 0, DMA1_Stream0_IRQn) // SPI 3 RX
     
-    // DMA_STREAM_IRQ_HANDLER(2, 3, DMA2_Stream3_IRQn) // SPI 1 TX
+    // DMA_STREAM_IRQ_HANDLER(2, 3, DMA2_Stream3_IRQn) // SPI 1 TX      // Not to be used, see below we have a custom ISR for this stream. 
     DMA_STREAM_IRQ_HANDLER(1, 4, DMA1_Stream4_IRQn) // SPI 2 TX
     DMA_STREAM_IRQ_HANDLER(1, 5, DMA1_Stream5_IRQn) // SPI 3 TX
 
-    // macro for automatically creating the SPI IRQ handlers, e.g SPI1_IRQHandler()
+    // macro for automatically creating the SPI IRQ handlers. Should be unused by SPI comms, only for ETH comms
     #define SPI_IRQ_HANDLER(SPI_IRQ_FUNCTION_NAME, SPI_IRQ_NUM) \
     void SPI_IRQ_FUNCTION_NAME(void) {                          \
         Interrupt::InvokeHandler(SPI_IRQ_NUM);                  \
     }
 
-    SPI_IRQ_HANDLER(SPI1_IRQHandler, SPI1_IRQn)
+    SPI_IRQ_HANDLER(SPI1_IRQHandler, SPI1_IRQn)        
     SPI_IRQ_HANDLER(SPI2_IRQHandler, SPI2_IRQn)
     SPI_IRQ_HANDLER(SPI3_IRQHandler, SPI3_IRQn)  
 
@@ -99,7 +99,7 @@ extern "C" {
             Interrupt::InvokeHandler(DMA2_Stream3_IRQn);
         }
 
-        DMA2->HIFCR = DMA_LIFCR_CTCIF3; // clear  flag
+        DMA2->HIFCR = DMA_LIFCR_CTCIF3; // unsure if this is needed, should be handled in our invoke handler? 
     }
 
     void DMA2_Stream6_IRQHandler(void)  // SDIO TX DMA IRQ

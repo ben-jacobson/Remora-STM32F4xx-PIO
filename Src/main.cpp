@@ -78,7 +78,7 @@ int main(void)
     SystemClock_Config();
     MX_UART_Init(); 
 
-    #ifdef SPI_CTRL
+    #ifdef SPI_CTRL 
     MX_SDIO_SD_Init(); 
     MX_FATFS_Init(); 
     #endif   
@@ -186,71 +186,26 @@ static void MX_UART_Init(void)
     }
 }
 
-/**
-  * @brief SDIO Initialization Function
-  * @param None
-  * @retval None
-  */
 static void MX_SDIO_SD_Init(void)
 {
+    hsd.Instance = SDIO;
+    hsd.Init.ClockEdge = SDIO_CLOCK_EDGE_RISING;
+    hsd.Init.ClockBypass = SDIO_CLOCK_BYPASS_DISABLE;
+    hsd.Init.ClockPowerSave = SDIO_CLOCK_POWER_SAVE_DISABLE;
+    hsd.Init.BusWide = SDIO_BUS_WIDE_1B; // SDIO_BUS_WIDE_4B; // We need to initialise in 1B mode for initialisation, but BSP has been set to reinit as as 4 bit later
+    hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_DISABLE;
+    hsd.Init.ClockDiv = 118;
 
-  /* USER CODE BEGIN SDIO_Init 0 */
-
-  /* USER CODE END SDIO_Init 0 */
-
-  /* USER CODE BEGIN SDIO_Init 1 */
-
-  /* USER CODE END SDIO_Init 1 */
-  hsd.Instance = SDIO;
-  hsd.Init.ClockEdge = SDIO_CLOCK_EDGE_RISING;
-  hsd.Init.ClockBypass = SDIO_CLOCK_BYPASS_DISABLE;
-  hsd.Init.ClockPowerSave = SDIO_CLOCK_POWER_SAVE_DISABLE;
-  hsd.Init.BusWide = SDIO_BUS_WIDE_1B; // SDIO_BUS_WIDE_4B; // We need to initialise in 1B mode for initialisation, but BSP has been set to reinit as as 4 bit later
-  hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_DISABLE;
-  hsd.Init.ClockDiv = 118;
-  /* USER CODE BEGIN SDIO_Init 2 */
-  if (HAL_SD_Init(&hsd) != HAL_OK)
-  {
-      Error_Handler();
-  }
-
-  // some clock debugging if needed
-  // printf("RCC->APB2ENR = 0x%08lx\n", RCC->APB2ENR);  
-  // printf("SDIO->CLKCR=0x%08lx\n", SDIO->CLKCR);
-  // printf("SDIO->STA  =0x%08lx\n", SDIO->STA);
-  // printf("SDIO->RESP1=0x%08lx\n", SDIO->RESP1);
-  // printf("SDIO->POWER=0x%08lx\n", SDIO->POWER);  
-  /* USER CODE END SDIO_Init 2 */
-
+    if (HAL_SD_Init(&hsd) != HAL_OK)
+    {
+        Error_Handler();
+    }
 }
 
-/**
-  * @brief GPIO Initialization Function
-  * @param None
-  * @retval None
-  */
-/*static void MX_GPIO_Init(void)
-{
-  // we Initialise our own via Pin abstraction
-}*/
-
-/* USER CODE BEGIN 4 */
-
-/* USER CODE END 4 */
-
-/**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
 void Error_Handler(void)
 {
-  /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
-  __disable_irq();
-  while (1)
-  {
-  }
-  /* USER CODE END Error_Handler_Debug */
+    __disable_irq();
+    while (1);
 }
 
 #ifdef  USE_FULL_ASSERT
