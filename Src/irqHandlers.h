@@ -99,7 +99,7 @@ extern "C" {
             Interrupt::InvokeHandler(DMA2_Stream3_IRQn);
         }
 
-        DMA2->HIFCR = DMA_LIFCR_CTCIF3; // unsure if this is needed, should be handled in our invoke handler? 
+        //DMA2->HIFCR = DMA_LIFCR_CTCIF3; // unsure if this is needed, should be handled in our invoke handler? 
     }
 
     void DMA2_Stream6_IRQHandler(void)  // SDIO TX DMA IRQ

@@ -5,6 +5,7 @@ const uint8_t _ls_json_upload_sector = 0; // clear compiler errors when linker s
 const uint8_t _ls_json_storage_sector = 0;     
 #endif
 
+extern SD_HandleTypeDef hsd;
 extern DMA_HandleTypeDef hdma_sdio_rx;
 extern DMA_HandleTypeDef hdma_sdio_tx;
 
@@ -100,12 +101,30 @@ void mass_erase_flash_sector(uint32_t Sector) {
     }
 }
 
-HAL_StatusTypeDef safe_reset_SDIO_DMA_stream(void)
+HAL_StatusTypeDef safe_reset_SDIO(void)
 {
+    // This is similar to HAL_SD_MspDeInit, adds the spin locks and does both DMA streams at the same time. 
     if (hdma_sdio_rx.Instance == NULL || hdma_sdio_tx.Instance == NULL) 
         return HAL_ERROR; 
 
+    // prevent accidental retriggering of this IRQs
+    HAL_NVIC_DisableIRQ(DMA2_Stream3_IRQn);    
+    HAL_NVIC_DisableIRQ(DMA2_Stream6_IRQn);    
+    HAL_NVIC_DisableIRQ(SDIO_IRQn);
+
     __HAL_RCC_SDIO_CLK_DISABLE(); // also need to disable clock
+
+    // some extra tests
+    __HAL_SD_DISABLE(&hsd); 
+    __HAL_SD_DMA_DISABLE(&hsd);
+    __HAL_SD_DISABLE_IT(&hsd, (SDIO_IT_DCRCFAIL | SDIO_IT_DTIMEOUT | SDIO_IT_RXOVERR | SDIO_IT_DATAEND));
+    __HAL_SD_CLEAR_FLAG(&hsd, SDIO_STATIC_FLAGS);
+
+    // Ensure the GPIO's are no longer configured in case of any exti
+    HAL_GPIO_DeInit(GPIOC, GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11
+                          |GPIO_PIN_12);
+
+    HAL_GPIO_DeInit(GPIOD, GPIO_PIN_2);    
 
     // Disable stream, wait for EN to clear then deinit
     __HAL_DMA_DISABLE(&hdma_sdio_rx);
@@ -117,8 +136,12 @@ HAL_StatusTypeDef safe_reset_SDIO_DMA_stream(void)
     while ((hdma_sdio_tx.Instance->CR & DMA_SxCR_EN) != 0);
     HAL_DMA_DeInit(&hdma_sdio_tx);
 
-    // prevent accidental retriggering of this IRQ
-    HAL_NVIC_DisableIRQ(SDIO_IRQn);
+    // clear the DMA interrupt flags ni case the above tear down wasn't enough. 
+    __HAL_DMA_DISABLE_IT(&hdma_sdio_rx, DMA_IT_TC | DMA_IT_TE | DMA_IT_DME | DMA_IT_HT);
+    __HAL_DMA_DISABLE_IT(&hdma_sdio_tx, DMA_IT_TC | DMA_IT_TE | DMA_IT_DME | DMA_IT_HT); 
+    __HAL_DMA_CLEAR_FLAG(&hdma_sdio_rx, DMA_FLAG_TCIF3_7 | DMA_FLAG_HTIF3_7 | DMA_FLAG_TEIF3_7 | DMA_FLAG_DMEIF3_7 | DMA_FLAG_FEIF3_7);
+    __HAL_DMA_CLEAR_FLAG(&hdma_sdio_tx, DMA_FLAG_TCIF3_7 | DMA_FLAG_HTIF3_7 | DMA_FLAG_TEIF3_7 | DMA_FLAG_DMEIF3_7 | DMA_FLAG_FEIF3_7);
 
     return HAL_OK;
 }
+

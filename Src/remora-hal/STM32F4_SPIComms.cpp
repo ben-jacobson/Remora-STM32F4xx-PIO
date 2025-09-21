@@ -54,7 +54,7 @@ void STM32F4_SPIComms::init() {
         printf("\n\nDMA2_3 regs pre DMA Cleanup\n"); // dELETE ME
         dump_DMA2_Stream3_regs();     // DELETE ME
 
-        safe_reset_SDIO_DMA_stream();
+        safe_reset_SDIO();
         printf("\n\nDMA2_3 regs after DMA Cleanup\n"); // dELETE ME
         dump_DMA2_Stream3_regs();     // DELETE ME
     }
