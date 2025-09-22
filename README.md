@@ -6,7 +6,8 @@ Port or Remora for STM32F4xx family, ported to use the latest Remora-Core abstra
 - JSON config loading - Working - no known issues
 - SPI Comms - in progress:
     - Current status:
-        - Able to toggle estop in and out on an Rpi5. Needs more testing to see if stepgen and IO work as intended at full speed
+        - Able to toggle estop in and out on an Rpi5 at full speed. 
+        - Known issue are: mem2mem hangs indefinately, RX complete and Half complete seem to differ in implementation to H7 build, need to verify this.
 - UART support - Working on both UART2 and UART3 peripherals, can be set in PlatformIO.ini for your build target. 
 - SDIO - Working - Tested on F446ZE and F446RE, able to load config from micro SD card.
 - Modules - in progress:

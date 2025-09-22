@@ -27,6 +27,9 @@ STM32F4_SPIComms::STM32F4_SPIComms(volatile rxData_t* _ptrRxData, volatile txDat
     ptrRxData = _ptrRxData;
 	ptrTxData = _ptrTxData;
 
+    copyRXbuffer = false;
+    newWriteData = false;
+
     mosiPinName = portAndPinToPinName(mosiPortAndPin.c_str());
     misoPinName = portAndPinToPinName(misoPortAndPin.c_str());
     clkPinName = portAndPinToPinName(clkPortAndPin.c_str());
@@ -138,7 +141,7 @@ void STM32F4_SPIComms::init() {
 
     printf("Initialising DMA for Memory to Memory transfer\n");
 
-    hdma_memtomem.Instance 					= DMA1_Stream2;         // F4 doesn't have a nice clean mem2mem so will manually use DMA1. No interrupt needed as this memtomem is polled
+    hdma_memtomem.Instance 					= DMA1_Stream2;         // F4 doesn't have dedicated mem2mem so will manually use DMA1. No interrupt needed as this memtomem is polled
     hdma_memtomem.Init.Channel 				= DMA_CHANNEL_0;        // aparently not needed for mem2mem but using an unused one anyway. 
     hdma_memtomem.Init.Direction 			= DMA_MEMORY_TO_MEMORY;
     hdma_memtomem.Init.PeriphInc 			= DMA_PINC_ENABLE;
@@ -224,9 +227,6 @@ HAL_StatusTypeDef STM32F4_SPIComms::startMultiBufferDMASPI(uint8_t *pTxBuffer,
                                                    uint8_t *pRxBuffer0, uint8_t *pRxBuffer1,
                                                    uint16_t Size)
 {
-    // Check Direction parameter 
-    // assert_param(IS_SPI_DIRECTION_2LINES(spiHandle.Init.Direction));
-
     if (spiHandle.State != HAL_SPI_STATE_READY)
     {
         return HAL_BUSY;
@@ -333,34 +333,56 @@ void STM32F4_SPIComms::handleRxInterrupt()
     // use default IRQ handler, note that interrupt type is set in the ISRs
     HAL_DMA_IRQHandler(&hdma_spi_rx);
 
-    if (HDMARXinterruptType == DMA_HALF_TRANSFER) // Use the HTC interrupt to check the packet being received
-    {
-        switch (ptrRxDMABuffer->buffer[RxDMAmemoryIdx].header)
-        {
-            case Config::pruRead:
-                // No action needed for PRU_READ.
-            	dataCallback(true);
-                break;
+    // if (HDMARXinterruptType == DMA_HALF_TRANSFER)
+    // {
+    //     switch (ptrRxDMABuffer->buffer[RxDMAmemoryIdx].header)
+    //     {
+    //         case Config::pruRead:
+    //             // No action needed for PRU_READ.
+    //         	dataCallback(true);
+    //             break;
 
-            case Config::pruWrite:
-            	// Valid PRU_WRITE header, flag RX data transfer.
-            	dataCallback(true);
-            	newWriteData = true;
-                RXbufferIdx = RxDMAmemoryIdx;
-                break;
+    //         case Config::pruWrite:
+    //         	// Valid PRU_WRITE header, flag RX data transfer.
+    //         	dataCallback(true);
+    //         	newWriteData = true;
+    //             RXbufferIdx = RxDMAmemoryIdx;
+    //             break;
 
-            default:
-            	dataCallback(false);
-                break;
-        }
-    }
-    else if (HDMARXinterruptType == DMA_TRANSFER_COMPLETE) // Transfer complete interrupt
+    //         default:
+    //         	dataCallback(false);
+    //             break;
+    //     }
+    // }
+    // else if (HDMARXinterruptType == DMA_TRANSFER_COMPLETE) // Transfer complete interrupt
+    // {
+    //     // Placeholder for transfer complete handling if needed in the future.
+    // }
+    // else // Other interrupt sources
+    // {
+    //     printf("DMA SPI Rx error\n");
+    // }
+}
+
+void STM32F4_SPIComms::ProcessHeader(void) 
+{
+    switch (ptrRxDMABuffer->buffer[RxDMAmemoryIdx].header)
     {
-        // Placeholder for transfer complete handling if needed in the future.
-    }
-    else // Other interrupt sources
-    {
-        printf("DMA SPI Rx error\n");
+        case Config::pruRead:
+            // No action needed for PRU_READ.
+            dataCallback(true);
+            break;
+
+        case Config::pruWrite:
+            // Valid PRU_WRITE header, flag RX data transfer.
+            dataCallback(true);
+            newWriteData = true;
+            RXbufferIdx = RxDMAmemoryIdx;
+            break;
+
+        default:
+            dataCallback(false);
+            break;
     }
 }
 
@@ -368,25 +390,24 @@ void STM32F4_SPIComms::tasks()
 {
     if (copyRXbuffer == true)
     {
-	    // uint8_t* srcBuffer = (uint8_t*)ptrRxDMABuffer->buffer[RXbufferIdx].rxBuffer;
-	    // uint8_t* destBuffer = (uint8_t*)ptrRxData->rxBuffer;
+	    uint8_t* srcBuffer = (uint8_t*)ptrRxDMABuffer->buffer[RXbufferIdx].rxBuffer;
+	    uint8_t* destBuffer = (uint8_t*)ptrRxData->rxBuffer;
 
-	    // __disable_irq();
+	    __disable_irq();
 
-	    // dmaStatus = HAL_DMA_Start( 
-	    // 							&hdma_memtomem,
-		// 							(uint32_t)srcBuffer,
-		// 							(uint32_t)destBuffer,
-		// 							Config::dataBuffSize
-	    // 							);
+	    dmaStatus = HAL_DMA_Start( 
+	    							&hdma_memtomem,
+									(uint32_t)srcBuffer,
+									(uint32_t)destBuffer,
+									Config::dataBuffSize
+	    							);
 
-	    // if (dmaStatus == HAL_OK) {
-	    //     dmaStatus = HAL_DMA_PollForTransfer(&hdma_memtomem, HAL_DMA_FULL_TRANSFER, HAL_MAX_DELAY);
-        //     //while (HAL_DMA_GetState(&hdma_memtomem) != HAL_DMA_STATE_READY); // allows interrupts to continue triggering while we wait for memtomem to finish transfer.
-	    // }
+	    if (dmaStatus == HAL_OK) {
+	        dmaStatus = HAL_DMA_PollForTransfer(&hdma_memtomem, HAL_DMA_FULL_TRANSFER, HAL_MAX_DELAY);
+	    }
 
-	    // __enable_irq();
-	    // HAL_DMA_Abort(&hdma_memtomem);
+	    __enable_irq();
+	    HAL_DMA_Abort(&hdma_memtomem);
 		copyRXbuffer = false;
     }
 }
@@ -395,14 +416,20 @@ static void DMA_RxHalfCplt_Callback(DMA_HandleTypeDef *hdma)
 {
     // Half Transfer complete, flip the dma memory id over. 
     HDMARXinterruptType = DMA_HALF_TRANSFER;
-    STM32F4_SPIComms::RxDMAmemoryIdx = 0; 
+    STM32F4_SPIComms::RxDMAmemoryIdx = 0;     
 }
 
 static void DMA_RxCplt_Callback(DMA_HandleTypeDef *hdma) // pRxBuffer0 complete
 {
     // full trasnfer complete but still in buffer 0
     HDMARXinterruptType = DMA_TRANSFER_COMPLETE;
-    STM32F4_SPIComms::RxDMAmemoryIdx = 0;
+    STM32F4_SPIComms::RxDMAmemoryIdx = 0;    
+
+    // Process headers
+    if (STM32F4_SPIComms::instance != nullptr) 
+    {  
+        STM32F4_SPIComms::instance->ProcessHeader();
+    }         
 }
 
 static void DMA_RxM1Cplt_Callback(DMA_HandleTypeDef *hdma) // pRxBuffer1 complete
@@ -410,6 +437,12 @@ static void DMA_RxM1Cplt_Callback(DMA_HandleTypeDef *hdma) // pRxBuffer1 complet
     // full transfer complete and ready to flip the dma memory id over to 1. 
     HDMARXinterruptType = DMA_TRANSFER_COMPLETE;
     STM32F4_SPIComms::RxDMAmemoryIdx = 1; 
+
+    // Process headers
+    if (STM32F4_SPIComms::instance != nullptr) 
+    {  
+        STM32F4_SPIComms::instance->ProcessHeader();
+    }        
 }
 
 static void DMA_RxError_Callback(DMA_HandleTypeDef *hdma)
@@ -418,25 +451,25 @@ static void DMA_RxError_Callback(DMA_HandleTypeDef *hdma)
     Error_Handler();
 }
 
-void STM32F4_SPIComms::rearm_tx_dma(void) 
-{
-    // This isn't too heavy cycle side wise to not be run within the ISR. Fairly deterministic
-    if (HAL_DMA_Start_IT(&hdma_spi_tx,
-                        (uint32_t)ptrTxData->txBuffer,
-                        (uint32_t)&spiHandle.Instance->DR,
-                        Config::dataBuffSize) != HAL_OK)
-    {
-        Error_Handler();
-    }
-}
+// void STM32F4_SPIComms::rearm_tx_dma(void) 
+// {
+//     // This isn't too heavy cycle side wise to not be run within the ISR. Fairly deterministic
+//     if (HAL_DMA_Start_IT(&hdma_spi_tx,
+//                         (uint32_t)ptrTxData->txBuffer,
+//                         (uint32_t)&spiHandle.Instance->DR,
+//                         Config::dataBuffSize) != HAL_OK)
+//     {
+//         Error_Handler();
+//     }
+// }
 
 static void DMA_TxCplt_Callback(DMA_HandleTypeDef *hdma)
 {
     HDMATXinterruptType = DMA_TRANSFER_COMPLETE;  
 
-    if (STM32F4_SPIComms::instance != nullptr) {     // temporarily moving into RX 
-        STM32F4_SPIComms::instance->rearm_tx_dma();
-    }    
+    // if (STM32F4_SPIComms::instance != nullptr) {     // temporarily moving into RX 
+    //     STM32F4_SPIComms::instance->rearm_tx_dma();
+    // }    
 }
 
 static void DMA_TxError_Callback(DMA_HandleTypeDef *hdma)
