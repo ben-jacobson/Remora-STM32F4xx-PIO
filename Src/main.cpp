@@ -36,11 +36,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "remora-hal/STM32F4_timer.h"
 
 UART_HandleTypeDef uart_handle;
-
-// SDIO Handlers
 SD_HandleTypeDef hsd;
-DMA_HandleTypeDef hdma_sdio_rx;
-DMA_HandleTypeDef hdma_sdio_tx;
 
 void SystemClock_Config(void);
 static void MX_UART_Init(void);
@@ -192,7 +188,7 @@ static void MX_SDIO_SD_Init(void)
     hsd.Init.ClockEdge = SDIO_CLOCK_EDGE_RISING;
     hsd.Init.ClockBypass = SDIO_CLOCK_BYPASS_DISABLE;
     hsd.Init.ClockPowerSave = SDIO_CLOCK_POWER_SAVE_DISABLE;
-    hsd.Init.BusWide = SDIO_BUS_WIDE_1B; // SDIO_BUS_WIDE_4B; // We need to initialise in 1B mode for initialisation, but BSP has been set to reinit as as 4 bit later
+    hsd.Init.BusWide = SDIO_BUS_WIDE_1B; // SDIO_BUS_WIDE_4B; // We initialise in 1B mode,this is re-init later as 4bit
     hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_DISABLE;
     hsd.Init.ClockDiv = 118;
 
@@ -207,20 +203,3 @@ void Error_Handler(void)
     __disable_irq();
     while (1);
 }
-
-#ifdef  USE_FULL_ASSERT
-/**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
-void assert_failed(uint8_t *file, uint32_t line)
-{
-  /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-  /* USER CODE END 6 */
-}
-#endif /* USE_FULL_ASSERT */

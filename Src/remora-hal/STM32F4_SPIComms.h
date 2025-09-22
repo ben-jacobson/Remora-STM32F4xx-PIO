@@ -13,9 +13,9 @@
 #include "hal_utils.h"
 
 typedef enum {
-    DMA_HALF_TRANSFER = 1,   // Half-transfer completed
-    DMA_TRANSFER_COMPLETE = 2, // Full transfer completed
-    DMA_OTHER = 3        // Other or error status
+    DMA_HALF_TRANSFER = 1,          // Half-transfer completed
+    DMA_TRANSFER_COMPLETE = 2,      // Full transfer completed
+    DMA_OTHER = 3                   // Other or error status
 } DMA_TransferStatus_t;
 
 class STM32F4_SPIComms : public CommsInterface {

@@ -12,13 +12,6 @@ extern Pin* thread_debug;
 //#define SERVO_THREAD_DEBUG
 #endif
 
-constexpr uint8_t SDIO_DMA_CHANNEL = 4;
-constexpr uint8_t SPI1_DMA_CHANNEL = 3;
-
-extern SD_HandleTypeDef hsd;
-extern DMA_HandleTypeDef hdma_sdio_rx;
-extern DMA_HandleTypeDef hdma_sdio_tx;
-
 extern "C" {
 
     void EXTI4_IRQHandler() {
@@ -38,7 +31,7 @@ extern "C" {
     DMA_STREAM_IRQ_HANDLER(1, 3, DMA1_Stream3_IRQn) // SPI 2 RX
     DMA_STREAM_IRQ_HANDLER(1, 0, DMA1_Stream0_IRQn) // SPI 3 RX
     
-    // DMA_STREAM_IRQ_HANDLER(2, 3, DMA2_Stream3_IRQn) // SPI 1 TX      // Not to be used, see below we have a custom ISR for this stream. 
+    DMA_STREAM_IRQ_HANDLER(2, 3, DMA2_Stream3_IRQn) // SPI 1 TX 
     DMA_STREAM_IRQ_HANDLER(1, 4, DMA1_Stream4_IRQn) // SPI 2 TX
     DMA_STREAM_IRQ_HANDLER(1, 5, DMA1_Stream5_IRQn) // SPI 3 TX
 
@@ -63,7 +56,6 @@ extern "C" {
             #endif
         }
     }
-
     void TIM3_IRQHandler() {
         if (TIM3->SR & TIM_SR_UIF) {
             TIM3->SR &= ~TIM_SR_UIF;
@@ -75,7 +67,7 @@ extern "C" {
             #endif            
         }
     }
-
+    
     // void TIM4_IRQHandler() { // SerialThread is disabled in this build. 
     //     if (TIM4->SR & TIM_SR_UIF) {
     //         TIM4->SR &= ~TIM_SR_UIF;
@@ -83,29 +75,6 @@ extern "C" {
     //     }
     // }
 
-    void SDIO_IRQHandler(void)
-    {
-        HAL_SD_IRQHandler(&hsd);
-    }
-
-    void DMA2_Stream3_IRQHandler(void)      // Special dual handler for handling clash between DMA use for SDIO TX and SPI RX. SDIO only needs to use the interrupt to read the file one time, after that it belongs to SPI1 if that's in use. 
-    {
-        uint8_t ch = (DMA2_Stream3->CR & DMA_SxCR_CHSEL) >> DMA_SxCR_CHSEL_Pos;
-
-        if (ch == SDIO_DMA_CHANNEL) {  // Call HAL for SDIO if this DMA is still active
-            HAL_DMA_IRQHandler(&hdma_sdio_rx);
-        }
-        else if (ch == SPI1_DMA_CHANNEL) { // Otherwise, this DMA IRQ has been requested by the SPI bus. 
-            Interrupt::InvokeHandler(DMA2_Stream3_IRQn);
-        }
-
-        //DMA2->HIFCR = DMA_LIFCR_CTCIF3; // unsure if this is needed, should be handled in our invoke handler? 
-    }
-
-    void DMA2_Stream6_IRQHandler(void)  // SDIO TX DMA IRQ
-    {
-        HAL_DMA_IRQHandler(&hdma_sdio_tx);
-    }
 } // extern "C"
 
 #endif // IRQ_HANDLERS_H

@@ -35,7 +35,5 @@ void delay_ms(uint32_t);
 void mass_erase_config_storage(void);
 void mass_erase_upload_storage(void);
 void mass_erase_flash_sector(uint32_t);
-HAL_StatusTypeDef safe_reset_SDIO(void);
-
 
 #endif

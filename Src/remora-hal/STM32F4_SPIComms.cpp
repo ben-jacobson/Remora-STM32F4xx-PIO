@@ -11,9 +11,6 @@ static void DMA_RxError_Callback(DMA_HandleTypeDef *hdma);
 static void DMA_TxCplt_Callback(DMA_HandleTypeDef *hdma);
 static void DMA_TxError_Callback(DMA_HandleTypeDef *hdma);
 
-// DELETE ME
-void dump_DMA2_Stream3_regs(void);
-
 volatile DMA_RxBuffer_t rxDMABuffer;
 volatile uint8_t STM32F4_SPIComms::RxDMAmemoryIdx = 0;
 
@@ -44,20 +41,11 @@ STM32F4_SPIComms::~STM32F4_SPIComms()
 }
 
 void STM32F4_SPIComms::init() {
+    HAL_Delay(100);  // Experienced some stability issues when initialising SPI so soon after SDIO has finished. Weird..
+
     printf("SPIComms Init\n");
 
     spiHandle.Instance = (SPI_TypeDef* )getSPIPeripheralName(mosiPinName, misoPinName, clkPinName);
-
-    if (spiHandle.Instance == SPI1)
-    {
-        // If using SPI1 for comms, there is an IRQ shared with the SDIO data transfer, resulting in a dirty stream. Nuke it before re-using it
-        printf("\n\nDMA2_3 regs pre DMA Cleanup\n"); // dELETE ME
-        dump_DMA2_Stream3_regs();     // DELETE ME
-
-        safe_reset_SDIO();
-        printf("\n\nDMA2_3 regs after DMA Cleanup\n"); // dELETE ME
-        dump_DMA2_Stream3_regs();     // DELETE ME
-    }
 
     initDMAClocks(spiHandle.Instance);  
     enableSPIClocks(spiHandle.Instance);
@@ -181,7 +169,7 @@ void STM32F4_SPIComms::initSPIDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_
     hdma_spi_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
     hdma_spi_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
     hdma_spi_rx.Init.Mode = DMA_CIRCULAR;
-    hdma_spi_rx.Init.Priority = DMA_PRIORITY_VERY_HIGH; //DMA_PRIORITY_LOW;
+    hdma_spi_rx.Init.Priority = DMA_PRIORITY_VERY_HIGH; 
     hdma_spi_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 
     if (HAL_DMA_Init(&hdma_spi_rx) != HAL_OK)
@@ -199,11 +187,9 @@ void STM32F4_SPIComms::initSPIDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_
     hdma_spi_tx.Init.MemInc = DMA_MINC_ENABLE;
     hdma_spi_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
     hdma_spi_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_spi_tx.Init.Mode = DMA_NORMAL; // The F4 family only supports double buffering on RX, so running TX in circular mode is problematic. 
-    hdma_spi_tx.Init.Priority = DMA_PRIORITY_HIGH;//DMA_PRIORITY_LOW;
+    hdma_spi_tx.Init.Mode = DMA_CIRCULAR;
+    hdma_spi_tx.Init.Priority = DMA_PRIORITY_HIGH;
     hdma_spi_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    hdma_spi_tx.Init.MemBurst = DMA_MBURST_SINGLE;      // Seems lik this could also help clear the hangover from SDIO
-    hdma_spi_tx.Init.PeriphBurst = DMA_PBURST_SINGLE;    
 
     if (HAL_DMA_Init(&hdma_spi_tx) != HAL_OK)
     {
@@ -239,7 +225,7 @@ HAL_StatusTypeDef STM32F4_SPIComms::startMultiBufferDMASPI(uint8_t *pTxBuffer,
                                                    uint16_t Size)
 {
     // Check Direction parameter 
-    assert_param(IS_SPI_DIRECTION_2LINES(spiHandle.Init.Direction));
+    // assert_param(IS_SPI_DIRECTION_2LINES(spiHandle.Init.Direction));
 
     if (spiHandle.State != HAL_SPI_STATE_READY)
     {
@@ -308,17 +294,14 @@ HAL_StatusTypeDef STM32F4_SPIComms::startMultiBufferDMASPI(uint8_t *pTxBuffer,
     hdma_spi_tx.XferHalfCpltCallback = [](DMA_HandleTypeDef *hdma) {};      // not needed;  
     hdma_spi_tx.XferCpltCallback = DMA_TxCplt_Callback; 
 
-    if (HAL_DMA_Start_IT(&hdma_spi_tx, (uint32_t)pTxBuffer, (uint32_t)&spiHandle.Instance->DR, Size) != HAL_OK) //  Preload first TX byte before starting DMA
+    if (HAL_DMA_Start_IT(&hdma_spi_tx, (uint32_t)pTxBuffer, (uint32_t)&spiHandle.Instance->DR, Size) != HAL_OK) 
     {
         printf("TX DMA SPI error\n");
         (void)HAL_DMA_Abort(&hdma_spi_tx);
         __HAL_UNLOCK(&spiHandle);
         return HAL_ERROR;
     }
-
-    printf("\n\nDMA2_3 regs after DMA start\n"); // dELETE ME
-    dump_DMA2_Stream3_regs();     // DELETE ME
-   
+  
     // Enable SPI periph and error interrupt 
     __HAL_SPI_ENABLE(&spiHandle);
     __HAL_SPI_ENABLE_IT(&spiHandle, SPI_IT_ERR); 
@@ -461,23 +444,3 @@ static void DMA_TxError_Callback(DMA_HandleTypeDef *hdma)
     HDMATXinterruptType = DMA_OTHER; 
     Error_Handler();
 }
-
-
-// DELETE ME
-void dump_DMA2_Stream3_regs(void) 
-{ // Dump the hardware registers
-    printf("=== DMA2 Stream 3 Registers ===\n");
-    printf("CR    : 0x%08lX\n", DMA2_Stream3->CR);
-    printf("NDTR  : 0x%08lX\n", DMA2_Stream3->NDTR);
-    printf("PAR   : 0x%08lX\n", DMA2_Stream3->PAR);
-    printf("M0AR  : 0x%08lX\n", DMA2_Stream3->M0AR);
-    printf("M1AR  : 0x%08lX\n", DMA2_Stream3->M1AR);
-    printf("FCR   : 0x%08lX\n", DMA2_Stream3->FCR);
-
-    printf("=== DMA2 Global Registers ===\n");
-    printf("LISR  : 0x%08lX\n", DMA2->LISR);
-    printf("HISR  : 0x%08lX\n", DMA2->HISR);
-    printf("LIFCR : 0x%08lX\n", DMA2->LIFCR);
-    printf("HIFCR : 0x%08lX\n", DMA2->HIFCR);
-}
-// to here
