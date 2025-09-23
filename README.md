@@ -2,12 +2,17 @@
 Port or Remora for STM32F4xx family, ported to use the latest Remora-Core abstraction layer.
 
 # Todos / Status
-- Network control code - Working - no known issues
 - JSON config loading - Working - no known issues
+- Ethernet Comms - in progress:
+    - Able to sync with LinuxCNC Component at full speed with an RPi5
+    - Can toggle estop in and out on
+    - Can run LinuxCNC test program
+    - Further testing required on joint command and feedback latency. 
 - SPI Comms - in progress:
-    - Current status:
-        - Able to toggle estop in and out on an Rpi5 at full speed. 
-        - Known issue are: mem2mem hangs indefinately, RX complete and Half complete seem to differ in implementation to H7 build, need to verify this.
+    - Able to sync with LinuxCNC Component at full speed with an RPi5
+    - Can toggle estop in and out on
+    - Can run LinuxCNC test program
+    - Further testing required on joint command and feedback latency. 
 - UART support - Working on both UART2 and UART3 peripherals, can be set in PlatformIO.ini for your build target. 
 - SDIO - Working - Tested on F446ZE and F446RE, able to load config from micro SD card.
 - Modules - in progress:
@@ -16,15 +21,14 @@ Port or Remora for STM32F4xx family, ported to use the latest Remora-Core abstra
     - Digital IO: Working - no known issues.
     - Analog Ins: Ported module and hardware implementation, but not yet tested.
     - Hardware PWM: Working - no known issues.
-    - Software PWM: to be ported in a future revision.
-    - QEI and Software encoder modules: to be ported in a future revision.
+    - Software PWM: To be ported in a future revision.
+    - QEI and Software encoder modules: To be ported in a future revision.
 - Linker scripts
     - F446RE - Working - no known issues.
     - F446ZE - Working - no known issues.
     - Octopus - Compiles but untested, proof of concept for build target support and integration of Bootloader only.
 - Adhoc todos: 
-    - ADC - refactor
-     the analog in to a class based handler from MSP init code to enable choices of analog inputs.
+    - ADC - refactor the analog in to a class based handler from MSP init code to enable choices of analog inputs.
 
 # Build instructions
 - In a new directory:
