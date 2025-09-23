@@ -77,7 +77,7 @@ public:
     void init(void);
     void start(void);
     void tasks(void);
-    void ProcessHeader(void);
+    void CheckHeader(void);
 };
 
 #endif
