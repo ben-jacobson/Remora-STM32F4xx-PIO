@@ -326,43 +326,13 @@ void STM32F4_SPIComms::handleNssInterrupt()
 
 void STM32F4_SPIComms::handleTxInterrupt()
 {
-    HAL_DMA_IRQHandler(&hdma_spi_tx);
+    HAL_DMA_IRQHandler(&hdma_spi_tx); // We can probably be rid of these now, instead of using Interrupt::InvokeHandler, can just run directly in the IRQ, see irqHandlers.h
 }
 
 void STM32F4_SPIComms::handleRxInterrupt()
 {
     // use default IRQ handler, note that interrupt type is set in the ISRs
     HAL_DMA_IRQHandler(&hdma_spi_rx);
-
-    // if (HDMARXinterruptType == DMA_HALF_TRANSFER)
-    // {
-    //     switch (ptrRxDMABuffer->buffer[RxDMAmemoryIdx].header)
-    //     {
-    //         case Config::pruRead:
-    //             // No action needed for PRU_READ.
-    //         	dataCallback(true);
-    //             break;
-
-    //         case Config::pruWrite:
-    //         	// Valid PRU_WRITE header, flag RX data transfer.
-    //         	dataCallback(true);
-    //         	newWriteData = true;
-    //             RXbufferIdx = RxDMAmemoryIdx;
-    //             break;
-
-    //         default:
-    //         	dataCallback(false);
-    //             break;
-    //     }
-    // }
-    // else if (HDMARXinterruptType == DMA_TRANSFER_COMPLETE) // Transfer complete interrupt
-    // {
-    //     // Placeholder for transfer complete handling if needed in the future.
-    // }
-    // else // Other interrupt sources
-    // {
-    //     printf("DMA SPI Rx error\n");
-    // }
 }
 
 void STM32F4_SPIComms::tasks() 

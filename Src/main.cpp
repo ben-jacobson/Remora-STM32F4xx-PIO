@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "remora-core/remora.h"
 
 #ifdef ETH_CTRL
-  #include "remora-hal/STM32F4_EthComms.h"
+    #include "remora-hal/STM32F4_EthComms.h"
 #else
     #include "remora-hal/STM32F4_SPIComms.h"
 #endif

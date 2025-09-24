@@ -1,5 +1,5 @@
 # Remora-STM32F4xx-PIO
-Port or Remora for STM32F4xx family, ported to use the latest Remora-Core abstraction layer.
+Port of Remora for STM32F4xx family of MCUs, using new Remora-Core abstraction.
 
 # Todos / Status
 - JSON config loading - Working - no known issues
