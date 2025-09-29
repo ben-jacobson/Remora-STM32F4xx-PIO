@@ -40,36 +40,22 @@ ENTRY(Reset_Handler)
 _estack = ORIGIN(RAM) + LENGTH(RAM); /* end of "RAM" Ram type memory */
 
 _Min_Heap_Size = 0x2000; /* required amount of heap */
-_Min_Stack_Size = 0x400; /* required amount of stack */
+_Min_Stack_Size = 0x800; /* additional stack required for SDIO */
 
 /* Flash sizes */
 _FLASH_TOTAL_SIZE = 512K;
-_FLASH_BOOTLOADER_SIZE = 32K;    /* Sector 0 and 1 reserved for Bootloader, technically just 16k is used and the other half is unused */
-_FLASH_JSON_UPLOAD_SIZE = 128K;
-_FLASH_JSON_STORAGE_SIZE = 128K;
-_PGM_FLASH_AVAILABLE = _FLASH_TOTAL_SIZE - _FLASH_BOOTLOADER_SIZE - _FLASH_JSON_UPLOAD_SIZE - _FLASH_JSON_STORAGE_SIZE;
+_FLASH_BOOTLOADER_SIZE = 32K;    /* Sector 0 and 1 reserved for Bootloader */
+_PGM_FLASH_AVAILABLE = _FLASH_TOTAL_SIZE - _FLASH_BOOTLOADER_SIZE;
 
 /* Memories definition */
 MEMORY
 {
   RAM    (xrw)        : ORIGIN = 0x20000000,    LENGTH = 128K
-  FLASH_BOOT    (rx)    : ORIGIN = 0x8000000,   LENGTH = _FLASH_BOOTLOADER_SIZE  
-  FLASH_PGM     (rx)    : ORIGIN = 0x8008000,   LENGTH = _PGM_FLASH_AVAILABLE
-  JSON_UPLOAD  (rx)   : ORIGIN = 0x08004000,    LENGTH = _FLASH_JSON_UPLOAD_SIZE    
-  JSON_STORAGE (rx)   : ORIGIN = 0x08008000,    LENGTH = _FLASH_JSON_STORAGE_SIZE    
-
+  FLASH_BOOT    (rx)    : ORIGIN = 0x08000000,   LENGTH = _FLASH_BOOTLOADER_SIZE  
+  FLASH_PGM     (rx)    : ORIGIN = 0x08008000,   LENGTH = _PGM_FLASH_AVAILABLE
 }
 
 _FLASH_VectorTable = ORIGIN(FLASH_PGM);
-
-_ls_json_upload_start = ORIGIN(JSON_UPLOAD);
-_ls_json_upload_end   = ORIGIN(JSON_UPLOAD) + LENGTH(JSON_UPLOAD);
-
-_ls_json_storage_start = ORIGIN(JSON_STORAGE);
-_ls_json_storage_end   = ORIGIN(JSON_STORAGE) + LENGTH(JSON_STORAGE);
-
-_ls_json_upload_sector  = 6;  /* 6U = FLASH_SECTOR_6 */
-_ls_json_storage_sector = 7;  /* 7U = FLASH_SECTOR_7 */
 
 /* Sections */
 SECTIONS
@@ -78,27 +64,9 @@ SECTIONS
   .isr_vector :
   {
     . = ALIGN(4);
-    _isr_vector_start = .;
     KEEP(*(.isr_vector)) /* Startup code */
     . = ALIGN(4);
-  } >FLASH_BOOT 
-
-  /* 2x JSON storage areas, one for uploading new flash, the other for persistent storage */  
-  .json_upload (NOLOAD) :
-  {
-      . = ALIGN(4);
-      KEEP(*(.json_upload))
-      KEEP(*(.json_upload.*))
-      . = ALIGN(4);
-  } >JSON_UPLOAD
-
-  .json_storage (NOLOAD) :
-  {
-      . = ALIGN(4);
-      KEEP(*(.json_storage))
-      KEEP(*(.json_storage.*))
-      . = ALIGN(4);
-  } >JSON_STORAGE
+  } >FLASH_PGM 
 
   /* The program code and other data into "FLASH" Rom type memory */
   .text :
