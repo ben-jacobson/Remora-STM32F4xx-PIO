@@ -6,60 +6,60 @@
             "Type": "Stepgen",
             "Comment": "X - Joint 0 step generator",
             "Joint Number": 0,
-            "Enable Pin": "PA_0",
-            "Step Pin": "PA_1",
-            "Direction Pin": "PC_2"
+            "Enable Pin": "PE_9",
+            "Step Pin": "PG_4",
+            "Direction Pin": "PG_7"
         },
         {
             "Thread": "Base",
             "Type": "Stepgen",
             "Comment": "Y - Joint 1 step generator",
             "Joint Number": 1,
-            "Enable Pin": "PA_8",            
-            "Step Pin": "PA_9",
-            "Direction Pin": "PA_10"
+            "Enable Pin": "PE_9",            
+            "Step Pin": "PG_6",
+            "Direction Pin": "PG_5"
         },
         {
             "Thread": "Base",
             "Type": "Stepgen",
             "Comment": "Z - Joint 2 step generator",
             "Joint Number": 2,
-            "Enable Pin": "PA_11",            
-            "Step Pin": "PA_12",
-            "Direction Pin": "PA_15"
+            "Enable Pin": "PE_9",            
+            "Step Pin": "PG_14",
+            "Direction Pin": "PF_12"
         },
         {
             "Thread": "Base",
             "Type": "Stepgen",
             "Comment": "A - Joint 3 step generator",
             "Joint Number": 3,
-            "Enable Pin": "PB_0",            
-            "Step Pin": "PB_1",
-            "Direction Pin": "PB_2"
+            "Enable Pin": "PE_9",            
+            "Step Pin": "PG_8",
+            "Direction Pin": "PE_0"
         },
         {
             "Thread": "Base",
             "Type": "Stepgen",
             "Comment": "B - Joint 4 step generator",
             "Joint Number": 4,
-            "Enable Pin": "PB_3",            
-            "Step Pin": "PB_4",
-            "Direction Pin": "PB_8"
+            "Enable Pin": "PE_9",            
+            "Step Pin": "PD_0",
+            "Direction Pin": "PD_1"
         },
         {
             "Thread": "Base",
             "Type": "Stepgen",
             "Comment": "C - Joint 5 step generator",
             "Joint Number": 5,
-            "Enable Pin": "PB_9",            
-            "Step Pin": "PB_10",
-            "Direction Pin": "PB_12"
+            "Enable Pin": "PE_9",            
+            "Step Pin": "PF_11",
+            "Direction Pin": "PF_15"
         },  
         {
             "Thread": "Servo",
             "Type": "Digital Pin",
             "Comment": "Input 0",
-            "Pin": "PB_13",
+            "Pin": "PF_6",
             "Mode": "Input",
             "Modifier": "Pull Up",
             "Data Bit": 0,
@@ -69,17 +69,157 @@
             "Thread": "Servo",
             "Type": "Digital Pin",
             "Comment": "Input 1",
-            "Pin": "PB_14",
+            "Pin": "PF_7",
             "Mode": "Input",
             "Modifier": "Pull Up",            
             "Data Bit": 1,
             "Invert": "False"
-        },          
+        },        
+        {
+            "Thread": "Servo",
+            "Type": "Digital Pin",
+            "Comment": "Input 2",
+            "Pin": "PA_15",
+            "Mode": "Input",
+            "Modifier": "Pull Up",            
+            "Data Bit": 2,
+            "Invert": "False"
+        },  
+        {
+            "Thread": "Servo",
+            "Type": "Digital Pin",
+            "Comment": "Input 3",
+            "Pin": "PB_7",
+            "Mode": "Input",
+            "Modifier": "Pull Up",            
+            "Data Bit": 3,
+            "Invert": "False"
+        },  
+        {
+            "Thread": "Servo",
+            "Type": "Digital Pin",
+            "Comment": "Input 4",
+            "Pin": "PC_13",
+            "Mode": "Input",
+            "Modifier": "Pull Up",            
+            "Data Bit": 4,
+            "Invert": "False"
+        },  
+        {
+            "Thread": "Servo",
+            "Type": "Digital Pin",
+            "Comment": "Input 5",
+            "Pin": "PC_14",
+            "Mode": "Input",
+            "Modifier": "Pull Up",            
+            "Data Bit": 5,
+            "Invert": "False"
+        },  
+        {
+            "Thread": "Servo",
+            "Type": "Digital Pin",
+            "Comment": "Input 6",
+            "Pin": "PC_15",
+            "Mode": "Input",
+            "Modifier": "Pull Up",            
+            "Data Bit": 6,
+            "Invert": "False"
+        },  
+        {
+            "Thread": "Servo",
+            "Type": "Digital Pin",
+            "Comment": "Input 7",
+            "Pin": "PA_0",
+            "Mode": "Input",
+            "Modifier": "Pull Up",            
+            "Data Bit": 7,
+            "Invert": "False"
+        },  
+        {
+            "Thread": "Servo",
+            "Type": "Digital Pin",
+            "Comment": "Input 8",
+            "Pin": "PH_0",
+            "Mode": "Input",
+            "Modifier": "Pull Up",            
+            "Data Bit": 8,
+            "Invert": "False"
+        },                                                  
+        {
+            "Thread": "Servo",
+            "Type": "Digital Pin",
+            "Comment": "Input 9",
+            "Pin": "PA_1",
+            "Mode": "Input",
+            "Modifier": "Pull Up",            
+            "Data Bit": 9,
+            "Invert": "False"
+        },  
+        {
+            "Thread": "Servo",
+            "Type": "Digital Pin",
+            "Comment": "Input 10",
+            "Pin": "PH_1",
+            "Mode": "Input",
+            "Modifier": "Pull Up",            
+            "Data Bit": 10,
+            "Invert": "False"
+        },  
+        {
+            "Thread": "Servo",
+            "Type": "Digital Pin",
+            "Comment": "Input 11",
+            "Pin": "PB_0",
+            "Mode": "Input",
+            "Modifier": "Pull Up",            
+            "Data Bit": 11,
+            "Invert": "False"
+        },  
+        {
+            "Thread": "Servo",
+            "Type": "Digital Pin",
+            "Comment": "Input 12",
+            "Pin": "PC_2",
+            "Mode": "Input",
+            "Modifier": "Pull Up",            
+            "Data Bit": 12,
+            "Invert": "False"
+        },  
+        {
+            "Thread": "Servo",
+            "Type": "Digital Pin",
+            "Comment": "Input 13",
+            "Pin": "PC_1",
+            "Mode": "Input",
+            "Modifier": "Pull Up",            
+            "Data Bit": 13,
+            "Invert": "False"
+        },  
+        {
+            "Thread": "Servo",
+            "Type": "Digital Pin",
+            "Comment": "Input 14",
+            "Pin": "PC_3",
+            "Mode": "Input",
+            "Modifier": "Pull Up",            
+            "Data Bit": 14,
+            "Invert": "False"
+        },  
+        {
+            "Thread": "Servo",
+            "Type": "Digital Pin",
+            "Comment": "Input 15",
+            "Pin": "PC_0",
+            "Mode": "Input",
+            "Modifier": "Pull Up",            
+            "Data Bit": 15,
+            "Invert": "False"
+        },  
         {
             "Thread": "Servo",
             "Type": "Digital Pin",
             "Comment": "Output 0",
-            "Pin": "PB_15",
+            "Pin": "PB_14",
             "Mode": "Output",          
             "Data Bit": 0
         },
@@ -87,32 +227,57 @@
             "Thread": "Servo",
             "Type": "Digital Pin",
             "Comment": "Output 1",
-            "Pin": "PC_0",
+            "Pin": "PB_15",
             "Mode": "Output",        
             "Data Bit": 1
+        },   
+        {
+            "Thread": "Servo",
+            "Type": "Digital Pin",
+            "Comment": "Output 2",
+            "Pin": "PB_1",
+            "Mode": "Output",          
+            "Data Bit": 2
         },
         {
             "Thread": "Servo",
-            "Type": "PWM",
-            "Comment":                      "PWM0",
-            "SP[i]":                        0,
-            "PWM Pin":                      "PA_8",
-            "Hardware PWM":                 "True",
-            "Variable Freq":                "True",
-            "Period SP[i]":                 1,
-            "Period us":                    400
+            "Type": "Digital Pin",
+            "Comment": "Output 3",
+            "Pin": "PB_2",
+            "Mode": "Output",          
+            "Data Bit": 3
         },
         {
             "Thread": "Servo",
-            "Type": "PWM",
-            "Comment":                      "PWM1",
-            "SP[i]":                        2,
-            "PWM Pin":                      "PA_9",
-            "PWM Max":                      192,
-            "Hardware PWM":                 "True",
-            "Variable Freq":                "False",
-            "Period SP[i]":                 3,            
-            "Period us":                    800
-        }                   
+            "Type": "Digital Pin",
+            "Comment": "Output 4",
+            "Pin": "PB_11",
+            "Mode": "Output",          
+            "Data Bit": 4
+        },
+        {
+            "Thread": "Servo",
+            "Type": "Digital Pin",
+            "Comment": "Output 5",
+            "Pin": "PB_12",
+            "Mode": "Output",          
+            "Data Bit": 5
+        },
+        {
+            "Thread": "Servo",
+            "Type": "Digital Pin",
+            "Comment": "Output 6",
+            "Pin": "PA_11",
+            "Mode": "Output",          
+            "Data Bit": 6
+        },
+        {
+            "Thread": "Servo",
+            "Type": "Digital Pin",
+            "Comment": "Output 7",
+            "Pin": "PA_12",
+            "Mode": "Output",          
+            "Data Bit": 7
+        }                           
     ]
 }
