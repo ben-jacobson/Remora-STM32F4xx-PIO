@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <sys/errno.h>
 
 #include "remora-core/remora.h"
+#include "remora-hal/board_led_status.h"
 
 #ifdef ETH_CTRL
     #include "remora-hal/STM32F4_EthComms.h"
@@ -42,7 +43,7 @@ void SystemClock_Config(void);
 static void MX_UART_Init(void);
 
 #ifdef SPI_CTRL
-static void MX_SDIO_SD_Init(void);
+    static void MX_SDIO_SD_Init(void);
 #endif
 
 //#define THREAD_DEBUG
@@ -72,11 +73,12 @@ int main(void)
 
     HAL_Init();
     SystemClock_Config();
+    init_board_status_led("PD_10");
     MX_UART_Init(); 
 
     #ifdef SPI_CTRL 
-    MX_SDIO_SD_Init(); 
-    MX_FATFS_Init(); 
+        MX_SDIO_SD_Init(); 
+        MX_FATFS_Init(); 
     #endif   
 
     HAL_Delay(2000); 
@@ -84,7 +86,7 @@ int main(void)
     printf("CPU Clock: %u...\n\n\r", HAL_RCC_GetSysClockFreq());    
 
     #ifdef THREAD_DEBUG
-    thread_debug = new Pin("PC_3", GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_VERY_HIGH, 0);
+        thread_debug = new Pin("PC_3", GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_VERY_HIGH, 0);
     #endif
 
     std::unique_ptr<CommsInterface> comms;
@@ -143,7 +145,8 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLR = 2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
-    Error_Handler();
+        flash_led_error(CRITICAL_HAL_ERROR);
+        Error_Handler();
   }
 
   /** Initializes the CPU, AHB and APB buses clocks
@@ -157,7 +160,8 @@ void SystemClock_Config(void)
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
   {
-    Error_Handler();
+        flash_led_error(CRITICAL_HAL_ERROR);
+        Error_Handler();
   }
 }
 
@@ -178,6 +182,7 @@ static void MX_UART_Init(void)
 
     if (HAL_UART_Init(&uart_handle) != HAL_OK)
     {
+        flash_led_error(CRITICAL_HAL_ERROR);
         Error_Handler();
     }
 }
@@ -194,6 +199,7 @@ static void MX_SDIO_SD_Init(void)
 
     if (HAL_SD_Init(&hsd) != HAL_OK)
     {
+        flash_led_error(SD_CARD_HW_ERROR);
         Error_Handler();
     }
 }

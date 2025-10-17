@@ -29,6 +29,8 @@ Port of Remora for STM32F4xx family of MCUs, using new Remora-Core abstraction.
     - Octopus - I don't have one of these boards, but I can upload the BTT bootloader onto an STM32 and upload and run firmware successfully
 - Adhoc todos: 
     - ADC - refactor the analog in to a class based handler from MSP init code to enable choices of analog inputs.
+    - Set up status LED as definable in platformIO.ini
+    
 
 # Build instructions
 - In a new directory:
