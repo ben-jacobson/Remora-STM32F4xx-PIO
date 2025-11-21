@@ -37,7 +37,8 @@ void STM32F4_EthComms::init(void) {
 
     spiHandle.Instance = (SPI_TypeDef* )getSPIPeripheralName(mosiPinName, misoPinName, clkPinName); // get the SPI handle from the list of GPIO used for Mosi, Miso, SCK
 
-    InitDMAIRQs(spiHandle.Instance);    // set up the IRQs for DMA triggering
+    //InitDMAIRQs(spiHandle.Instance); 
+    initDMAClocks(spiHandle.Instance);
     enableSPIClocks(spiHandle.Instance);
 
     printf("initialising SPI pins\n");

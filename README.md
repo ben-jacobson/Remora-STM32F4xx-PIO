@@ -3,18 +3,14 @@ Port of Remora for STM32F4xx family of MCUs, using new Remora-Core abstraction.
 
 # Todos / Status
 - JSON config loading - Working - no known issues
-- Ethernet Comms - in progress:
-    - Able to sync with LinuxCNC Component at full speed with an RPi5
-    - Can toggle estop in and out on
-    - Can run LinuxCNC test program
-    - Further testing required on joint command and feedback latency. 
+- Ethernet Comms - in progress:    
+    - Working, no issues experienced yet
+    - Todo: Set up a warning on the console out if the Ethernet is disconnected on startup
 - SPI Comms - in progress:
     - Able to sync with LinuxCNC Component at full speed with an RPi5
-    - Can toggle estop in and out on
-    - Can run LinuxCNC test program
-    - Further testing required on joint command and feedback latency. 
+    - Working but see issue below about follower errors during rapids. 
 - UART support - Working on both UART2 and UART3 peripherals, can be set in PlatformIO.ini for your build target. 
-- SDIO - Working - Tested on F446ZE and F446RE, able to load config from micro SD card.
+- SDIO - Working - Tested on F446ZE and F446RE, able to load config from micro SD card for SPI builds.
 - Modules - in progress:
     - Blinky: Working - no known issues.
     - Stepgen: Working - no known issues.
@@ -27,11 +23,12 @@ Port of Remora for STM32F4xx family of MCUs, using new Remora-Core abstraction.
     - F446RE - Working - no known issues.
     - F446ZE - Working - no known issues.
     - Octopus - I don't have one of these boards, but I can upload the BTT bootloader onto an STM32 and upload and run firmware successfully
+    - Fysect Spider - Will endeavour to set up a build option for this. 
 - Adhoc todos: 
     - ADC - refactor the analog in to a class based handler from MSP init code to enable choices of analog inputs.
+    - QEI and software encoders - port in
     - Set up status LED as definable in platformIO.ini
     
-
 # Build instructions
 - In a new directory:
     - git clone https://github.com/ben-jacobson/Remora-STM32F4xx-PIO .
@@ -155,7 +152,8 @@ Board will not start until ethernet connection is established.
 
 Credits to Scotta and Cakeslob and others that worked on Remora. Additional credit to Expatria Technologies and Terje IO. 
 
-# Known issues and more info on implementation
-- When using the SPI comms interface, the EXTI4 is not really configurable despite it being settable in platformio.ini. Some handlers in irqHandler.h have this hard coded in as GPIO_4, changing this may break the comms interface. Use of EXT4 (PA_4 CS line) with other SPI2/3 is yet to be tested.
+# Known issues and assorted notes
+- Using the SPI version of this firmware does work and have tested with a Raspberry Pi 5 with 8Gb of RAM. However, am seeing following errors during rapid movements. Cannot be sure if this is something to do with our SPI code, maybe the RPi isn't up to the task or could also be an issue with the SPI component. The workaround is to either lower max velocity of rapid moves, or raise the ferror value. Unsure if this is indicative of a bigger problem, more testing is required. The Ethernet config has been tested on a full sized PC, but a good test could be to connect via Ethernet from an RPi4 or 5 to see if the issue can be replicated there too. 
+- When using the SPI comms interface, the EXTI4 is not truly configurable despite it being settable in platformio.ini. Some handlers in irqHandler.h have this hard coded in as GPIO_4, changing this may break the comms interface. Use of EXT4 (PA_4 CS line) with other SPI2/3 is yet to be tested.
 - Noticed that STMHal makes heavy use of lock objects, not sure if keeping generic HAL Handlers as class members is going to work long term. See the Hardware PWM HAL code for more info on limitations, ideally each should be broken out as global objects so that the class can allocate shared resources. This issue may also creep up later with shared SPI and other handlers later on down the track
-- Lost packet detection in the W5500 Networking drivers only checks if new packets are loaded before handed over to the PRU. This works for now but could be improved later with a status check of Remora. 
+- Lost packet detection in the W5500 Networking drivers only checks if new packets are loaded before handed over to the PRU. This works for now but could be improved later with a status check of Remora. Have not noticed any issues with lost packets, just thinking ahead for example if there was ever a need to run the base thread faster than the recommended 40Khz. 
