@@ -57,6 +57,20 @@
         },  
         {
             "Thread": "Servo",
+            "Type": "Analog Pin",
+            "Comment": "Analog Input 0",
+            "PV[i]": "0",
+            "Pin": "PA_2"        
+        },  
+        {
+            "Thread": "Servo",
+            "Type": "Analog Pin",
+            "Comment": "Analog Input 1",
+            "PV[i]": "1",
+            "Pin": "PA_3"        
+        },          
+        {
+            "Thread": "Servo",
             "Type": "Digital Pin",
             "Comment": "Input 0",
             "Pin": "PF_6",

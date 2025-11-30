@@ -9,6 +9,8 @@
 #include "../peripheralPins.h"
 #include "../pin/pin.h"
 
+void enableADCClock(ADC_TypeDef* instance);
+uint32_t getADCChannelConstant(int channel);
 
 class AnalogIn {
 private:
@@ -18,19 +20,15 @@ private:
     uint16_t pin;
     PinName pinName;
     
-    ADC_HandleTypeDef handle;
     uint8_t channel;
     uint8_t differential;
 
     Pin* analogInPin;
-
-    static uint32_t getADCChannelConstant(int channel);
-    static void enableADCClock(ADC_TypeDef* adc);
+    ADC_HandleTypeDef* ptr_adc_handle = nullptr;
 
 public:
     AnalogIn(const std::string& portAndPin);
-    uint16_t read();
-
+    uint32_t read();
 };
 
 
