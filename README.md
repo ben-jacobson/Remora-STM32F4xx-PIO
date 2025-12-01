@@ -18,6 +18,7 @@ Port of Remora for STM32F4xx family of MCUs, using new Remora-Core abstraction.
     - Analog Ins: Ported module and hardware implementation, but not yet tested.
     - Hardware PWM: Working - no known issues.
     - Software PWM: To be ported in a future revision.
+    - Analog Input: Working - no known issues
     - QEI and Software encoder modules: To be ported in a future revision.
 - Linker scripts
     - F446RE - Working - no known issues.
@@ -25,7 +26,6 @@ Port of Remora for STM32F4xx family of MCUs, using new Remora-Core abstraction.
     - Octopus - I don't have one of these boards, but I can upload the BTT bootloader onto an STM32 and upload and run firmware successfully
     - Fysect Spider - Will endeavour to set up a build option for this. 
 - Adhoc todos: 
-    - ADC - refactor the analog in to a class based handler from MSP init code to enable choices of analog inputs.
     - QEI and software encoders - port in
     - Set up status LED as definable in platformIO.ini
     
@@ -72,6 +72,9 @@ Port of Remora for STM32F4xx family of MCUs, using new Remora-Core abstraction.
 # Allocation of Step Generators, IO and PWM
 Please refer to the Remora documentation to configure GPIO to perform various functions like stepgen, digital IO and PWM: https://remora-docs.readthedocs.io/en/latest/configuration/configuration.html
 Example config.txt files can be found in the LinuxCNC_Configs folder. 
+
+# Analog Inputs
+You may use the ADCs to read values from analog pins, this is useful for speed and feed override potentiomters. Have tested this only on PA_2 and PA_3 but theoretically all ADC enabled pins should work, provided they don't clash with other peripherals. It may allow for more than two, this is untested.
 
 # Hardware PWM
 Hardware PWM is available on a wide variety of pins depending on your hardware target. When setting up your config.txt file, you must choose a PWM enabled pin from the list provided. Specific STM32 Timers and Channels will been allocated by the driver automatically. Some important details about this: 
