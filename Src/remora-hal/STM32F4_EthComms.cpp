@@ -171,6 +171,7 @@ void STM32F4_EthComms::initSPIDMA(DMA_Stream_TypeDef* DMA_RX_Stream, DMA_Stream_
 }
 
 void STM32F4_EthComms::start(void) {
+    printf("Initializing Network. Ensure ethernet cable is plugged in\n");
     network::EthernetInit(this, csPin, rstPin);
 }
 

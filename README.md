@@ -5,7 +5,6 @@ Port of Remora for STM32F4xx family of MCUs, using new Remora-Core abstraction.
 - JSON config loading - Working - no known issues
 - Ethernet Comms - in progress:    
     - Working, no issues experienced yet
-    - Todo: Set up a warning on the console out if the Ethernet is disconnected on startup
 - SPI Comms - in progress:
     - Able to sync with LinuxCNC Component at full speed with an RPi5
     - Working but see issue below about follower errors during rapids. 
