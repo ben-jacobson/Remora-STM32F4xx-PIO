@@ -25,6 +25,7 @@ private:
 
     Pin* analogInPin;
     ADC_HandleTypeDef* ptr_adc_handle = nullptr;
+    ADC_ChannelConfTypeDef sConfig = {0};
 
 public:
     AnalogIn(const std::string& portAndPin);

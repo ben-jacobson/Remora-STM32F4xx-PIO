@@ -63,15 +63,6 @@ AnalogIn::AnalogIn(const std::string& portAndPin)
         if (HAL_ADC_Init(ptr_adc_handle) != HAL_OK) {
             printf("HAL_ADC_Init failed\n");
         }
-
-        // // Configure multimode for ADC1
-        // if (handle.Instance == ADC1) {
-        //     ADC_MultiModeTypeDef multimode = {0};
-        //     multimode.Mode = ADC_MODE_INDEPENDENT;
-        //     if (HAL_ADCEx_MultiModeConfigChannel(&handle, &multimode) != HAL_OK) {
-        //         printf("HAL_ADCEx_MultiModeConfigChannel failed\n");
-        //     }
-        // }
     }
 
     // start the ADC clock
@@ -80,22 +71,17 @@ AnalogIn::AnalogIn(const std::string& portAndPin)
     // initialise the GPIO
     analogInPin = new Pin(portAndPin, STM_PIN_FUNCTION(function));
 
-    // Start ADC
-    // if (HAL_ADC_Start(ptr_adc_handle) != HAL_OK) {
-    //     printf("HAL_ADC_Start failed\n");
-    // }    
-}
-
-uint32_t AnalogIn::read()
-{
-    // Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time
-    ADC_ChannelConfTypeDef sConfig = {0}; 
-
+    // Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time 
     sConfig.Channel = getADCChannelConstant(channel);
     sConfig.Rank = 1;
     sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
 
-    if (HAL_ADC_ConfigChannel(ptr_adc_handle, &sConfig) != HAL_OK)
+    read(); // do an initial read to finalise setup. 
+}
+
+uint32_t AnalogIn::read()
+{
+    if (HAL_ADC_ConfigChannel(ptr_adc_handle, &sConfig) != HAL_OK) // this really does need to be called every time. Perhaps if we swapped the ADC out for DMA transfers...
     {
         printf("HAL_ADC_ConfigChannel failed\n");
     }    
@@ -111,12 +97,6 @@ uint32_t AnalogIn::read()
         adcValue = HAL_ADC_GetValue(ptr_adc_handle);
     }
 
-    LL_ADC_SetCommonPathInternalCh(__LL_ADC_COMMON_INSTANCE(this->handle.Instance), LL_ADC_PATH_INTERNAL_NONE);
-
-    if (HAL_ADC_Stop(ptr_adc_handle) != HAL_OK) {
-        printf("HAL_ADC_Stop failed\n");
-    }
-
     return adcValue;
 }
 
@@ -124,11 +104,16 @@ uint32_t AnalogIn::read()
 
 void enableADCClock(ADC_TypeDef* instance)
 {
-    if (instance == ADC1 || instance == ADC2) {
+    if (instance == ADC1) { 
+        __HAL_RCC_ADC1_CLK_ENABLE();
+    }    
+    else if (instance == ADC2) {
         __HAL_RCC_ADC2_CLK_ENABLE();
-    } else if (instance == ADC3) {
+    } 
+    else if (instance == ADC3) {
         __HAL_RCC_ADC3_CLK_ENABLE();
-    } else {
+    } 
+    else {
         printf("Unknown ADC instance\n");
     }
 }
