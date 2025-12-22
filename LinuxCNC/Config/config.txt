@@ -292,6 +292,16 @@
             "Pin": "PA_11",
             "Mode": "Output",          
             "Data Bit": 7
-        }                           
+        },    
+        {
+            "Thread": "Servo",
+            "Type": "PWM",
+            "Comment":                      "Spindle PWM 0",
+            "SP[i]":                        0,
+            "PWM Pin":                      "PD_12",
+            "Hardware PWM":                 "True",
+            "Variable Freq":                "False",
+            "Period us":                    100
+        }
     ]
 }

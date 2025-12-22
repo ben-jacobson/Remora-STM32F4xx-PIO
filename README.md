@@ -106,7 +106,7 @@ PWM compatible pins for smaller F446xx target are:
 Additional pins for larger F4 boards like the F446ZE
 | Pin   | Timer | Channel | Notes                    | Tested?     |
 |-------|-------|---------|--------------------------|-------------|
-| PD_12 | TIM4  | CH1     |                          | Untested    |
+| PD_12 | TIM4  | CH1     |                          | Working     |
 | PD_13 | TIM4  | CH2     |                          | Untested    |
 | PD_14 | TIM4  | CH3     |                          | Untested    |
 | PD_15 | TIM4  | CH4     |                          | Untested    |
