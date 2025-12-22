@@ -6,6 +6,7 @@
 
 #include "stm32f4xx_hal.h"
 #include "../hal_utils.h"
+#include "../shared_handlers.h"
 
 #define DEFAULT_PWMPERIOD 200
 

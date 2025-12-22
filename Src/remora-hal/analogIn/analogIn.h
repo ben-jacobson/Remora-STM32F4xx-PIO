@@ -8,6 +8,7 @@
 #include "../PinNamesTypes.h"
 #include "../peripheralPins.h"
 #include "../pin/pin.h"
+#include "../shared_handlers.h"
 
 void enableADCClock(ADC_TypeDef* instance);
 uint32_t getADCChannelConstant(int channel);

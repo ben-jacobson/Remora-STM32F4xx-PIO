@@ -245,7 +245,7 @@
             "Thread": "Servo",
             "Type": "Digital Pin",
             "Comment": "Output 4",
-            "Pin": "PA_8",
+            "Pin": "PB_4",
             "Mode": "Output",          
             "Data Bit": 4
         },
@@ -253,7 +253,7 @@
             "Thread": "Servo",
             "Type": "Digital Pin",
             "Comment": "Output 5",
-            "Pin": "PA_9",
+            "Pin": "PB_10",
             "Mode": "Output",          
             "Data Bit": 5
         },

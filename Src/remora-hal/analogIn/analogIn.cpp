@@ -1,19 +1,6 @@
 #include "analogIn.h"
 #include <cstdio>
 
-ADC_HandleTypeDef hadc1, hadc2, hadc3;
-
-static ADC_HandleTypeDef* get_shared_handle(ADC_TypeDef* instance) 
-{
-    if (instance == ADC1) 
-        return &hadc1;
-    if (instance == ADC2) 
-        return &hadc2;
-    if (instance == ADC3)
-        return &hadc3;
-    return nullptr; // catch all
-}
-
 AnalogIn::AnalogIn(const std::string& portAndPin) 
     : portAndPin(portAndPin)
 {
@@ -31,7 +18,7 @@ AnalogIn::AnalogIn(const std::string& portAndPin)
 
     // Get ADC instance
     ADC_TypeDef* adc_instance = (ADC_TypeDef *)pinmap_peripheral(pinName, PinMap_ADC);
-    ptr_adc_handle = get_shared_handle(adc_instance);
+    ptr_adc_handle = get_shared_adc_handle(adc_instance);
 
     if (ptr_adc_handle == nullptr) 
     {

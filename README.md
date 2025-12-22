@@ -91,8 +91,8 @@ Hardware PWM is available on a wide variety of pins depending on your hardware t
 PWM compatible pins for smaller F446xx target are:
 | Pin   | Timer | Channel | Notes                    | Tested?     |
 |-------|-------|---------|--------------------------|-------------|
-| PA_8  | TIM1  | CH1     |                          | Working     |
-| PA_9  | TIM1  | CH2     |                          | Working     |
+| PA_8  | TIM1  | CH1     | Will clash if using QEI  | Working     |
+| PA_9  | TIM1  | CH2     | Will clash if using QEI  | Working     |
 | PA_10 | TIM1  | CH3     |                          | Working     |
 | PA_11 | TIM1  | CH4     |                          | Working     |
 | PB_0  | TIM1  | CH2N    | Inverted PA_9            | Working     |
