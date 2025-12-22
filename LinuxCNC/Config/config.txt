@@ -212,26 +212,6 @@
         {
             "Thread": "Servo",
             "Type": "Digital Pin",
-            "Comment": "Input 14",
-            "Pin": "PD_5",
-            "Mode": "Input",
-            "Modifier": "Pull Up",            
-            "Data Bit": 14,
-            "Invert": "False"
-        },  
-        {
-            "Thread": "Servo",
-            "Type": "Digital Pin",
-            "Comment": "Input 15",
-            "Pin": "PG_2",
-            "Mode": "Input",
-            "Modifier": "Pull Up",            
-            "Data Bit": 15,
-            "Invert": "False"
-        },  
-        {
-            "Thread": "Servo",
-            "Type": "Digital Pin",
             "Comment": "Output 0",
             "Pin": "PB_13",
             "Mode": "Output",          
@@ -302,6 +282,17 @@
             "Hardware PWM":                 "True",
             "Variable Freq":                "False",
             "Period us":                    100
-        }
+        },
+        {
+            "Thread": "Base",
+            "Type": "Encoder",
+            "Comment":                      "Test Encoder",
+            "ChA Pin":                      "PD_5",
+            "ChB Pin":                      "PG_2",
+            "Modifier":                     "Pull Up",
+            "PV[i]":                        2,
+            "Data Bit":                     14,
+            "Index Pin":                    ""
+        }         
     ]
 }
