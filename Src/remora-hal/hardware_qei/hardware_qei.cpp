@@ -1,64 +1,53 @@
 #include "hardware_qei.h"
 
-hardware_qei::hardware_qei(bool _hasIndex) :
+Hardware_QEI::Hardware_QEI(bool _hasIndex, int _modifier) :
     hasIndex(_hasIndex),
+    modifier(_modifier)
 {
     this->init();
 
     if (hasIndex) 
     {
         indexPortAndPin = "PC_7";
-        indexPin = new Pin(indexPortAndPin, GPIO_MODE_IT_RISING, GPIO_PULLUP, GPIO_SPEED_FREQ_HIGH, 0);
+        indexPin = new Pin(indexPortAndPin, GPIO_MODE_IT_RISING, modifier, GPIO_SPEED_FREQ_HIGH, 0);  
 
         irqIndex = EXTI9_5_IRQn;
 
-        IndexInterrupt = new ModuleInterrupt<hardware_qei>      // How do we set this to trigger only on rise? 
+        IndexInterrupt = new ModuleInterrupt<Hardware_QEI>
         (
             irqIndex,
             this,
-            &hardware_qei::handleIndexInterrupt
+            &Hardware_QEI::handleIndexInterrupt
         );        
 
-        // Need to configure interrupt in irqHandler.h. Assumed boiler plate in there for now.
-
-        HAL_NVIC_SetPriority(this->irqIndex, 0, 0);
+        HAL_NVIC_SetPriority(this->irqIndex, Config::qeiIndexPriority, 0); 
         HAL_NVIC_EnableIRQ(this->irqIndex);        
     }
 }
 
-void hardware_qei::handleIndexInterrupt()
+void Hardware_QEI::handleIndexInterrupt()
 {
     this->indexDetected = true;
     this->indexCount = this->get();
 }
 
-uint32_t hardware_qei::get()
+uint32_t Hardware_QEI::get()
 {
     return __HAL_TIM_GET_COUNTER(ptrTimHandler);
 }
 
-void hardware_qei::init()
+void Hardware_QEI::init()
 {
     printf("  Initialising hardware QEI module\n");
-    // TODO - replace with Remora GPIO initilasation. 
-    GPIO_InitTypeDef GPIO_InitStruct = {0};
 
     __HAL_RCC_TIM1_CLK_ENABLE();
-    __HAL_RCC_GPIOA_CLK_ENABLE();
 
-    /**TIM1 GPIO Configuration
-    PA8     ------> TIM1_CH1
-    PA9     ------> TIM1_CH2
-    */
+    chAPortAndPin = "PA_8";
+    chBPortAndPin = "PA_9";
 
-    GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF1_TIM1;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    chAPin = new Pin(chAPortAndPin, GPIO_MODE_AF_PP, modifier, GPIO_SPEED_FREQ_HIGH, GPIO_AF1_TIM1);
+    chBPin = new Pin(chBPortAndPin, GPIO_MODE_AF_PP, modifier, GPIO_SPEED_FREQ_HIGH, GPIO_AF1_TIM1);
 
-    // Set up the timers
     ptrTimHandler->Instance = TIM1;
 
     ptrTimHandler->Init.Prescaler = 0;
@@ -91,7 +80,6 @@ void hardware_qei::init()
     {
         Error_Handler();
     }
-
 
     if (HAL_TIM_Encoder_Start(ptrTimHandler, TIM_CHANNEL_2)!=HAL_OK)
     {

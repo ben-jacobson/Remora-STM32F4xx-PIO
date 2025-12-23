@@ -14,18 +14,17 @@ Port of Remora for STM32F4xx family of MCUs, using new Remora-Core abstraction.
     - Blinky: Working - no known issues.
     - Stepgen: Working - no known issues.
     - Digital IO: Working - no known issues.
-    - Analog Ins: Ported module and hardware implementation, but not yet tested.
+    - Analog Ins: Working - no known issues. 
     - Hardware PWM: Working - no known issues.
     - Software PWM: To be ported in a future revision.
-    - Analog Input: Working - no known issues
-    - QEI and Software encoder modules: To be ported in a future revision.
+    - Software encoders: Working - no known issues
+    - QEI: WIP
 - Linker scripts
     - F446RE - Working - no known issues.
     - F446ZE - Working - no known issues.
     - Octopus - I don't have one of these boards, but I can upload the BTT bootloader onto an STM32 and upload and run firmware successfully
     - Fysect Spider - Will endeavour to set up a build option for this. 
 - Adhoc todos: 
-    - QEI and software encoders - port in
     - Set up status LED as definable in platformIO.ini
     
 # Build instructions
@@ -67,6 +66,12 @@ Port of Remora for STM32F4xx family of MCUs, using new Remora-Core abstraction.
 - SDIO_D3: PC_11  
 - SDIO_CLK: PC_12  
 - SDIO_CMD: PD_2  
+
+# Quadrature Encoder Interface (QEI)
+Remora has a dedicated hardware quadrature encoder module useful for high speed applications such as spindles or very high resolution encoders. Please note that this uses specific hardwired pins and two channels of one of the timer interfaces which may interfere with other features such as PWM outputs or analog inputs. These pins will not be effected if you do not include QEI in your config.txt 
+- CHA: PA_8
+- CHB: PA_9
+- Z/Index: PC_7
 
 # Allocation of Step Generators, IO and PWM
 Please refer to the Remora documentation to configure GPIO to perform various functions like stepgen, digital IO and PWM: https://remora-docs.readthedocs.io/en/latest/configuration/configuration.html
@@ -155,7 +160,6 @@ Board will not start until ethernet connection is established.
 Credits to Scotta and Cakeslob and others that worked on Remora. Additional credit to Expatria Technologies and Terje IO. 
 
 # Known issues and assorted notes
-- Please note that the Quadrature Encoder Interface (QEI) uses specific hardwired pins and two channels of one of the timer interfaces. Specific details of what is used is listed above, you can freely use these pins for other purposes if you are not using the QEI. 
 - Using the SPI version of this firmware does work and have tested with a Raspberry Pi 5 with 8Gb of RAM. However, am seeing following errors during rapid movements. Cannot be sure if this is something to do with our SPI code, maybe the RPi isn't up to the task or could also be an issue with the SPI component. The workaround is to either lower max velocity of rapid moves, or raise the ferror value. Unsure if this is indicative of a bigger problem, more testing is required. The Ethernet config has been tested on a full sized PC, but a good test could be to connect via Ethernet from an RPi4 or 5 to see if the issue can be replicated there too. 
 - When using the SPI comms interface, the EXTI4 is not truly configurable despite it being settable in platformio.ini. Some handlers in irqHandler.h have this hard coded in as GPIO_4, changing this may break the comms interface. Use of EXT4 (PA_4 CS line) with other SPI2/3 is yet to be tested.
 - Noticed that STMHal makes heavy use of lock objects, not sure if keeping generic HAL Handlers as class members is going to work long term. See the Hardware PWM HAL code for more info on limitations, ideally each should be broken out as global objects so that the class can allocate shared resources. This issue may also creep up later with shared SPI and other handlers later on down the track

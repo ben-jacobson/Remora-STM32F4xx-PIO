@@ -2,30 +2,36 @@
 #define QEIDRIVER_H
 
 #include "stm32f4xx_hal.h"
+#include "../../remora-core/configuration.h"
 #include "../../remora-core/modules/moduleInterrupt.h"
 #include "../hal_utils.h"
 #include "../shared_handlers.h"
 
-class hardware_qei
+class Hardware_QEI
 {
     private:
         TIM_HandleTypeDef*              ptrTimHandler = nullptr;
 
         IRQn_Type 		                irqIndex;       
-    	ModuleInterrupt<hardware_qei>*	IndexInterrupt;
+    	ModuleInterrupt<Hardware_QEI>*	IndexInterrupt;
 
         std::string                     indexPortAndPin;
-        PinName                         indexPinName;
+        std::string                     chAPortAndPin;
+        std::string                     chBPortAndPin;
         Pin*                            indexPin;
-        
+        Pin*                            chAPin;
+        Pin*                            chBPin;
+
         bool                            hasIndex;
-        bool                            indexDetected;
-        int32_t                         indexCount;
+        int                             modifier; 
 
         void handleIndexInterrupt(void);
 
     public:
-        hardware_qei(bool _hasIndex); 
+        bool                            indexDetected;
+        int32_t                         indexCount;
+
+        Hardware_QEI(bool _hasIndex, int _modifier); 
         void init(void);
         uint32_t get(void);
 };

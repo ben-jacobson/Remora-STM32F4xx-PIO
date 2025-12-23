@@ -283,14 +283,14 @@
             "Variable Freq":                "False",
             "Period us":                    100
         },
-        {
-            "Thread": "Base",
-            "Type": "Encoder",
-            "Comment":                      "Test Encoder",
-            "ChA Pin":                      "PD_5",
-            "ChB Pin":                      "PG_2",
+        {     
+            "Thread": "Servo",
+            "Type": "QEI",
+            "Comment":                      "Spindle encoder",
             "Modifier":                     "Pull Up",
-            "PV[i]":                        2
+            "PV[i]":                        2,
+            "Data Bit":                     14,
+            "Enable Index":                 "True"            
         }            
     ]
 }

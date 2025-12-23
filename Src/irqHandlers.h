@@ -21,7 +21,6 @@ extern "C" {
         }
     }
 
-
     void EXTI9_5_IRQHandler(void) // For QEI, hardwired to use PC_7 (EXTI7) for index. 
     {
         if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_7) != RESET) {
