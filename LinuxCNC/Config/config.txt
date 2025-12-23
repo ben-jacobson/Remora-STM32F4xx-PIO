@@ -290,9 +290,7 @@
             "ChA Pin":                      "PD_5",
             "ChB Pin":                      "PG_2",
             "Modifier":                     "Pull Up",
-            "PV[i]":                        2,
-            "Data Bit":                     14,
-            "Index Pin":                    ""
-        }         
+            "PV[i]":                        2
+        }            
     ]
 }
