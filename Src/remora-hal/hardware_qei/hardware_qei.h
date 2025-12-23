@@ -7,6 +7,10 @@
 #include "../hal_utils.h"
 #include "../shared_handlers.h"
 
+#define QEI_TIMER_INSTANCE      TIM1
+#define QEI_TIM_CLK_ENABLE      __HAL_RCC_TIM1_CLK_ENABLE
+#define QEI_ALT                 GPIO_AF1_TIM1
+
 class Hardware_QEI
 {
     private:
@@ -15,9 +19,10 @@ class Hardware_QEI
         IRQn_Type 		                irqIndex;       
     	ModuleInterrupt<Hardware_QEI>*	IndexInterrupt;
 
-        std::string                     indexPortAndPin;
-        std::string                     chAPortAndPin;
-        std::string                     chBPortAndPin;
+        std::string                     indexPortAndPin = "PC_7";
+        std::string                     chAPortAndPin = "PA_8";
+        std::string                     chBPortAndPin = "PA_9";
+
         Pin*                            indexPin;
         Pin*                            chAPin;
         Pin*                            chBPin;

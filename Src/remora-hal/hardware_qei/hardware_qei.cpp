@@ -4,11 +4,10 @@ Hardware_QEI::Hardware_QEI(bool _hasIndex, int _modifier) :
     hasIndex(_hasIndex),
     modifier(_modifier)
 {
-    this->init();
+    init();
 
     if (hasIndex) 
     {
-        indexPortAndPin = "PC_7";
         indexPin = new Pin(indexPortAndPin, GPIO_MODE_IT_RISING, modifier, GPIO_SPEED_FREQ_HIGH, 0);  
 
         irqIndex = EXTI9_5_IRQn;
@@ -20,15 +19,15 @@ Hardware_QEI::Hardware_QEI(bool _hasIndex, int _modifier) :
             &Hardware_QEI::handleIndexInterrupt
         );        
 
-        HAL_NVIC_SetPriority(this->irqIndex, Config::qeiIndexPriority, 0); 
-        HAL_NVIC_EnableIRQ(this->irqIndex);        
+        HAL_NVIC_SetPriority(irqIndex, Config::qeiIndexPriority, 0); 
+        HAL_NVIC_EnableIRQ(irqIndex);        
     }
 }
 
 void Hardware_QEI::handleIndexInterrupt()
 {
-    this->indexDetected = true;
-    this->indexCount = this->get();
+    indexDetected = true;
+    indexCount = get();
 }
 
 uint32_t Hardware_QEI::get()
@@ -40,16 +39,13 @@ void Hardware_QEI::init()
 {
     printf("  Initialising hardware QEI module\n");
 
-    __HAL_RCC_TIM1_CLK_ENABLE();
+    QEI_TIM_CLK_ENABLE();
 
-    chAPortAndPin = "PA_8";
-    chBPortAndPin = "PA_9";
+    chAPin = new Pin(chAPortAndPin, GPIO_MODE_AF_PP, modifier, GPIO_SPEED_FREQ_HIGH, QEI_ALT);
+    chBPin = new Pin(chBPortAndPin, GPIO_MODE_AF_PP, modifier, GPIO_SPEED_FREQ_HIGH, QEI_ALT);
 
-    chAPin = new Pin(chAPortAndPin, GPIO_MODE_AF_PP, modifier, GPIO_SPEED_FREQ_HIGH, GPIO_AF1_TIM1);
-    chBPin = new Pin(chBPortAndPin, GPIO_MODE_AF_PP, modifier, GPIO_SPEED_FREQ_HIGH, GPIO_AF1_TIM1);
-
-    ptrTimHandler->Instance = TIM1;
-
+    ptrTimHandler = get_shared_tim_handle(QEI_TIMER_INSTANCE);
+    ptrTimHandler->Instance = QEI_TIMER_INSTANCE;
     ptrTimHandler->Init.Prescaler = 0;
     ptrTimHandler->Init.CounterMode = TIM_COUNTERMODE_UP;
     ptrTimHandler->Init.Period = 65535;
