@@ -21,10 +21,10 @@ extern "C" {
         }
     }
 
-    void EXTI9_5_IRQHandler(void) // For QEI, hardwired to use PC_7 (EXTI7) for index. 
+    void EXTI9_5_IRQHandler(void) // For QEI, hardwired to use PA_8 (EXTI8) for index. 
     {
-        if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_7) != RESET) {
-            __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_7);
+        if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_8) != RESET) {
+            __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_8);
             Interrupt::InvokeHandler(EXTI9_5_IRQn);
         }        
     }    

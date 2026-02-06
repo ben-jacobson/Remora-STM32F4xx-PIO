@@ -32,7 +32,7 @@ void Hardware_QEI::handleIndexInterrupt()
 
 uint32_t Hardware_QEI::get()
 {
-    return __HAL_TIM_GET_COUNTER(ptrTimHandler);
+    return __HAL_TIM_GET_COUNTER(ptrTimHandler) >> PULSE_DIVIDER;
 }
 
 void Hardware_QEI::init()

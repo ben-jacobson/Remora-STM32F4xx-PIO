@@ -18,7 +18,7 @@ Port of Remora for STM32F4xx family of MCUs, using new Remora-Core abstraction.
     - Hardware PWM: Working - no known issues.
     - Software PWM: To be ported in a future revision.
     - Software encoders: Working - no known issues
-    - QEI: WIP
+    - QEI: Working as expected - however speed testing have not yet tested for speed
 - Linker scripts
     - F446RE - Working - no known issues.
     - F446ZE - Working - no known issues.
@@ -69,9 +69,9 @@ Port of Remora for STM32F4xx family of MCUs, using new Remora-Core abstraction.
 
 # Quadrature Encoder Interface (QEI)
 Remora has a dedicated hardware quadrature encoder module useful for high speed applications such as spindles or very high resolution encoders. Please note that this uses specific hardwired pins and two channels of one of the timer interfaces which may interfere with other features such as PWM outputs or analog inputs. These pins will not be effected if you do not include QEI in your config.txt 
-- CHA: PA_8
-- CHB: PA_9
-- Z/Index: PC_7
+- CHA: PC_6
+- CHB: PC_7
+- Z/Index: PA_8
 
 # Allocation of Step Generators, IO and PWM
 Please refer to the Remora documentation to configure GPIO to perform various functions like stepgen, digital IO and PWM: https://remora-docs.readthedocs.io/en/latest/configuration/configuration.html

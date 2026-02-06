@@ -7,9 +7,10 @@
 #include "../hal_utils.h"
 #include "../shared_handlers.h"
 
-#define QEI_TIMER_INSTANCE      TIM1
-#define QEI_TIM_CLK_ENABLE      __HAL_RCC_TIM1_CLK_ENABLE
-#define QEI_ALT                 GPIO_AF1_TIM1
+#define QEI_TIMER_INSTANCE      TIM8
+#define QEI_TIM_CLK_ENABLE      __HAL_RCC_TIM8_CLK_ENABLE
+#define QEI_ALT                 GPIO_AF3_TIM8
+#define PULSE_DIVIDER           2       // QEI counts on every rise and fall, but to correct for actual PPR, needs to be >> 2, divide by 4. 
 
 class Hardware_QEI
 {
@@ -19,9 +20,9 @@ class Hardware_QEI
         IRQn_Type 		                irqIndex;       
     	ModuleInterrupt<Hardware_QEI>*	IndexInterrupt;
 
-        std::string                     indexPortAndPin = "PC_7";
-        std::string                     chAPortAndPin = "PA_8";
-        std::string                     chBPortAndPin = "PA_9";
+        std::string                     chAPortAndPin = "PC_6";
+        std::string                     chBPortAndPin = "PC_7";
+        std::string                     indexPortAndPin = "PA_8";
 
         Pin*                            indexPin;
         Pin*                            chAPin;
