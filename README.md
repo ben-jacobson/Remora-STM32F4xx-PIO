@@ -1,10 +1,9 @@
 # Remora-STM32F4xx-PIO
 Port of Remora for STM32F4xx family of MCUs, using new Remora-Core abstraction.
 
-# Todos / Status
+# Status and Todos
 - JSON config loading - Working - no known issues
-- Ethernet Comms - in progress:    
-    - Working, no issues experienced yet
+- Ethernet Comms - Working - no known issues
 - SPI Comms - in progress:
     - Able to sync with LinuxCNC Component at full speed with an RPi5
     - Working but see issue below about follower errors during rapids. 
@@ -17,12 +16,12 @@ Port of Remora for STM32F4xx family of MCUs, using new Remora-Core abstraction.
     - Analog Ins: Working - no known issues. 
     - Hardware PWM: Working - no known issues.
     - Software PWM: To be ported in a future revision.
-    - Software encoders: Working - no known issues
-    - QEI: Working as expected - however speed testing have not yet tested for speed
+    - Software encoders: Working - no known issues.
+    - QEI: Working as expected but not yet stress tested. 
 - Linker scripts
     - F446RE - Working - no known issues.
     - F446ZE - Working - no known issues.
-    - Octopus - I don't have one of these boards, but I can upload the BTT bootloader onto an STM32 and upload and run firmware successfully
+    - Octopus - Don't have access to one of these boards, but the firmware does build for it. Reach out if you want to complete this build with me.
     - Fysect Spider - Will endeavour to set up a build option for this. 
 - Adhoc todos: 
     - Set up status LED as definable in platformIO.ini
@@ -160,6 +159,7 @@ Board will not start until ethernet connection is established.
 Credits to Scotta and Cakeslob and others that worked on Remora. Additional credit to Expatria Technologies and Terje IO. 
 
 # Known issues and assorted notes
+- When using the Ethernet Comms, if you attempt to load a config before the unit has transitioned past the Start state, it can lock up.
 - Using the SPI version of this firmware does work and have tested with a Raspberry Pi 5 with 8Gb of RAM. However, am seeing following errors during rapid movements. Cannot be sure if this is something to do with our SPI code, maybe the RPi isn't up to the task or could also be an issue with the SPI component. The workaround is to either lower max velocity of rapid moves, or raise the ferror value. Unsure if this is indicative of a bigger problem, more testing is required. The Ethernet config has been tested on a full sized PC, but a good test could be to connect via Ethernet from an RPi4 or 5 to see if the issue can be replicated there too. 
 - When using the SPI comms interface, the EXTI4 is not truly configurable despite it being settable in platformio.ini. Some handlers in irqHandler.h have this hard coded in as GPIO_4, changing this may break the comms interface. Use of EXT4 (PA_4 CS line) with other SPI2/3 is yet to be tested.
 - Noticed that STMHal makes heavy use of lock objects, not sure if keeping generic HAL Handlers as class members is going to work long term. See the Hardware PWM HAL code for more info on limitations, ideally each should be broken out as global objects so that the class can allocate shared resources. This issue may also creep up later with shared SPI and other handlers later on down the track
