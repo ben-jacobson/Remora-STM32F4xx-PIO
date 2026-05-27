@@ -222,16 +222,7 @@ uint8_t STM32F4_EthComms::read_byte(void)
 {
 	spiHandle.Instance->DR = 0xFF; // Writing dummy data into Data register
     while(!__HAL_SPI_GET_FLAG(&spiHandle, SPI_FLAG_RXNE));
-    return (uint8_t)spiHandle.Instance->DR;
-    
-    // uint8_t tx = 0xFF;
-    // uint8_t rx = 0;
-
-    // if (HAL_SPI_TransmitReceive(&spiHandle, &tx, &rx, 1, HAL_MAX_DELAY) != HAL_OK) {
-    //     Error_Handler();
-    // }
-
-    // return rx;    
+    return (uint8_t)spiHandle.Instance->DR;   
 }
 
 uint8_t STM32F4_EthComms::write_byte(uint8_t byte)
@@ -240,15 +231,7 @@ uint8_t STM32F4_EthComms::write_byte(uint8_t byte)
     while(!__HAL_SPI_GET_FLAG(&spiHandle, SPI_FLAG_TXE));
     while(!__HAL_SPI_GET_FLAG(&spiHandle, SPI_FLAG_RXNE));
     __HAL_SPI_CLEAR_OVRFLAG(&spiHandle);
-    return (uint8_t)spiHandle.Instance->DR;
-
-    // uint8_t rx = 0;
-
-    // if (HAL_SPI_TransmitReceive(&spiHandle, &byte, &rx, 1, HAL_MAX_DELAY) != HAL_OK) {
-    //     Error_Handler();
-    // }
-
-    // return rx;    
+    return (uint8_t)spiHandle.Instance->DR; 
 }
 
 void STM32F4_EthComms::DMA_write(uint8_t *data, uint16_t len)

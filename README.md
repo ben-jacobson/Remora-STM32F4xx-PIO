@@ -1,5 +1,5 @@
 # Remora-STM32F4xx-PIO
-Port of Remora for STM32F4xx family of MCUs, using new Remora-Core abstraction.
+Port of Remora for STM32F4xx family of MCUs, using latest Remora-Core abstraction.
 
 # Status and Todos
 - JSON config loading - Working - no known issues
@@ -21,18 +21,18 @@ Port of Remora for STM32F4xx family of MCUs, using new Remora-Core abstraction.
 - Linker scripts
     - F446RE - Working - no known issues.
     - F446ZE - Working - no known issues.
-    - Octopus - Don't have access to one of these boards, but the firmware does build for it. Reach out if you want to complete this build with me.
-    - Fysect Spider - Will endeavour to set up a build option for this. 
-- Adhoc todos: 
+    - Octopus - Don't have access to one of these boards. The firmware does build, reach out if you have one and would like to collaborate. 
+    - Fysect Spider - Plans to have a build target for this. 
+- Other todos: 
     - Set up status LED as definable in platformIO.ini
     
 # Build instructions
 - In a new directory:
     - git clone https://github.com/ben-jacobson/Remora-STM32F4xx-PIO .
-- Move to the src/remora-core directory
+- Move to the src/remora-core directory and clone the core repo
     - cd src/remora-core
     - git clone https://github.com/ben-jacobson/remora-core .
-- Various in-dev features are available in branches for our fork of this repo
+- Various in-dev features are available in branches for our forks of these repos
     - git checkout *[feature_branch]*
 - Use Platform IO to select the build target and build/upload/debug.
     - If you want to use the debugger to step through code, set *default_envs* in platformio.ini to the build target of your choice 
@@ -54,7 +54,7 @@ Port of Remora for STM32F4xx family of MCUs, using new Remora-Core abstraction.
 - UART_TX: 
     - F446RE: PA_2
     - F446ZE: PD_8
-- UART_RX: - Firmware doesn't make use of RX, but left for completeness and future expansion
+- UART_RX: Firmware doesn't make use of RX, but left for completeness and future expansion
     - F446RE: PA_3
     - F446ZE: PD_9
 
@@ -67,7 +67,7 @@ Port of Remora for STM32F4xx family of MCUs, using new Remora-Core abstraction.
 - SDIO_CMD: PD_2  
 
 # Quadrature Encoder Interface (QEI)
-Remora has a dedicated hardware quadrature encoder module useful for high speed applications such as spindles or very high resolution encoders. Please note that this uses specific hardwired pins and two channels of one of the timer interfaces which may interfere with other features such as PWM outputs or analog inputs. These pins will not be effected if you do not include QEI in your config.txt 
+Remora has a dedicated hardware quadrature encoder module useful for high speed applications such as spindles or very high resolution encoders. Please note that this uses specific hardwired pins and two channels of one of the timer interfaces. These may interfere with other features such as PWM outputs or analog inputs and Remora has no way of warning you of this. You won't experience any clash if you don't include QEI in your config.txt.
 - CHA: PC_6
 - CHB: PC_7
 - Z/Index: PA_8
@@ -77,7 +77,7 @@ Please refer to the Remora documentation to configure GPIO to perform various fu
 Example config.txt files can be found in the LinuxCNC_Configs folder. 
 
 # Analog Inputs
-You may use the ADCs to read values from analog pins, this is useful for speed and feed override potentiomters. Have tested this only on PA_2 and PA_3 but theoretically all ADC enabled pins should work, provided they don't clash with other peripherals. It may allow for more than two, this is untested.
+You may use the ADCs to read values from analog pins, this is useful for speed and feed override potentiomters. This has been tested on PA_2 and PA_3 but theoretically all ADC enabled pins could work provided they don't clash with other peripherals. Using more than two ADC inputs has not been tested.
 
 # Hardware PWM
 Hardware PWM is available on a wide variety of pins depending on your hardware target. When setting up your config.txt file, you must choose a PWM enabled pin from the list provided. Specific STM32 Timers and Channels will been allocated by the driver automatically. Some important details about this: 
@@ -107,7 +107,7 @@ PWM compatible pins for smaller F446xx target are:
 | PB_14 | TIM1  | CH2N    | Inverted PA_9            | Working     |
 | PB_15 | TIM1  | CH3N    | Inverted PA_10           | Working     |
 
-Additional pins for larger F4 boards like the F446ZE
+Additional pins for larger boards like the F446ZE
 | Pin   | Timer | Channel | Notes                    | Tested?     |
 |-------|-------|---------|--------------------------|-------------|
 | PD_12 | TIM4  | CH1     |                          | Working     |
@@ -128,11 +128,6 @@ Additional pins for larger F4 boards like the F446ZE
 | PF_8  | TIM13 | CH1     |                          | Untested    |
 | PF_9  | TIM14 | CH1     |                          | Untested    |
  
-# Boards
-- Nucleo F446RE: In development
-- Nucleo F446ZE: In development
-- Octopus 446: To be tested
-
 ------------------------------------------
 
 # Installation instructions
@@ -156,11 +151,11 @@ https://remora-docs.readthedocs.io/en/latest/firmware/ethernet-config.html
 
 Board will not start until ethernet connection is established. 
 
-Credits to Scotta and Cakeslob and others that worked on Remora. Additional credit to Expatria Technologies and Terje IO. 
+Credits to Scotta and Cakeslob and others that worked on Remora. Additional thanks to Expatria Technologies and Terje IO for ideas.
 
 # Known issues and assorted notes
 - When using the Ethernet Comms, if you attempt to load a config before the unit has transitioned past the Start state, it can lock up.
-- Using the SPI version of this firmware does work and have tested with a Raspberry Pi 5 with 8Gb of RAM. However, am seeing following errors during rapid movements. Cannot be sure if this is something to do with our SPI code, maybe the RPi isn't up to the task or could also be an issue with the SPI component. The workaround is to either lower max velocity of rapid moves, or raise the ferror value. Unsure if this is indicative of a bigger problem, more testing is required. The Ethernet config has been tested on a full sized PC, but a good test could be to connect via Ethernet from an RPi4 or 5 to see if the issue can be replicated there too. 
+- Using the SPI version of this firmware does work and have tested with a Raspberry Pi 5 with 8Gb of RAM. However, am seeing following errors during rapid movements. Cannot be sure if this is something to do with our SPI code, maybe the RPi isn't up to the task or could also be an issue with the SPI component. The workaround is to either lower max velocity of rapid moves, or raise the ferror value. Unsure if this is indicative of a bigger problem such as the SPI handling code, more testing is required. The Ethernet config has been tested on a full sized PC, but a good test could be to connect via Ethernet from an RPi4 or 5 to see if the issue can be replicated there too. 
 - When using the SPI comms interface, the EXTI4 is not truly configurable despite it being settable in platformio.ini. Some handlers in irqHandler.h have this hard coded in as GPIO_4, changing this may break the comms interface. Use of EXT4 (PA_4 CS line) with other SPI2/3 is yet to be tested.
-- Noticed that STMHal makes heavy use of lock objects, not sure if keeping generic HAL Handlers as class members is going to work long term. See the Hardware PWM HAL code for more info on limitations, ideally each should be broken out as global objects so that the class can allocate shared resources. This issue may also creep up later with shared SPI and other handlers later on down the track
-- Lost packet detection in the W5500 Networking drivers only checks if new packets are loaded before handed over to the PRU. This works for now but could be improved later with a status check of Remora. Have not noticed any issues with lost packets, just thinking ahead for example if there was ever a need to run the base thread faster than the recommended 40Khz. 
+- Noticed that the STM32 Hal makes heavy use of lock objects, and it seems that keeping generic HAL Handlers as class members is not good practice. See the comments in Hardware PWM HAL code for more info on limitations and a good global handler/shared resources workaround.
+- There is some code for lost packet detection in the W5500 Networking driver, but it only checks if new packets are loaded before handed over to the PRU. This works for now but could be improved later with a status check of Remora. Have not noticed any issues with lost packets yet, just thinking ahead. For example I could see this becoming an issue if there was ever a need to run the base thread faster than the standard 40Khz. 
