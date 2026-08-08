@@ -54,12 +54,12 @@ void Hardware_QEI::init()
     ptrTimHandler->Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
 
     sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
-    sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+    sConfig.IC1Polarity = TIM_ICPOLARITY_FALLING;
     sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
     sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
     sConfig.IC1Filter = 10;
 
-    sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
+    sConfig.IC2Polarity = TIM_ICPOLARITY_FALLING;
     sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
     sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
     sConfig.IC2Filter = 10;
@@ -77,7 +77,7 @@ void Hardware_QEI::init()
         Error_Handler();
     }
 
-    if (HAL_TIM_Encoder_Start(ptrTimHandler, TIM_CHANNEL_2)!=HAL_OK)
+    if (HAL_TIM_Encoder_Start(ptrTimHandler, QEI_TIMER_INSTANCE)!=HAL_OK)
     {
         printf("Couldn't Start Encoder\r\n");
     }
