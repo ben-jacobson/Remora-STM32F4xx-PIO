@@ -77,7 +77,7 @@ void Hardware_QEI::init()
         Error_Handler();
     }
 
-    if (HAL_TIM_Encoder_Start(ptrTimHandler, QEI_TIMER_INSTANCE)!=HAL_OK)
+    if (HAL_TIM_Encoder_Start(ptrTimHandler, (uint32_t)QEI_TIMER_INSTANCE)!=HAL_OK)
     {
         printf("Couldn't Start Encoder\r\n");
     }
