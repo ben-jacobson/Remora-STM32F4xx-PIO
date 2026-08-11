@@ -87,7 +87,7 @@
             "Mode": "Input",
             "Modifier": "Pull Up",            
             "Data Bit": 1,
-            "Invert": "False"
+            "Invert": "True"
         },        
         {
             "Thread": "Servo",
@@ -97,7 +97,7 @@
             "Mode": "Input",
             "Modifier": "Pull Up",            
             "Data Bit": 2,
-            "Invert": "False"
+            "Invert": "True"
         },  
         {
             "Thread": "Servo",
@@ -107,7 +107,7 @@
             "Mode": "Input",
             "Modifier": "Pull Up",            
             "Data Bit": 3,
-            "Invert": "False"
+            "Invert": "True"
         },  
         {
             "Thread": "Servo",
@@ -117,7 +117,7 @@
             "Mode": "Input",
             "Modifier": "Pull Up",            
             "Data Bit": 4,
-            "Invert": "False"
+            "Invert": "True"
         },  
         {
             "Thread": "Servo",
@@ -127,7 +127,7 @@
             "Mode": "Input",
             "Modifier": "Pull Up",            
             "Data Bit": 5,
-            "Invert": "False"
+            "Invert": "True"
         },  
         {
             "Thread": "Servo",
@@ -137,7 +137,7 @@
             "Mode": "Input",
             "Modifier": "Pull Up",            
             "Data Bit": 6,
-            "Invert": "False"
+            "Invert": "True"
         },  
         {
             "Thread": "Servo",
@@ -147,7 +147,7 @@
             "Mode": "Input",
             "Modifier": "Pull Up",            
             "Data Bit": 7,
-            "Invert": "False"
+            "Invert": "True"
         },  
         {
             "Thread": "Servo",
@@ -157,7 +157,7 @@
             "Mode": "Input",
             "Modifier": "Pull Up",            
             "Data Bit": 8,
-            "Invert": "False"
+            "Invert": "True"
         },                                                  
         {
             "Thread": "Servo",
@@ -167,7 +167,7 @@
             "Mode": "Input",
             "Modifier": "Pull Up",            
             "Data Bit": 9,
-            "Invert": "False"
+            "Invert": "True"
         },  
         {
             "Thread": "Servo",
@@ -307,7 +307,7 @@
             "Thread": "Servo",
             "Type": "QEI",
             "Comment":                      "Spindle encoder",
-            "Modifier":                     "Pull Up",
+            "Modifier":                     "Pull None",
             "PV[i]":                        2,
             "Data Bit":                     16,
             "Enable Index":                 "True"            
