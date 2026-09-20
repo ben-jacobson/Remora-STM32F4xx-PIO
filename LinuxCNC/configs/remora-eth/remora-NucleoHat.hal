@@ -4,6 +4,11 @@
 loadrt [KINS]KINEMATICS
 loadrt [EMCMOT]EMCMOT base_period_nsec=[EMCMOT]BASE_PERIOD servo_period_nsec=[EMCMOT]SERVO_PERIOD num_joints=[KINS]JOINTS
 
+# 5-AXIS PIVOT POINT OFFSETS
+	setp xyzab_tdr_kins.x-offset 0.0
+	setp xyzab_tdr_kins.z-offset -45.25
+# IMPORTANT - YET TO TWEAK THE Z OFFSET POINT. DO WE NEED AN R OFFSET?
+
 # load the Remora real-time component
 	loadrt remora-eth-3.0 PRU_base_freq=40000
 
